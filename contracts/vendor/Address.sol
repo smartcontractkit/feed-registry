@@ -30,7 +30,9 @@ library Address {
 
         uint256 size;
         // solhint-disable-next-line no-inline-assembly
-        assembly { size := extcodesize(account) }
+        assembly {
+            size := extcodesize(account)
+        }
         return size > 0;
     }
 
@@ -77,7 +79,7 @@ library Address {
      * _Available since v3.1._
      */
     function functionCall(address target, bytes memory data) internal returns (bytes memory) {
-      return functionCall(target, data, "Address: low-level call failed");
+        return functionCall(target, data, "Address: low-level call failed");
     }
 
     /**
@@ -86,7 +88,11 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCall(address target, bytes memory data, string memory errorMessage) internal returns (bytes memory) {
+    function functionCall(
+        address target,
+        bytes memory data,
+        string memory errorMessage
+    ) internal returns (bytes memory) {
         return _functionCallWithValue(target, data, 0, errorMessage);
     }
 
@@ -101,7 +107,11 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCallWithValue(address target, bytes memory data, uint256 value) internal returns (bytes memory) {
+    function functionCallWithValue(
+        address target,
+        bytes memory data,
+        uint256 value
+    ) internal returns (bytes memory) {
         return functionCallWithValue(target, data, value, "Address: low-level call with value failed");
     }
 
@@ -111,12 +121,22 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCallWithValue(address target, bytes memory data, uint256 value, string memory errorMessage) internal returns (bytes memory) {
+    function functionCallWithValue(
+        address target,
+        bytes memory data,
+        uint256 value,
+        string memory errorMessage
+    ) internal returns (bytes memory) {
         require(address(this).balance >= value, "Address: insufficient balance for call");
         return _functionCallWithValue(target, data, value, errorMessage);
     }
 
-    function _functionCallWithValue(address target, bytes memory data, uint256 weiValue, string memory errorMessage) private returns (bytes memory) {
+    function _functionCallWithValue(
+        address target,
+        bytes memory data,
+        uint256 weiValue,
+        string memory errorMessage
+    ) private returns (bytes memory) {
         require(isContract(target), "Address: call to non-contract");
 
         // solhint-disable-next-line avoid-low-level-calls

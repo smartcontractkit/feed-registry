@@ -17,11 +17,11 @@ describe("FeedRegistry", function () {
 
     const greeting: string = "Hello, world!";
     const artifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
-    this.registry = <FeedRegistry>await deployContract(this.signers.admin, artifact, []);    
+    this.registry = <FeedRegistry>await deployContract(this.signers.admin, artifact, []);
   });
 
   //   TODO
   it("should pass", async function () {
-    expect(true).to.equal(true)
-  });  
+    expect(true).to.equal(true);
+  });
 });

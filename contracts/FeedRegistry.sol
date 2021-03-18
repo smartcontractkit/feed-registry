@@ -2,19 +2,23 @@
 
 pragma solidity 0.7.6;
 
-
 import "./interfaces/IFeedRegistry.sol";
 import "./vendor/Owned.sol";
+
 // import "./vendor/Address.sol";
 
 contract FeedRegistry is IFeedRegistry, Owned {
-    mapping(address => mapping(bytes32 => address)) private feeds; 
+    mapping(address => mapping(bytes32 => address)) private feeds;
 
     // constructor() {
     //     // TODO: accept an initial mapping?
     // }
 
-    function addFeed(address _asset, bytes32 _denomination, address _proxy) external override onlyOwner {
+    function addFeed(
+        address _asset,
+        bytes32 _denomination,
+        address _proxy
+    ) external override onlyOwner {
         _addFeed(_asset, _denomination, _proxy);
     }
 
@@ -22,11 +26,20 @@ contract FeedRegistry is IFeedRegistry, Owned {
         _removeFeed(_asset, _denomination);
     }
 
-    function getFeed(address _asset, bytes32 _denomination) external override view returns (AggregatorV3Interface proxy) {
+    function getFeed(address _asset, bytes32 _denomination)
+        external
+        view
+        override
+        returns (AggregatorV3Interface proxy)
+    {
         return AggregatorV3Interface(feeds[_asset][_denomination]);
     }
 
-    function _addFeed(address _asset, bytes32 _denomination, address _proxy) internal {
+    function _addFeed(
+        address _asset,
+        bytes32 _denomination,
+        address _proxy
+    ) internal {
         // require(_proxy.isContract(), "_proxy is not a contract");
         feeds[_asset][_denomination] = _proxy;
         // TODO: emit event
