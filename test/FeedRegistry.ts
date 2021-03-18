@@ -30,6 +30,10 @@ describe("FeedRegistry", function () {
 
   it("owner can add a feed", async function () {
     await this.registry.addFeed(ASSET_ADDRESS, USD, PROXY_ADDRESS);
+    await expect(this.registry.addFeed(ASSET_ADDRESS, USD, PROXY_ADDRESS))
+    .to.emit(this.registry, 'FeedAdded')
+    .withArgs(ASSET_ADDRESS, USD, PROXY_ADDRESS);
+  
 
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
     expect(feed).to.equal(PROXY_ADDRESS)
@@ -41,7 +45,9 @@ describe("FeedRegistry", function () {
 
   it("owner can remove a feed", async function () {
     await this.registry.addFeed(ASSET_ADDRESS, USD, PROXY_ADDRESS);
-    await this.registry.removeFeed(ASSET_ADDRESS, USD);
+    await expect(this.registry.removeFeed(ASSET_ADDRESS, USD))
+    .to.emit(this.registry, 'FeedRemoved')
+    .withArgs(ASSET_ADDRESS, USD, PROXY_ADDRESS);    
 
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
     expect(feed).to.equal(ethers.constants.AddressZero)

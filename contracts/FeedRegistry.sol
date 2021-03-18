@@ -15,7 +15,6 @@ contract FeedRegistry is IFeedRegistry, Owned {
     //     // TODO: accept an initial mapping?
     // }
 
-    // TODO: support multiple
     function addFeed(
         address _asset,
         bytes32 _denomination,
@@ -45,11 +44,12 @@ contract FeedRegistry is IFeedRegistry, Owned {
     ) internal {
         // require(_feed.isContract(), "_feed is not a contract");
         feeds[_asset][_denomination] = AggregatorV3Interface(_feed);
-        // TODO: emit event
+        emit FeedAdded(_asset, _denomination, _feed);
     }
 
     function _removeFeed(address _asset, bytes32 _denomination) internal {
+        address feed = address(feeds[_asset][_denomination]);
         delete feeds[_asset][_denomination];
-        // TODO: emit event
+        emit FeedRemoved(_asset, _denomination, feed);
     }
 }
