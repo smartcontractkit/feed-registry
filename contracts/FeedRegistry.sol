@@ -15,6 +15,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
     //     // TODO: accept an initial mapping?
     // }
 
+    // TODO: support multiple
     function addFeed(
         address _asset,
         bytes32 _denomination,
@@ -23,6 +24,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
         _addFeed(_asset, _denomination, _proxy);
     }
 
+    // TODO: support multiple
     function removeFeed(address _asset, bytes32 _denomination) external override onlyOwner {
         _removeFeed(_asset, _denomination);
     }
