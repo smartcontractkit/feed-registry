@@ -19,9 +19,9 @@ contract FeedRegistry is IFeedRegistry, Owned {
     function addFeed(
         address _asset,
         bytes32 _denomination,
-        address _proxy
+        address _feed
     ) external override onlyOwner {
-        _addFeed(_asset, _denomination, _proxy);
+        _addFeed(_asset, _denomination, _feed);
     }
 
     // TODO: support multiple
@@ -41,10 +41,10 @@ contract FeedRegistry is IFeedRegistry, Owned {
     function _addFeed(
         address _asset,
         bytes32 _denomination,
-        address _proxy
+        address _feed
     ) internal {
-        // require(_proxy.isContract(), "_proxy is not a contract");
-        feeds[_asset][_denomination] = AggregatorV3Interface(_proxy);
+        // require(_feed.isContract(), "_feed is not a contract");
+        feeds[_asset][_denomination] = AggregatorV3Interface(_feed);
         // TODO: emit event
     }
 
