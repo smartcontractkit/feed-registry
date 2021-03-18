@@ -14,6 +14,13 @@
 $ yarn install
 ```
 
+Create a `.env` following the `.env.example`:
+
+```
+INFURA_API_KEY=zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+MNEMONIC=here is where your twelve words mnemonic should be put my friend
+```
+
 ### Compile
 
 Compile the smart contracts with Hardhat:
