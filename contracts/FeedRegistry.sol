@@ -2,13 +2,14 @@
 
 pragma solidity 0.7.6;
 
+import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV3Interface.sol";
 import "./interfaces/IFeedRegistry.sol";
 import "./vendor/Owned.sol";
 
 // import "./vendor/Address.sol";
 
 contract FeedRegistry is IFeedRegistry, Owned {
-    mapping(address => mapping(bytes32 => address)) private feeds;
+    mapping(address => mapping(bytes32 => AggregatorV3Interface)) private feeds;
 
     // constructor() {
     //     // TODO: accept an initial mapping?
@@ -41,7 +42,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
         address _proxy
     ) internal {
         // require(_proxy.isContract(), "_proxy is not a contract");
-        feeds[_asset][_denomination] = _proxy;
+        feeds[_asset][_denomination] = AggregatorV3Interface(_proxy);
         // TODO: emit event
     }
 
