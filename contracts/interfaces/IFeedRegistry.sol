@@ -8,14 +8,12 @@ interface IFeedRegistry {
     event FeedAdded(address indexed asset, bytes32 indexed denomination, address indexed feed);
     event FeedRemoved(address indexed asset, bytes32 indexed denomination, address indexed feed);
 
-    function addFeed(
-        address _asset,
-        bytes32 _denomination,
-        address _feed
+    function addFeeds(
+        address[] calldata _assets,
+        bytes32[] calldata _denominations,
+        address[] calldata _feeds
     ) external;
-
-    function removeFeed(address _asset, bytes32 _denomination) external;
-
+    function removeFeeds(address[] calldata _assets, bytes32[] calldata _denominations) external;
     function getFeed(address _asset, bytes32 _denomination) external view returns (AggregatorV3Interface feed);
 
     // TODO

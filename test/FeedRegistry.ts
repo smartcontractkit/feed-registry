@@ -22,6 +22,8 @@ describe("FeedRegistry", function () {
 
     const registryArtifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
     this.registry = <FeedRegistry>await deployContract(this.signers.admin, registryArtifact, []);
+
+    // TODO: deploy chainlink/evm-contracts/src/v0.7/tests/MockV3Aggregator.sol
   });
 
   it("should initialize correctly", async function () {
@@ -29,23 +31,22 @@ describe("FeedRegistry", function () {
   });
 
   it("owner can add a feed", async function () {
-    await this.registry.addFeed(ASSET_ADDRESS, USD, PROXY_ADDRESS);
-    await expect(this.registry.addFeed(ASSET_ADDRESS, USD, PROXY_ADDRESS))
+    await this.registry.addFeeds([ASSET_ADDRESS], [USD], [PROXY_ADDRESS]);
+    await expect(this.registry.addFeeds([ASSET_ADDRESS], [USD], [PROXY_ADDRESS]))
     .to.emit(this.registry, 'FeedAdded')
     .withArgs(ASSET_ADDRESS, USD, PROXY_ADDRESS);
   
-
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
     expect(feed).to.equal(PROXY_ADDRESS)
   });
 
   it("non-owners cannot add a feed", async function () {
-    await expect(this.registry.connect(this.signers.stranger).addFeed(ASSET_ADDRESS, USD, PROXY_ADDRESS)).to.be.revertedWith('Only callable by owner');
+    await expect(this.registry.connect(this.signers.stranger).addFeeds([ASSET_ADDRESS], [USD], [PROXY_ADDRESS])).to.be.revertedWith('Only callable by owner');
   });
 
   it("owner can remove a feed", async function () {
-    await this.registry.addFeed(ASSET_ADDRESS, USD, PROXY_ADDRESS);
-    await expect(this.registry.removeFeed(ASSET_ADDRESS, USD))
+    await this.registry.addFeeds([ASSET_ADDRESS], [USD], [PROXY_ADDRESS]);
+    await expect(this.registry.removeFeeds([ASSET_ADDRESS], [USD]))
     .to.emit(this.registry, 'FeedRemoved')
     .withArgs(ASSET_ADDRESS, USD, PROXY_ADDRESS);    
 
@@ -54,8 +55,8 @@ describe("FeedRegistry", function () {
   });
 
   it("non-owners cannot remove a feed", async function () {
-    await this.registry.addFeed(ASSET_ADDRESS, USD, PROXY_ADDRESS);
-    await expect(this.registry.connect(this.signers.stranger).removeFeed(ASSET_ADDRESS, USD)).to.be.revertedWith('Only callable by owner');
+    await this.registry.addFeeds([ASSET_ADDRESS], [USD], [PROXY_ADDRESS]);
+    await expect(this.registry.connect(this.signers.stranger).removeFeeds([ASSET_ADDRESS], [USD])).to.be.revertedWith('Only callable by owner');
     
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
     expect(feed).to.equal(PROXY_ADDRESS)    

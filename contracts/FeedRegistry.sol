@@ -2,34 +2,52 @@
 
 pragma solidity 0.7.6;
 
-import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV3Interface.sol";
+import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV3Interface.sol"; // AggregatorV2V3 ?
 import "./interfaces/IFeedRegistry.sol";
 import "./vendor/Owned.sol";
-
 // import "./vendor/Address.sol";
 
 contract FeedRegistry is IFeedRegistry, Owned {
     mapping(address => mapping(bytes32 => AggregatorV3Interface)) private feeds;
 
-    // constructor() {
-    //     // TODO: accept an initial mapping?
-    // }
+    // address delegate 
+    // TODO: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/Proxy.sol
 
-    function addFeed(
-        address _asset,
-        bytes32 _denomination,
-        address _feed
+    /**
+    * @notice called by the owner to add feeds
+    * @param _assets is a list of asset / token addresses
+    * @param _denominations is a list of denomination identifiers
+    * @param _feeds is a list of feed addresses
+    */
+    function addFeeds(
+        address[] calldata _assets,
+        bytes32[] calldata _denominations,
+        address[] calldata _feeds
     ) external override onlyOwner {
-        _addFeed(_asset, _denomination, _feed);
+        require(_assets.length == _denominations.length, "need same assets and denominations count");
+        require(_assets.length == _feeds.length, "need same assets and feeds count");
+        for (uint256 i = 0; i < _assets.length; i++) {
+            _addFeed(_assets[i], _denominations[i], _feeds[i]);
+        }
     }
 
-    // TODO: support multiple
-    function removeFeed(address _asset, bytes32 _denomination) external override onlyOwner {
-        _removeFeed(_asset, _denomination);
+    /**
+    * @notice called by the owner to remove feeds
+    * @param _assets is a list of asset / token addresses
+    * @param _denominations is a list of denomination identifiers
+    */
+    function removeFeeds(address[] calldata _assets, bytes32[] calldata _denominations) external override onlyOwner {
+        require(_assets.length == _denominations.length, "need same assets and denominations count");
+        for (uint256 i = 0; i < _assets.length; i++) {
+            _removeFeed(_assets[i], _denominations[i]);
+        }
     }
 
+    /**
+    * @notice retrieve the feed of an _asset / _denomination pair
+    */
     function getFeed(address _asset, bytes32 _denomination)
-        external
+        public
         view
         override
         returns (AggregatorV3Interface proxy)
@@ -52,4 +70,11 @@ contract FeedRegistry is IFeedRegistry, Owned {
         delete feeds[_asset][_denomination];
         emit FeedRemoved(_asset, _denomination, feed);
     }
+
+    // function getPrice(address _asset, bytes32 _denomination) external view returns (int256 price) {
+    //   AggregatorV3Interface feed = getFeed(feeds[_asset][_denomination]);
+    //   price = feed.latestAnswer();
+    // }
+
+    // getLatestPrice()
 }
