@@ -17,8 +17,9 @@ jobs:
         node-version: [14.x]
     env:
       CI: true
+      MNEMONIC: novel mobile inform nurse circle spoon cricket soup crowd clip hawk glad
+      INFURA_API_KEY: e0236555533346009dd59e7a1786a660
     runs-on: ${{ matrix.platform }}
-
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
