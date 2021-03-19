@@ -61,7 +61,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
     * @notice retrieve the latest answer of a feed, given an _asset / _denomination pair
     * or reverts if feed is either unset or has not granted access
     */
-    function getPrice(address _asset, bytes32 _denomination) external view returns (int256 price) {
+    function getPrice(address _asset, bytes32 _denomination) external override view returns (int256 price) {
       AggregatorV2V3Interface feed = getFeed(_asset, _denomination);
       price = feed.latestAnswer();
     }
