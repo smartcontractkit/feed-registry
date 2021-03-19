@@ -2,13 +2,13 @@
 
 pragma solidity 0.7.6;
 
-import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV3Interface.sol"; // AggregatorV2V3 ?
+import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./interfaces/IFeedRegistry.sol";
 import "./vendor/Owned.sol";
 // import "./vendor/Address.sol";
 
 contract FeedRegistry is IFeedRegistry, Owned {
-    mapping(address => mapping(bytes32 => AggregatorV3Interface)) private feeds;
+    mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) private feeds;
 
     // address delegate 
     // TODO: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/Proxy.sol
@@ -50,9 +50,9 @@ contract FeedRegistry is IFeedRegistry, Owned {
         public
         view
         override
-        returns (AggregatorV3Interface proxy)
+        returns (AggregatorV2V3Interface proxy)
     {
-        return AggregatorV3Interface(feeds[_asset][_denomination]);
+        return AggregatorV2V3Interface(feeds[_asset][_denomination]);
     }
 
     function _addFeed(
@@ -61,7 +61,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
         address _feed
     ) internal {
         // require(_feed.isContract(), "_feed is not a contract");
-        feeds[_asset][_denomination] = AggregatorV3Interface(_feed);
+        feeds[_asset][_denomination] = AggregatorV2V3Interface(_feed);
         emit FeedAdded(_asset, _denomination, _feed);
     }
 
@@ -72,7 +72,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
     }
 
     // function getPrice(address _asset, bytes32 _denomination) external view returns (int256 price) {
-    //   AggregatorV3Interface feed = getFeed(feeds[_asset][_denomination]);
+    //   AggregatorV2V3Interface feed = getFeed(feeds[_asset][_denomination]);
     //   price = feed.latestAnswer();
     // }
 
