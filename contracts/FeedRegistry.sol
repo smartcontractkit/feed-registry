@@ -5,9 +5,11 @@ pragma solidity 0.7.6;
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./interfaces/IFeedRegistry.sol";
 import "./vendor/Owned.sol";
-// import "./vendor/Address.sol";
+import "./vendor/Address.sol";
 
 contract FeedRegistry is IFeedRegistry, Owned {
+    using Address for address;
+
     mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) private feeds;
 
     // address delegate 
@@ -60,7 +62,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
         bytes32 _denomination,
         address _feed
     ) internal {
-        // require(_feed.isContract(), "_feed is not a contract");
+        require(_feed.isContract(), "_feed is not a contract");
         feeds[_asset][_denomination] = AggregatorV2V3Interface(_feed);
         emit FeedAdded(_asset, _denomination, _feed);
     }
@@ -71,10 +73,8 @@ contract FeedRegistry is IFeedRegistry, Owned {
         emit FeedRemoved(_asset, _denomination, feed);
     }
 
-    // function getPrice(address _asset, bytes32 _denomination) external view returns (int256 price) {
-    //   AggregatorV2V3Interface feed = getFeed(feeds[_asset][_denomination]);
-    //   price = feed.latestAnswer();
-    // }
-
-    // getLatestPrice()
+    function getPrice(address _asset, bytes32 _denomination) external view returns (int256 price) {
+      AggregatorV2V3Interface feed = getFeed(_asset, _denomination);
+      price = feed.latestAnswer();
+    }
 }

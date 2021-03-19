@@ -2,7 +2,7 @@
 import { Fixture } from "ethereum-waffle";
 
 import { Signers } from "./";
-import { FeedRegistry } from "../typechain";
+import { AggregatorV2V3Interface, FeedRegistry } from "../typechain";
 
 declare module "mocha" {
   export interface Context {
