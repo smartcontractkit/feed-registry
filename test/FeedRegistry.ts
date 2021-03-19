@@ -9,21 +9,21 @@ import { deployMockContract } from "ethereum-waffle";
 import { shouldBehaveLikeOwned } from "./Owned.behaviour";
 
 const { deployContract } = hre.waffle;
-const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001"
-const USD = utils.keccak256(utils.toUtf8Bytes("USD"))
-const TEST_PRICE = utils.parseEther('999999')
+const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
+const USD = utils.keccak256(utils.toUtf8Bytes("USD"));
+const TEST_PRICE = utils.parseEther("999999");
 
 describe("FeedRegistry", function () {
   beforeEach(async function () {
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await hre.ethers.getSigners();
     this.signers.owner = signers[0];
-    this.signers.stranger = signers[1];    
+    this.signers.stranger = signers[1];
 
     const registryArtifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
     this.registry = <FeedRegistry>await deployContract(this.signers.owner, registryArtifact, []);
 
-    const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface")
+    const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
   });
 
@@ -34,33 +34,37 @@ describe("FeedRegistry", function () {
   it("owner can add a feed", async function () {
     await this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
     await expect(this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]))
-    .to.emit(this.registry, 'FeedAdded')
-    .withArgs(ASSET_ADDRESS, USD, this.feed.address);
-  
+      .to.emit(this.registry, "FeedAdded")
+      .withArgs(ASSET_ADDRESS, USD, this.feed.address);
+
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
-    expect(feed).to.equal(this.feed.address)
+    expect(feed).to.equal(this.feed.address);
   });
 
   it("non-owners cannot add a feed", async function () {
-    await expect(this.registry.connect(this.signers.stranger).addFeeds([ASSET_ADDRESS], [USD], [this.feed.address])).to.be.revertedWith('Only callable by owner');
+    await expect(
+      this.registry.connect(this.signers.stranger).addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]),
+    ).to.be.revertedWith("Only callable by owner");
   });
 
   it("owner can remove a feed", async function () {
     await this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
     await expect(this.registry.removeFeeds([ASSET_ADDRESS], [USD]))
-    .to.emit(this.registry, 'FeedRemoved')
-    .withArgs(ASSET_ADDRESS, USD, this.feed.address);    
+      .to.emit(this.registry, "FeedRemoved")
+      .withArgs(ASSET_ADDRESS, USD, this.feed.address);
 
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
-    expect(feed).to.equal(ethers.constants.AddressZero)
+    expect(feed).to.equal(ethers.constants.AddressZero);
   });
 
   it("non-owners cannot remove a feed", async function () {
     await this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
-    await expect(this.registry.connect(this.signers.stranger).removeFeeds([ASSET_ADDRESS], [USD])).to.be.revertedWith('Only callable by owner');
-    
+    await expect(this.registry.connect(this.signers.stranger).removeFeeds([ASSET_ADDRESS], [USD])).to.be.revertedWith(
+      "Only callable by owner",
+    );
+
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
-    expect(feed).to.equal(this.feed.address)    
+    expect(feed).to.equal(this.feed.address);
   });
 
   it("getPrice returns the latest answer of a feed", async function () {
@@ -68,12 +72,14 @@ describe("FeedRegistry", function () {
     await this.feed.mock.latestAnswer.returns(TEST_PRICE); // Mock feed response
 
     const price = await this.registry.getPrice(ASSET_ADDRESS, USD);
-    expect(price).to.equal(TEST_PRICE)    
+    expect(price).to.equal(TEST_PRICE);
   });
 
   it("getPrice should revert for a non-existent feed", async function () {
-    await expect(this.registry.getPrice(ASSET_ADDRESS, USD)).to.be.revertedWith('function call to a non-contract account');
-  });  
+    await expect(this.registry.getPrice(ASSET_ADDRESS, USD)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
+  });
 
   shouldBehaveLikeOwned();
 });

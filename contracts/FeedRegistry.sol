@@ -12,15 +12,15 @@ contract FeedRegistry is IFeedRegistry, Owned {
 
     mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) private feeds;
 
-    // address delegate 
+    // address delegate
     // TODO: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/Proxy.sol
 
     /**
-    * @notice called by the owner to add feeds
-    * @param _assets is a list of asset / token addresses
-    * @param _denominations is a list of denomination identifiers
-    * @param _feeds is a list of feed addresses
-    */
+     * @notice called by the owner to add feeds
+     * @param _assets is a list of asset / token addresses
+     * @param _denominations is a list of denomination identifiers
+     * @param _feeds is a list of feed addresses
+     */
     function addFeeds(
         address[] calldata _assets,
         bytes32[] calldata _denominations,
@@ -34,10 +34,10 @@ contract FeedRegistry is IFeedRegistry, Owned {
     }
 
     /**
-    * @notice called by the owner to remove feeds
-    * @param _assets is a list of asset / token addresses
-    * @param _denominations is a list of denomination identifiers
-    */
+     * @notice called by the owner to remove feeds
+     * @param _assets is a list of asset / token addresses
+     * @param _denominations is a list of denomination identifiers
+     */
     function removeFeeds(address[] calldata _assets, bytes32[] calldata _denominations) external override onlyOwner {
         require(_assets.length == _denominations.length, "need same assets and denominations count");
         for (uint256 i = 0; i < _assets.length; i++) {
@@ -46,8 +46,8 @@ contract FeedRegistry is IFeedRegistry, Owned {
     }
 
     /**
-    * @notice retrieve the feed of an _asset / _denomination pair
-    */
+     * @notice retrieve the feed of an _asset / _denomination pair
+     */
     function getFeed(address _asset, bytes32 _denomination)
         public
         view
@@ -58,12 +58,12 @@ contract FeedRegistry is IFeedRegistry, Owned {
     }
 
     /**
-    * @notice retrieve the latest answer of a feed, given an _asset / _denomination pair
-    * or reverts if feed is either unset or has not granted access
-    */
-    function getPrice(address _asset, bytes32 _denomination) external override view returns (int256 price) {
-      AggregatorV2V3Interface feed = getFeed(_asset, _denomination);
-      price = feed.latestAnswer();
+     * @notice retrieve the latest answer of a feed, given an _asset / _denomination pair
+     * or reverts if feed is either unset or has not granted access
+     */
+    function getPrice(address _asset, bytes32 _denomination) external view override returns (int256 price) {
+        AggregatorV2V3Interface feed = getFeed(_asset, _denomination);
+        price = feed.latestAnswer();
     }
 
     function _addFeed(
