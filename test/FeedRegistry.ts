@@ -11,9 +11,10 @@ import { shouldBehaveLikeOwned } from "./Owned.behaviour";
 const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001"
 const USD = utils.keccak256(utils.toUtf8Bytes("USD"))
+const TEST_PRICE = utils.parseEther('999999')
 
 describe("FeedRegistry", function () {
-  before(async function () {
+  beforeEach(async function () {
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await hre.ethers.getSigners();
     this.signers.owner = signers[0];
@@ -61,6 +62,18 @@ describe("FeedRegistry", function () {
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
     expect(feed).to.equal(this.feed.address)    
   });
+
+  it("getPrice returns the latest answer of a feed", async function () {
+    await this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
+    await this.feed.mock.latestAnswer.returns(TEST_PRICE); // Mock feed response
+
+    const price = await this.registry.getPrice(ASSET_ADDRESS, USD);
+    expect(price).to.equal(TEST_PRICE)    
+  });
+
+  it("getPrice should revert for a non-existent feed", async function () {
+    await expect(this.registry.getPrice(ASSET_ADDRESS, USD)).to.be.revertedWith('function call to a non-contract account');
+  });  
 
   shouldBehaveLikeOwned();
 });

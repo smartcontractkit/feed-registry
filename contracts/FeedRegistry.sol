@@ -57,6 +57,15 @@ contract FeedRegistry is IFeedRegistry, Owned {
         return AggregatorV2V3Interface(feeds[_asset][_denomination]);
     }
 
+    /**
+    * @notice retrieve the latest answer of a feed, given an _asset / _denomination pair
+    * or reverts if feed is either unset or has not granted access
+    */
+    function getPrice(address _asset, bytes32 _denomination) external view returns (int256 price) {
+      AggregatorV2V3Interface feed = getFeed(_asset, _denomination);
+      price = feed.latestAnswer();
+    }
+
     function _addFeed(
         address _asset,
         bytes32 _denomination,
@@ -71,10 +80,5 @@ contract FeedRegistry is IFeedRegistry, Owned {
         address feed = address(feeds[_asset][_denomination]);
         delete feeds[_asset][_denomination];
         emit FeedRemoved(_asset, _denomination, feed);
-    }
-
-    function getPrice(address _asset, bytes32 _denomination) external view returns (int256 price) {
-      AggregatorV2V3Interface feed = getFeed(_asset, _denomination);
-      price = feed.latestAnswer();
     }
 }

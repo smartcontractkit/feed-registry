@@ -61,6 +61,12 @@ Run the Mocha tests:
 $ yarn test
 ```
 
+To run a single test:
+
+```sh
+$ yarn test test/FeedRegistry.ts
+```
+
 ### Coverage
 
 Generate the code coverage report:
