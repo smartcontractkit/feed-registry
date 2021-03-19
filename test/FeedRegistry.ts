@@ -1,16 +1,14 @@
 import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-
 import { FeedRegistry } from "../typechain/FeedRegistry";
 import { Signers } from "../types";
 import { expect } from "chai";
 import { ethers, utils } from "ethers";
-import { AggregatorV2V3Interface } from "../typechain";
 import { deployMockContract } from "ethereum-waffle";
+import { shouldBehaveLikeOwned } from "./Owned.behaviour";
 
 const { deployContract } = hre.waffle;
-
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001"
 const USD = utils.keccak256(utils.toUtf8Bytes("USD"))
 
@@ -18,18 +16,18 @@ describe("FeedRegistry", function () {
   before(async function () {
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await hre.ethers.getSigners();
-    this.signers.admin = signers[0];
+    this.signers.owner = signers[0];
     this.signers.stranger = signers[1];    
 
     const registryArtifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
-    this.registry = <FeedRegistry>await deployContract(this.signers.admin, registryArtifact, []);
+    this.registry = <FeedRegistry>await deployContract(this.signers.owner, registryArtifact, []);
 
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface")
-    this.feed = await deployMockContract(this.signers.admin, aggregatorArtifact.abi);
+    this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
   });
 
   it("should initialize correctly", async function () {
-    expect(await this.registry.owner()).to.equal(this.signers.admin.address);
+    expect(await this.registry.owner()).to.equal(this.signers.owner.address);
   });
 
   it("owner can add a feed", async function () {
@@ -63,4 +61,6 @@ describe("FeedRegistry", function () {
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
     expect(feed).to.equal(this.feed.address)    
   });
+
+  shouldBehaveLikeOwned();
 });
