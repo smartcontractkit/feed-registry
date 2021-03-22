@@ -32,10 +32,22 @@ describe("FeedRegistry", function () {
   });
 
   it("owner can add a feed", async function () {
-    await this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
     await expect(this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]))
       .to.emit(this.registry, "FeedAdded")
       .withArgs(ASSET_ADDRESS, USD, this.feed.address);
+
+    const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
+    expect(feed).to.equal(this.feed.address);
+  });
+
+  it("subsequent add feeds should not emit events", async function () {
+    await expect(this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]))
+      .to.emit(this.registry, "FeedAdded")
+      .withArgs(ASSET_ADDRESS, USD, this.feed.address);
+    await expect(this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address])).to.not.emit(
+      this.registry,
+      "FeedAdded",
+    );
 
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
     expect(feed).to.equal(this.feed.address);
