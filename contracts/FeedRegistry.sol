@@ -74,13 +74,12 @@ contract FeedRegistry is IFeedRegistry, Owned {
         require(_feed.isContract(), "_feed is not a contract");
         if (feeds[_asset][_denomination] != AggregatorV2V3Interface(_feed)) {
             feeds[_asset][_denomination] = AggregatorV2V3Interface(_feed);
-            emit FeedAdded(_asset, _denomination, _feed);
+            emit FeedUpdated(_asset, _denomination, _feed);
         }
     }
 
     function _removeFeed(address _asset, bytes32 _denomination) internal {
-        address feed = address(feeds[_asset][_denomination]);
         delete feeds[_asset][_denomination];
-        emit FeedRemoved(_asset, _denomination, feed);
+        emit FeedUpdated(_asset, _denomination, address(0));
     }
 }
