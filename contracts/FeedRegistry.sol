@@ -10,10 +10,7 @@ import "./vendor/Address.sol";
 contract FeedRegistry is IFeedRegistry, Owned {
     using Address for address;
 
-    mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) private feeds;
-
-    // address delegate
-    // TODO: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/Proxy.sol
+    mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) internal feeds;
 
     /**
      * @notice called by the owner to add feeds
@@ -55,15 +52,6 @@ contract FeedRegistry is IFeedRegistry, Owned {
         returns (AggregatorV2V3Interface proxy)
     {
         return AggregatorV2V3Interface(feeds[_asset][_denomination]);
-    }
-
-    /**
-     * @notice retrieve the latest answer of a feed, given an _asset / _denomination pair
-     * or reverts if feed is either unset or has not granted access
-     */
-    function getPrice(address _asset, bytes32 _denomination) external view override returns (int256 price) {
-        AggregatorV2V3Interface feed = getFeed(_asset, _denomination);
-        price = feed.latestAnswer();
     }
 
     function _addFeed(

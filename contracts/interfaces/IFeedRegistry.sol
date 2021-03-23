@@ -16,6 +16,4 @@ interface IFeedRegistry {
     function removeFeeds(address[] calldata _assets, bytes32[] calldata _denominations) external;
 
     function getFeed(address _asset, bytes32 _denomination) external view returns (AggregatorV2V3Interface feed);
-
-    function getPrice(address _asset, bytes32 _denomination) external view returns (int256 answer);
 }

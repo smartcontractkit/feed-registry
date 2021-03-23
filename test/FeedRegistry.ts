@@ -79,19 +79,5 @@ describe("FeedRegistry", function () {
     expect(feed).to.equal(this.feed.address);
   });
 
-  it("getPrice returns the latest answer of a feed", async function () {
-    await this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
-    await this.feed.mock.latestAnswer.returns(TEST_PRICE); // Mock feed response
-
-    const price = await this.registry.getPrice(ASSET_ADDRESS, USD);
-    expect(price).to.equal(TEST_PRICE);
-  });
-
-  it("getPrice should revert for a non-existent feed", async function () {
-    await expect(this.registry.getPrice(ASSET_ADDRESS, USD)).to.be.revertedWith(
-      "function call to a non-contract account",
-    );
-  });
-
   shouldBehaveLikeOwned();
 });
