@@ -46,7 +46,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
    * @notice retrieve the feed of an _asset / _denomination pair
    */
   function getFeed(address _asset, bytes32 _denomination) public view override returns (AggregatorV2V3Interface proxy) {
-    return AggregatorV2V3Interface(feeds[_asset][_denomination]);
+    return AggregatorV2V3Interface(s_feeds[_asset][_denomination]);
   }
 
   function _addFeed(
@@ -55,14 +55,14 @@ contract FeedRegistry is IFeedRegistry, Owned {
     address _feed
   ) internal {
     require(_feed.isContract(), "_feed is not a contract");
-    if (feeds[_asset][_denomination] != AggregatorV2V3Interface(_feed)) {
-      feeds[_asset][_denomination] = AggregatorV2V3Interface(_feed);
+    if (s_feeds[_asset][_denomination] != AggregatorV2V3Interface(_feed)) {
+      s_feeds[_asset][_denomination] = AggregatorV2V3Interface(_feed);
       emit FeedUpdated(_asset, _denomination, _feed);
     }
   }
 
   function _removeFeed(address _asset, bytes32 _denomination) internal {
-    delete feeds[_asset][_denomination];
+    delete s_feeds[_asset][_denomination];
     emit FeedUpdated(_asset, _denomination, address(0));
   }
 }
