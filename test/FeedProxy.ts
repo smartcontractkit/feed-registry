@@ -85,4 +85,29 @@ describe("FeedProxy", function () {
       this.proxy.connect(this.signers.stranger).setController(ASSET_ADDRESS, USD, this.accessController.address),
     ).to.be.revertedWith("Only callable by owner");
   });
+
+  it("access controls should work for getter", async function () {
+    await this.proxy.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
+    await this.feed.mock.latestAnswer.returns(TEST_PRICE); // Mock feed response
+
+    // Access control is disabled when no controller is set
+    expect(await this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.equal(TEST_PRICE);
+
+    // Should revert because access is set to false
+    await this.proxy.setController(ASSET_ADDRESS, USD, this.accessController.address);
+    const msgData = this.proxy.interface.encodeFunctionData("latestAnswer", [ASSET_ADDRESS, USD]);
+    await this.accessController.mock.hasAccess
+      .withArgs(this.signers.stranger.address, msgData)
+      .returns(false); // Mock controller access
+    await this.feed.mock.latestAnswer.returns(TEST_PRICE); // Mock feed response
+    await expect(this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.be.revertedWith(
+      "No access",
+    );
+
+    // Should pass because access is set to true
+    await this.accessController.mock.hasAccess
+      .withArgs(this.signers.stranger.address, msgData)
+      .returns(true); // Mock controller access
+    expect(await this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.equal(TEST_PRICE);
+  });
 });

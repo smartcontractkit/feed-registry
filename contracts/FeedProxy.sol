@@ -36,7 +36,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     external
     view
     override
-    // TODO: access control
+    checkAccess(asset, denomination)
     returns (int256 price) 
   {
     AggregatorV2V3Interface feed = getFeed(asset, denomination);
@@ -50,7 +50,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     external
     view
     override
-    // TODO: access control
+    checkAccess(asset, denomination)
     returns (uint256 timestamp) 
   {
     AggregatorV2V3Interface feed = getFeed(asset, denomination);
@@ -64,7 +64,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     external
     view
     override
-    // TODO: access control
+    checkAccess(asset, denomination)
     returns (
       uint256 roundId
     ) 
@@ -75,14 +75,16 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
 
   // TODO: full support for other getters e.g. latestRoundData
 
-  // TODO: checkAccess modifier
   /**
    * @dev reverts if the caller does not have access by the accessController
    * contract or is the contract itself.
    */
-  // modifier checkAccess() {
-  //   AccessControllerInterface ac = accessController;
-  //   require(address(ac) == address(0) || ac.hasAccess(msg.sender, msg.data), "No access");
-  //   _;
-  // }
+  modifier checkAccess(
+    address asset,
+    bytes32 denomination
+  ) {
+    AccessControllerInterface ac = accessControllers[asset][denomination];
+    require(address(ac) == address(0) || ac.hasAccess(msg.sender, msg.data), "No access");
+    _;
+  }
 }
