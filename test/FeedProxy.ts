@@ -68,5 +68,5 @@ describe("FeedProxy", function () {
     await expect(this.registry.latestRound(ASSET_ADDRESS, USD)).to.be.revertedWith(
       "function call to a non-contract account",
     );
-  });  
+  });
 });

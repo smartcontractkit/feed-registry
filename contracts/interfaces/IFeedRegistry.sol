@@ -31,4 +31,13 @@ interface IFeedRegistry {
     returns (
       AggregatorV2V3Interface feed
     );
+
+  function isFeedEnabled(
+    AggregatorV2V3Interface feed
+  )
+    external
+    view
+    returns (
+      bool
+    );
 }

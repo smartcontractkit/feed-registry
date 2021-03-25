@@ -10,7 +10,8 @@ import "./vendor/Address.sol";
 contract FeedRegistry is IFeedRegistry, Owned {
   using Address for address;
 
-  mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) internal sfeeds;
+  mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) internal s_feeds;
+  mapping(AggregatorV2V3Interface => bool) internal s_isEnabled;
 
   /**
    * @notice called by the owner to add feeds
@@ -67,20 +68,38 @@ contract FeedRegistry is IFeedRegistry, Owned {
       AggregatorV2V3Interface feed
     )
   {
-    return AggregatorV2V3Interface(sfeeds[asset][denomination]);
+    return AggregatorV2V3Interface(s_feeds[asset][denomination]);
+  }
+
+  /**
+   * @notice returns true if a feed is enabled for any pair
+   */
+  function isFeedEnabled(
+    AggregatorV2V3Interface feed
+  )
+    public
+    override
+    view
+    returns (
+      bool
+    )
+  {
+    return s_isEnabled[feed];
   }
 
   function _addFeed(
     address asset,
     bytes32 denomination,
-    address feed
+    address feedAddress
   )
     internal
   {
-    require(feed.isContract(), "feed is not a contract");
-    if (sfeeds[asset][denomination] != AggregatorV2V3Interface(feed)) {
-      sfeeds[asset][denomination] = AggregatorV2V3Interface(feed);
-      emit FeedSet(asset, denomination, feed);
+    require(feedAddress.isContract(), "feed is not a contract");
+    AggregatorV2V3Interface feed = AggregatorV2V3Interface(feedAddress);
+    if (s_feeds[asset][denomination] != feed) {
+      s_feeds[asset][denomination] = feed;
+      s_isEnabled[feed] = true;
+      emit FeedSet(asset, denomination, feedAddress);
     }
   }
 
@@ -90,7 +109,9 @@ contract FeedRegistry is IFeedRegistry, Owned {
   )
     internal
   {
-    delete sfeeds[asset][denomination];
+    AggregatorV2V3Interface feed = s_feeds[asset][denomination];
+    delete s_feeds[asset][denomination];
+    s_isEnabled[feed] = false;
     emit FeedSet(asset, denomination, address(0));
   }
 }

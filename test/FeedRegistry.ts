@@ -38,6 +38,9 @@ describe("FeedRegistry", function () {
 
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
     expect(feed).to.equal(this.feed.address);
+
+    const isFeedEnabled = await this.registry.isFeedEnabled(feed);
+    expect(isFeedEnabled);
   });
 
   it("subsequent add feeds should not emit events", async function () {
@@ -67,6 +70,9 @@ describe("FeedRegistry", function () {
 
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
     expect(feed).to.equal(ethers.constants.AddressZero);
+
+    const isFeedEnabled = await this.registry.isFeedEnabled(feed);
+    expect(isFeedEnabled).to.equal(false);
   });
 
   it("non-owners cannot remove a feed", async function () {
