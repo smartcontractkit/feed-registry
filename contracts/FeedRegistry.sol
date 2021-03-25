@@ -63,7 +63,9 @@ contract FeedRegistry is IFeedRegistry, Owned {
     public
     view
     override
-    returns (AggregatorV2V3Interface feed)
+    returns (
+      AggregatorV2V3Interface feed
+    )
   {
     return AggregatorV2V3Interface(s_feeds[_asset][_denomination]);
   }
@@ -78,7 +80,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
     require(_feed.isContract(), "_feed is not a contract");
     if (s_feeds[_asset][_denomination] != AggregatorV2V3Interface(_feed)) {
       s_feeds[_asset][_denomination] = AggregatorV2V3Interface(_feed);
-      emit FeedUpdated(_asset, _denomination, _feed);
+      emit FeedSet(_asset, _denomination, _feed);
     }
   }
 
@@ -89,6 +91,6 @@ contract FeedRegistry is IFeedRegistry, Owned {
     internal
   {
     delete s_feeds[_asset][_denomination];
-    emit FeedUpdated(_asset, _denomination, address(0));
+    emit FeedSet(_asset, _denomination, address(0));
   }
 }

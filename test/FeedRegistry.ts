@@ -33,7 +33,7 @@ describe("FeedRegistry", function () {
 
   it("owner can add a feed", async function () {
     await expect(this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]))
-      .to.emit(this.registry, "FeedUpdated")
+      .to.emit(this.registry, "FeedSet")
       .withArgs(ASSET_ADDRESS, USD, this.feed.address);
 
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
@@ -42,11 +42,11 @@ describe("FeedRegistry", function () {
 
   it("subsequent add feeds should not emit events", async function () {
     await expect(this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]))
-      .to.emit(this.registry, "FeedUpdated")
+      .to.emit(this.registry, "FeedSet")
       .withArgs(ASSET_ADDRESS, USD, this.feed.address);
     await expect(this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address])).to.not.emit(
       this.registry,
-      "FeedUpdated",
+      "FeedSet",
     );
 
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
@@ -62,7 +62,7 @@ describe("FeedRegistry", function () {
   it("owner can remove a feed", async function () {
     await this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
     await expect(this.registry.removeFeeds([ASSET_ADDRESS], [USD]))
-      .to.emit(this.registry, "FeedUpdated")
+      .to.emit(this.registry, "FeedSet")
       .withArgs(ASSET_ADDRESS, USD, ethers.constants.AddressZero);
 
     const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
