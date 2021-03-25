@@ -10,35 +10,35 @@ import "./vendor/Address.sol";
 contract FeedRegistry is IFeedRegistry, Owned {
   using Address for address;
 
-  mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) internal feeds;
+  mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) internal s_feeds;
 
   /**
    * @notice called by the owner to add feeds
-   * @param _assets is a list of asset / token addresses
-   * @param _denominations is a list of denomination identifiers
-   * @param _feeds is a list of feed addresses
+   * @param assets is a list of asset / token addresses
+   * @param denominations is a list of denomination identifiers
+   * @param feeds is a list of feed addresses
    */
   function addFeeds(
-    address[] calldata _assets,
-    bytes32[] calldata _denominations,
-    address[] calldata _feeds
-  ) external override onlyOwner {
-    require(_assets.length == _denominations.length, "need same assets and denominations count");
-    require(_assets.length == _feeds.length, "need same assets and feeds count");
-    for (uint256 i = 0; i < _assets.length; i++) {
-      _addFeed(_assets[i], _denominations[i], _feeds[i]);
+    address[] calldata assets,
+    bytes32[] calldata denominations,
+    address[] calldata feeds
+  ) external override onlyOwner() {
+    require(assets.length == denominations.length, "need same assets and denominations count");
+    require(assets.length == feeds.length, "need same assets and feeds count");
+    for (uint256 i = 0; i < assets.length; i++) {
+      _addFeed(assets[i], denominations[i], feeds[i]);
     }
   }
 
   /**
    * @notice called by the owner to remove feeds
-   * @param _assets is a list of asset / token addresses
-   * @param _denominations is a list of denomination identifiers
+   * @param assets is a list of asset / token addresses
+   * @param denominations is a list of denomination identifiers
    */
-  function removeFeeds(address[] calldata _assets, bytes32[] calldata _denominations) external override onlyOwner {
-    require(_assets.length == _denominations.length, "need same assets and denominations count");
-    for (uint256 i = 0; i < _assets.length; i++) {
-      _removeFeed(_assets[i], _denominations[i]);
+  function removeFeeds(address[] calldata assets, bytes32[] calldata denominations) external override onlyOwner() {
+    require(assets.length == denominations.length, "need same assets and denominations count");
+    for (uint256 i = 0; i < assets.length; i++) {
+      _removeFeed(assets[i], denominations[i]);
     }
   }
 
