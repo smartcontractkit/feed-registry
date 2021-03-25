@@ -29,5 +29,18 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     price = feed.latestAnswer();
   }
 
+  function latestTimestamp(
+    address _asset, 
+    bytes32 _denomination
+  )
+    external
+    view
+    override
+    returns (uint256 timestamp) 
+  {
+    AggregatorV2V3Interface feed = getFeed(_asset, _denomination);
+    timestamp = feed.latestTimestamp();
+  }
+
   // TODO: full support for other getters
 }
