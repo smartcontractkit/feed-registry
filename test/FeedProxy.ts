@@ -21,52 +21,69 @@ describe("FeedProxy", function () {
     this.signers.owner = signers[0];
     this.signers.stranger = signers[1];
 
-    const registryArtifact: Artifact = await hre.artifacts.readArtifact("FeedProxy");
-    this.registry = <FeedProxy>await deployContract(this.signers.owner, registryArtifact, []);
+    const proxyArtifact: Artifact = await hre.artifacts.readArtifact("FeedProxy");
+    this.proxy = <FeedProxy>await deployContract(this.signers.owner, proxyArtifact, []);
 
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
+
+    const accessControllerArtifact: Artifact = await hre.artifacts.readArtifact("AccessControllerInterface");
+    this.accessController = await deployMockContract(this.signers.owner, accessControllerArtifact.abi);
   });
 
   it("latestAnswer returns the latest answer of a feed", async function () {
-    await this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
+    await this.proxy.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
     await this.feed.mock.latestAnswer.returns(TEST_PRICE); // Mock feed response
 
-    const price = await this.registry.latestAnswer(ASSET_ADDRESS, USD);
+    const price = await this.proxy.latestAnswer(ASSET_ADDRESS, USD);
     expect(price).to.equal(TEST_PRICE);
   });
 
   it("latestAnswer should revert for a non-existent feed", async function () {
-    await expect(this.registry.latestAnswer(ASSET_ADDRESS, USD)).to.be.revertedWith(
+    await expect(this.proxy.latestAnswer(ASSET_ADDRESS, USD)).to.be.revertedWith(
       "function call to a non-contract account",
     );
   });
 
   it("latestTimestamp returns the latest answer of a feed", async function () {
-    await this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
+    await this.proxy.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
     await this.feed.mock.latestTimestamp.returns(TEST_TIMESTAMP); // Mock feed response
 
-    const latestTimestamp = await this.registry.latestTimestamp(ASSET_ADDRESS, USD);
+    const latestTimestamp = await this.proxy.latestTimestamp(ASSET_ADDRESS, USD);
     expect(latestTimestamp).to.equal(TEST_TIMESTAMP);
   });
 
   it("latestTimestamp should revert for a non-existent feed", async function () {
-    await expect(this.registry.latestTimestamp(ASSET_ADDRESS, USD)).to.be.revertedWith(
+    await expect(this.proxy.latestTimestamp(ASSET_ADDRESS, USD)).to.be.revertedWith(
       "function call to a non-contract account",
     );
   });
 
   it("latestRound returns the latest answer of a feed", async function () {
-    await this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
+    await this.proxy.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
     await this.feed.mock.latestRound.returns(TEST_ROUND); // Mock feed response
 
-    const latestRound = await this.registry.latestRound(ASSET_ADDRESS, USD);
+    const latestRound = await this.proxy.latestRound(ASSET_ADDRESS, USD);
     expect(latestRound).to.equal(TEST_ROUND);
   });
 
   it("latestRound should revert for a non-existent feed", async function () {
-    await expect(this.registry.latestRound(ASSET_ADDRESS, USD)).to.be.revertedWith(
+    await expect(this.proxy.latestRound(ASSET_ADDRESS, USD)).to.be.revertedWith(
       "function call to a non-contract account",
     );
+  });
+
+  it("setController should set acess controller for a feed", async function () {
+    await this.proxy.setController(ASSET_ADDRESS, USD, this.accessController.address);
+
+    const feed = await this.proxy.getFeed(ASSET_ADDRESS, USD);
+    const accessController = await this.proxy.accessControllers(feed);
+    expect(accessController).to.equal(this.accessController.address);
+  });
+
+  it("setController should revert for a non-owners", async function () {
+    await expect(
+      this.proxy.connect(this.signers.stranger).setController(ASSET_ADDRESS, USD, this.accessController.address),
+    ).to.be.revertedWith("Only callable by owner");
   });
 });

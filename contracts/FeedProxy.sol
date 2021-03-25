@@ -3,14 +3,28 @@
 pragma solidity 0.7.6;
 
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
+import "./interfaces/AccessControllerInterface.sol";
 import "./interfaces/IFeedProxy.sol";
 import "./FeedRegistry.sol";
 
 contract FeedProxy is IFeedProxy, FeedRegistry {
-  // TODO: proxy access controls
+  mapping(AggregatorV2V3Interface => AccessControllerInterface) public accessControllers;
 
   // address delegate
   // TODO: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/Proxy.sol
+
+  function setController(
+    address asset,
+    bytes32 denomination,
+    AccessControllerInterface accessController
+  )
+    external
+    override
+    onlyOwner()
+  {
+    AggregatorV2V3Interface feed = getFeed(asset, denomination);
+    accessControllers[feed] = AccessControllerInterface(accessController);
+  }
 
   /**
    * @notice retrieve the latest answer of a feed, given an asset / denomination pair
@@ -23,6 +37,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     external
     view
     override
+    // TODO: access control
     returns (int256 price) 
   {
     AggregatorV2V3Interface feed = getFeed(asset, denomination);
@@ -36,6 +51,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     external
     view
     override
+    // TODO: access control
     returns (uint256 timestamp) 
   {
     AggregatorV2V3Interface feed = getFeed(asset, denomination);
@@ -47,8 +63,9 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     bytes32 denomination
   )
     external
-    override
     view
+    override
+    // TODO: access control
     returns (
       uint256 roundId
     ) 

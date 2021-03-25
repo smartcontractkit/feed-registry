@@ -68,7 +68,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
       AggregatorV2V3Interface feed
     )
   {
-    return AggregatorV2V3Interface(s_feeds[asset][denomination]);
+    return s_feeds[asset][denomination];
   }
 
   /**
@@ -78,8 +78,8 @@ contract FeedRegistry is IFeedRegistry, Owned {
     AggregatorV2V3Interface feed
   )
     public
-    override
     view
+    override
     returns (
       bool
     )

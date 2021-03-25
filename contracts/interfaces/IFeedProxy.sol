@@ -4,8 +4,21 @@ pragma solidity 0.7.6;
 
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./IFeedRegistry.sol";
+import "./AccessControllerInterface.sol";
 
 interface IFeedProxy is IFeedRegistry {
+  event AccessControllerSet(
+    address indexed asset, 
+    bytes32 indexed denomination, 
+    address indexed accessController
+  );
+
+  function setController(
+    address asset,
+    bytes32 denomination,
+    AccessControllerInterface accessController
+  ) external;
+
   // V2 Aggregator interface
   // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.7/interfaces/AggregatorInterface.sol
   function latestAnswer(
