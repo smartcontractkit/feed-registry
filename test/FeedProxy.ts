@@ -76,8 +76,7 @@ describe("FeedProxy", function () {
   it("setController should set acess controller for a feed", async function () {
     await this.proxy.setController(ASSET_ADDRESS, USD, this.accessController.address);
 
-    const feed = await this.proxy.getFeed(ASSET_ADDRESS, USD);
-    const accessController = await this.proxy.accessControllers(feed);
+    const accessController = await this.proxy.accessControllers(ASSET_ADDRESS, USD);
     expect(accessController).to.equal(this.accessController.address);
   });
 

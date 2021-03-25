@@ -8,7 +8,7 @@ import "./interfaces/IFeedProxy.sol";
 import "./FeedRegistry.sol";
 
 contract FeedProxy is IFeedProxy, FeedRegistry {
-  mapping(AggregatorV2V3Interface => AccessControllerInterface) public accessControllers;
+  mapping(address => mapping(bytes32 => AccessControllerInterface)) public accessControllers;
 
   // address delegate
   // TODO: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/Proxy.sol
@@ -22,8 +22,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     override
     onlyOwner()
   {
-    AggregatorV2V3Interface feed = getFeed(asset, denomination);
-    accessControllers[feed] = AccessControllerInterface(accessController);
+    accessControllers[asset][denomination] = AccessControllerInterface(accessController);
   }
 
   /**
@@ -74,5 +73,16 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     roundId = feed.latestRound();
   }
 
-  // TODO: full support for other getters
+  // TODO: full support for other getters e.g. latestRoundData
+
+  // TODO: checkAccess modifier
+  /**
+   * @dev reverts if the caller does not have access by the accessController
+   * contract or is the contract itself.
+   */
+  // modifier checkAccess() {
+  //   AccessControllerInterface ac = accessController;
+  //   require(address(ac) == address(0) || ac.hasAccess(msg.sender, msg.data), "No access");
+  //   _;
+  // }
 }
