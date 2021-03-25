@@ -28,15 +28,15 @@ interface IFeedProxy is IFeedRegistry {
       uint256 timestamp
     );
 
-  // function latestRound(
-  //   address asset,
-  //   bytes32 denomination
-  // )
-  //   external
-  //   view
-  //   returns (
-  //     uint256 roundId
-  //   );
+  function latestRound(
+    address asset,
+    bytes32 denomination
+  )
+    external
+    view
+    returns (
+      uint256 roundId
+    );
 
   // function getAnswer(
   //   address asset,
