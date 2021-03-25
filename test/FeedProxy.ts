@@ -96,18 +96,14 @@ describe("FeedProxy", function () {
     // Should revert because access is set to false
     await this.proxy.setController(ASSET_ADDRESS, USD, this.accessController.address);
     const msgData = this.proxy.interface.encodeFunctionData("latestAnswer", [ASSET_ADDRESS, USD]);
-    await this.accessController.mock.hasAccess
-      .withArgs(this.signers.stranger.address, msgData)
-      .returns(false); // Mock controller access
+    await this.accessController.mock.hasAccess.withArgs(this.signers.stranger.address, msgData).returns(false); // Mock controller access
     await this.feed.mock.latestAnswer.returns(TEST_PRICE); // Mock feed response
     await expect(this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.be.revertedWith(
       "No access",
     );
 
     // Should pass because access is set to true
-    await this.accessController.mock.hasAccess
-      .withArgs(this.signers.stranger.address, msgData)
-      .returns(true); // Mock controller access
+    await this.accessController.mock.hasAccess.withArgs(this.signers.stranger.address, msgData).returns(true); // Mock controller access
     expect(await this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.equal(TEST_PRICE);
   });
 });
