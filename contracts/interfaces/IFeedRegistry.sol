@@ -23,8 +23,8 @@ interface IFeedRegistry {
   ) external;
 
   function getFeed(
-    address _asset,
-    bytes32 _denomination
+    address asset,
+    bytes32 denomination
   )
     external
     view

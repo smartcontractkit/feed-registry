@@ -6,18 +6,7 @@ import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./IFeedRegistry.sol";
 
 interface IFeedProxy is IFeedRegistry {
-  // function getPrice(
-  //   address asset, 
-  //   bytes32 denomination
-  // )
-  //   external
-  //   view
-  //   returns (
-  //     int256 price
-  //   );
-
-
-  // V2
+  // V2 Aggregator interface
   // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.7/interfaces/AggregatorInterface.sol
   function latestAnswer(
     address asset,
@@ -82,13 +71,12 @@ interface IFeedProxy is IFeedRegistry {
   //     uint256 timestamp
   //   );
 
-  // V3
+  // V3 Aggregator interface
   // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.7/interfaces/AggregatorV3Interface.sol    
 
-  // function getRoundData(
+  // function latestRoundData(
   //   address asset,
-  //   bytes32 denomination,    
-  //   uint80 _roundId
+  //   bytes32 denomination
   // )
   //   external
   //   view
@@ -100,9 +88,10 @@ interface IFeedProxy is IFeedRegistry {
   //     uint80 answeredInRound
   //   );
 
-  // function latestRoundData(
+  // function getRoundData(
   //   address asset,
-  //   bytes32 denomination
+  //   bytes32 denomination,    
+  //   uint80 _roundId
   // )
   //   external
   //   view

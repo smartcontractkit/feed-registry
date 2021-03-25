@@ -11,7 +11,7 @@ const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
 const USD = utils.keccak256(utils.toUtf8Bytes("USD"));
 const TEST_PRICE = utils.parseEther("999999");
-const TEST_TIMESTAMP = BigNumber.from('123456789')
+const TEST_TIMESTAMP = BigNumber.from("123456789");
 
 describe("FeedProxy", function () {
   beforeEach(async function () {
@@ -53,5 +53,5 @@ describe("FeedProxy", function () {
     await expect(this.registry.latestTimestamp(ASSET_ADDRESS, USD)).to.be.revertedWith(
       "function call to a non-contract account",
     );
-  });  
+  });
 });

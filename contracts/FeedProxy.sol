@@ -13,32 +13,32 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
   // TODO: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/Proxy.sol
 
   /**
-   * @notice retrieve the latest answer of a feed, given an _asset / _denomination pair
+   * @notice retrieve the latest answer of a feed, given an asset / denomination pair
    * or reverts if feed is either unset or has not granted access
    */
   function latestAnswer(
-    address _asset, 
-    bytes32 _denomination
+    address asset, 
+    bytes32 denomination
   )
     external
     view
     override
     returns (int256 price) 
   {
-    AggregatorV2V3Interface feed = getFeed(_asset, _denomination);
+    AggregatorV2V3Interface feed = getFeed(asset, denomination);
     price = feed.latestAnswer();
   }
 
   function latestTimestamp(
-    address _asset, 
-    bytes32 _denomination
+    address asset, 
+    bytes32 denomination
   )
     external
     view
     override
     returns (uint256 timestamp) 
   {
-    AggregatorV2V3Interface feed = getFeed(_asset, _denomination);
+    AggregatorV2V3Interface feed = getFeed(asset, denomination);
     timestamp = feed.latestTimestamp();
   }
 

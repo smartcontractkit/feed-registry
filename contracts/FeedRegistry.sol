@@ -10,7 +10,7 @@ import "./vendor/Address.sol";
 contract FeedRegistry is IFeedRegistry, Owned {
   using Address for address;
 
-  mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) internal s_feeds;
+  mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) internal sfeeds;
 
   /**
    * @notice called by the owner to add feeds
@@ -54,11 +54,11 @@ contract FeedRegistry is IFeedRegistry, Owned {
   }
 
   /**
-   * @notice retrieve the feed of an _asset / _denomination pair
+   * @notice retrieve the feed of an asset / denomination pair
    */
   function getFeed(
-    address _asset,
-    bytes32 _denomination
+    address asset,
+    bytes32 denomination
   )
     public
     view
@@ -67,30 +67,30 @@ contract FeedRegistry is IFeedRegistry, Owned {
       AggregatorV2V3Interface feed
     )
   {
-    return AggregatorV2V3Interface(s_feeds[_asset][_denomination]);
+    return AggregatorV2V3Interface(sfeeds[asset][denomination]);
   }
 
   function _addFeed(
-    address _asset,
-    bytes32 _denomination,
-    address _feed
+    address asset,
+    bytes32 denomination,
+    address feed
   )
     internal
   {
-    require(_feed.isContract(), "_feed is not a contract");
-    if (s_feeds[_asset][_denomination] != AggregatorV2V3Interface(_feed)) {
-      s_feeds[_asset][_denomination] = AggregatorV2V3Interface(_feed);
-      emit FeedSet(_asset, _denomination, _feed);
+    require(feed.isContract(), "feed is not a contract");
+    if (sfeeds[asset][denomination] != AggregatorV2V3Interface(feed)) {
+      sfeeds[asset][denomination] = AggregatorV2V3Interface(feed);
+      emit FeedSet(asset, denomination, feed);
     }
   }
 
   function _removeFeed(
-    address _asset,
-    bytes32 _denomination
+    address asset,
+    bytes32 denomination
   )
     internal
   {
-    delete s_feeds[_asset][_denomination];
-    emit FeedSet(_asset, _denomination, address(0));
+    delete sfeeds[asset][denomination];
+    emit FeedSet(asset, denomination, address(0));
   }
 }
