@@ -16,7 +16,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
    * @notice retrieve the latest answer of a feed, given an _asset / _denomination pair
    * or reverts if feed is either unset or has not granted access
    */
-  function getPrice(
+  function latestAnswer(
     address _asset, 
     bytes32 _denomination
   )

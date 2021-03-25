@@ -6,15 +6,112 @@ import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./IFeedRegistry.sol";
 
 interface IFeedProxy is IFeedRegistry {
-  function getPrice(
-    address _asset, 
-    bytes32 _denomination
+  // function getPrice(
+  //   address asset, 
+  //   bytes32 denomination
+  // )
+  //   external
+  //   view
+  //   returns (
+  //     int256 price
+  //   );
+
+
+  // V2
+  // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.7/interfaces/AggregatorInterface.sol
+  function latestAnswer(
+    address asset,
+    bytes32 denomination
   )
     external
     view
     returns (
-      int256 price
+      int256 answer
     );
 
-  // TODO: full support for other getters e.g. timestamp, round data
+  // function latestTimestamp(
+  //   address asset,
+  //   bytes32 denomination
+  // )
+  //   external
+  //   view
+  //   returns (
+  //     uint256 timestamp
+  //   );
+
+  // function latestRound(
+  //   address asset,
+  //   bytes32 denomination
+  // )
+  //   external
+  //   view
+  //   returns (
+  //     uint256 roundId
+  //   );
+
+  // function getAnswer(
+  //   address asset,
+  //   bytes32 denomination,
+  //   uint256 roundId
+  // )
+  //   external
+  //   view
+  //   returns (
+  //     uint256 timestamp
+  //   );
+
+  // function getAnswer(
+  //   address asset,
+  //   bytes32 denomination,
+  //   uint256 roundId
+  // )
+  //   external
+  //   view
+  //   returns (
+  //     int256 answer
+  //   );
+
+  // function getTimestamp(
+  //   address asset,
+  //   bytes32 denomination,
+  //   uint256 roundId
+  // )
+  //   external
+  //   view
+  //   returns (
+  //     uint256 timestamp
+  //   );
+
+  // V3
+  // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.7/interfaces/AggregatorV3Interface.sol    
+
+  // function getRoundData(
+  //   address asset,
+  //   bytes32 denomination,    
+  //   uint80 _roundId
+  // )
+  //   external
+  //   view
+  //   returns (
+  //     uint80 roundId,
+  //     int256 answer,
+  //     uint256 startedAt,
+  //     uint256 updatedAt,
+  //     uint80 answeredInRound
+  //   );
+
+  // function latestRoundData(
+  //   address asset,
+  //   bytes32 denomination
+  // )
+  //   external
+  //   view
+  //   returns (
+  //     uint80 roundId,
+  //     int256 answer,
+  //     uint256 startedAt,
+  //     uint256 updatedAt,
+  //     uint80 answeredInRound
+  //   );
+
 }
