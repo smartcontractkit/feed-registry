@@ -22,7 +22,11 @@ contract FeedRegistry is IFeedRegistry, Owned {
     address[] calldata assets,
     bytes32[] calldata denominations,
     address[] calldata feeds
-  ) external override onlyOwner() {
+  ) 
+    external
+    override
+    onlyOwner()
+  {
     require(assets.length == denominations.length, "need same assets and denominations count");
     require(assets.length == feeds.length, "need same assets and feeds count");
     for (uint256 i = 0; i < assets.length; i++) {
@@ -35,7 +39,14 @@ contract FeedRegistry is IFeedRegistry, Owned {
    * @param assets is a list of asset / token addresses
    * @param denominations is a list of denomination identifiers
    */
-  function removeFeeds(address[] calldata assets, bytes32[] calldata denominations) external override onlyOwner() {
+  function removeFeeds(
+    address[] calldata assets,
+    bytes32[] calldata denominations
+  )
+    external
+    override
+    onlyOwner()
+  {
     require(assets.length == denominations.length, "need same assets and denominations count");
     for (uint256 i = 0; i < assets.length; i++) {
       _removeFeed(assets[i], denominations[i]);
@@ -45,7 +56,15 @@ contract FeedRegistry is IFeedRegistry, Owned {
   /**
    * @notice retrieve the feed of an _asset / _denomination pair
    */
-  function getFeed(address _asset, bytes32 _denomination) public view override returns (AggregatorV2V3Interface proxy) {
+  function getFeed(
+    address _asset,
+    bytes32 _denomination
+  )
+    public
+    view
+    override
+    returns (AggregatorV2V3Interface feed)
+  {
     return AggregatorV2V3Interface(s_feeds[_asset][_denomination]);
   }
 
@@ -53,7 +72,9 @@ contract FeedRegistry is IFeedRegistry, Owned {
     address _asset,
     bytes32 _denomination,
     address _feed
-  ) internal {
+  )
+    internal
+  {
     require(_feed.isContract(), "_feed is not a contract");
     if (s_feeds[_asset][_denomination] != AggregatorV2V3Interface(_feed)) {
       s_feeds[_asset][_denomination] = AggregatorV2V3Interface(_feed);
@@ -61,7 +82,12 @@ contract FeedRegistry is IFeedRegistry, Owned {
     }
   }
 
-  function _removeFeed(address _asset, bytes32 _denomination) internal {
+  function _removeFeed(
+    address _asset,
+    bytes32 _denomination
+  )
+    internal
+  {
     delete s_feeds[_asset][_denomination];
     emit FeedUpdated(_asset, _denomination, address(0));
   }

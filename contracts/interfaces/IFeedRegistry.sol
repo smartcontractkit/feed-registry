@@ -5,7 +5,11 @@ pragma solidity 0.7.6;
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 
 interface IFeedRegistry {
-  event FeedUpdated(address indexed asset, bytes32 indexed denomination, address indexed feed);
+  event FeedUpdated(
+    address indexed asset, 
+    bytes32 indexed denomination, 
+    address indexed feed
+  );
 
   function addFeeds(
     address[] calldata assets,
@@ -13,7 +17,18 @@ interface IFeedRegistry {
     address[] calldata feeds
   ) external;
 
-  function removeFeeds(address[] calldata assets, bytes32[] calldata denominations) external;
+  function removeFeeds(
+    address[] calldata assets,
+    bytes32[] calldata denominations
+  ) external;
 
-  function getFeed(address asset, bytes32 denomination) external view returns (AggregatorV2V3Interface feed);
+  function getFeed(
+    address _asset,
+    bytes32 _denomination
+  )
+    external
+    view
+    returns (
+      AggregatorV2V3Interface feed
+    );
 }
