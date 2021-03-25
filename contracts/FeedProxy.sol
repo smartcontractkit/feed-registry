@@ -8,6 +8,9 @@ import "./interfaces/IFeedProxy.sol";
 import "./FeedRegistry.sol";
 
 contract FeedProxy is IFeedProxy, FeedRegistry {
+  // TODO: s_proposedFeeds? for two-step changes?
+  // TODO: port phases / currentPhase logic from AggregatorProxy 
+  // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.6/AggregatorProxy.sol
   mapping(address => mapping(bytes32 => AccessControllerInterface)) public accessControllers;
 
   // address delegate
