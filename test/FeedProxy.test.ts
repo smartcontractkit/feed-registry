@@ -11,6 +11,9 @@ const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
 const USD = utils.keccak256(utils.toUtf8Bytes("USD"));
 const TEST_ANSWER = utils.parseEther("999999");
+const TEST_DESCRIPTION = 'TKN / USD'
+const TEST_DECIMALS = 18
+const TEST_VERSION = 4
 const TEST_TIMESTAMP = BigNumber.from("123456789");
 const TEST_ROUND = BigNumber.from("1");
 const TEST_ROUND_DATA = [TEST_ROUND, TEST_ANSWER, TEST_TIMESTAMP, TEST_TIMESTAMP, TEST_ROUND];
@@ -68,6 +71,48 @@ describe("FeedProxy", function () {
     // Should pass because access is set to true
     await this.accessController.mock.hasAccess.withArgs(this.signers.stranger.address, callData).returns(true); // Mock controller access
     expect(await this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.equal(TEST_ANSWER);
+  });
+
+  it("decimals returns the latest answer of a feed", async function () {
+    await this.proxy.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
+    await this.feed.mock.decimals.returns(TEST_DECIMALS); // Mock feed response
+
+    const price = await this.proxy.decimals(ASSET_ADDRESS, USD);
+    expect(price).to.equal(TEST_DECIMALS);
+  });
+
+  it("decimals should revert for a non-existent feed", async function () {
+    await expect(this.proxy.decimals(ASSET_ADDRESS, USD)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
+  });
+
+  it("description returns the latest answer of a feed", async function () {
+    await this.proxy.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
+    await this.feed.mock.description.returns(TEST_DESCRIPTION); // Mock feed response
+
+    const price = await this.proxy.description(ASSET_ADDRESS, USD);
+    expect(price).to.equal(TEST_DESCRIPTION);
+  });
+
+  it("description should revert for a non-existent feed", async function () {
+    await expect(this.proxy.description(ASSET_ADDRESS, USD)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
+  });
+
+  it("decimals returns the latest answer of a feed", async function () {
+    await this.proxy.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
+    await this.feed.mock.decimals.returns(TEST_DECIMALS); // Mock feed response
+
+    const price = await this.proxy.decimals(ASSET_ADDRESS, USD);
+    expect(price).to.equal(TEST_DECIMALS);
+  });
+
+  it("decimals should revert for a non-existent feed", async function () {
+    await expect(this.proxy.decimals(ASSET_ADDRESS, USD)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
   });
 
   it("latestAnswer returns the latest answer of a feed", async function () {

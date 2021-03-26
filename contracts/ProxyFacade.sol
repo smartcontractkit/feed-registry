@@ -5,8 +5,11 @@ pragma solidity 0.7.6;
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./interfaces/IFeedRegistry.sol";
 
-// This contract sits between AggreatorProxy -> ProxyFacade -> FeedRegistry
-// TODO: is AggregatorV2V3Interface 
+// This contract sits between AggregatorProxy -> ProxyFacade -> FeedRegistry
+// TODO: For the access controls in FeedRegistry to work with this contract, the AggregatorProxy would also need to point to an access controller
+// and check that msg.sender hasAccess
+
+// TODO: is AggregatorV2V3Interface
 contract ProxyFacade {
   IFeedRegistry private s_registry;
   address private s_asset;
@@ -35,4 +38,43 @@ contract ProxyFacade {
   }
 
   // TODO: AggregatorV2V3Interface getters that call FeedRegistry getters
+
+  // V2
+  // function latestAnswer() external view returns (int256);
+  // function latestTimestamp() external view returns (uint256);
+  // function latestRound() external view returns (uint256);
+  // function getAnswer(uint256 roundId) external view returns (int256);
+  // function getTimestamp(uint256 roundId) external view returns (uint256);
+
+
+  // V3
+
+  // function decimals() external view returns (uint8);
+  // function description() external view returns (string memory);
+  // function version() external view returns (uint256);
+
+  // // getRoundData and latestRoundData should both raise "No data present"
+  // // if they do not have data to report, instead of returning unset values
+  // // which could be misinterpreted as actual reported values.
+  // function getRoundData(uint80 _roundId)
+  //   external
+  //   view
+  //   returns (
+  //     uint80 roundId,
+  //     int256 answer,
+  //     uint256 startedAt,
+  //     uint256 updatedAt,
+  //     uint80 answeredInRound
+  //   );
+  // function latestRoundData()
+  //   external
+  //   view
+  //   returns (
+  //     uint80 roundId,
+  //     int256 answer,
+  //     uint256 startedAt,
+  //     uint256 updatedAt,
+  //     uint80 answeredInRound
+  //   );
+
 }

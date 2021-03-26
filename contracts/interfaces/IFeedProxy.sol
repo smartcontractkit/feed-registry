@@ -75,6 +75,36 @@ interface IFeedProxy is IFeedRegistry {
   // V3 Aggregator interface
   // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.7/interfaces/AggregatorV3Interface.sol    
 
+  function decimals(
+    address asset,
+    bytes32 denomination
+  ) 
+    external
+    view
+    returns (
+      uint8
+    );
+  
+  function description(
+    address asset,
+    bytes32 denomination
+  )
+    external
+    view
+    returns (
+      string memory
+    );
+    
+  function version(
+    address asset,
+    bytes32 denomination
+  )
+    external
+    view
+    returns (
+      uint256
+    );
+
   function latestRoundData(
     address asset,
     bytes32 denomination
@@ -91,7 +121,7 @@ interface IFeedProxy is IFeedRegistry {
 
   function getRoundData(
     address asset,
-    bytes32 denomination,    
+    bytes32 denomination,
     uint80 _roundId
   )
     external

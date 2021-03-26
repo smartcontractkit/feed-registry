@@ -109,6 +109,51 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     return feed.getTimestamp(roundId);
   }
 
+  function decimals(
+    address asset,
+    bytes32 denomination
+  ) 
+    external
+    view
+    override
+    returns (
+      uint8
+    )
+  {
+    AggregatorV2V3Interface feed = getFeed(asset, denomination);
+    return feed.decimals();
+  }
+  
+  function description(
+    address asset,
+    bytes32 denomination
+  )
+    external
+    view
+    override
+    returns (
+      string memory
+    )
+  {
+    AggregatorV2V3Interface feed = getFeed(asset, denomination);
+    return feed.description();
+  }
+    
+  function version(
+    address asset,
+    bytes32 denomination
+  )
+    external
+    view
+    override
+    returns (
+      uint256
+    )
+  {
+    AggregatorV2V3Interface feed = getFeed(asset, denomination);
+    return feed.version();
+  }
+
   function latestRoundData(
     address asset,
     bytes32 denomination
@@ -158,7 +203,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     address asset,
     bytes32 denomination
   ) {
-    // TODO: with a ProxyFacade in between, msg.sender will be the facade address instead of the consumer address
+    // NOTE: with a ProxyFacade in between, msg.sender will be the facade address instead of the consumer address
     bytes memory callData = abi.encode(asset, denomination, msg.data); // Include asset pair in payload to access controller
     require(address(s_accessController) == address(0) || s_accessController.hasAccess(msg.sender, callData), "No access");
     _;
