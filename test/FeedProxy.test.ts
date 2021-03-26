@@ -13,6 +13,7 @@ const USD = utils.keccak256(utils.toUtf8Bytes("USD"));
 const TEST_ANSWER = utils.parseEther("999999");
 const TEST_TIMESTAMP = BigNumber.from("123456789");
 const TEST_ROUND = BigNumber.from("1");
+const TEST_ROUND_DATA = [TEST_ROUND, TEST_ANSWER, TEST_TIMESTAMP, TEST_TIMESTAMP, TEST_ROUND]
 
 describe("FeedProxy", function () {
   beforeEach(async function () {
@@ -29,6 +30,40 @@ describe("FeedProxy", function () {
 
     const accessControllerArtifact: Artifact = await hre.artifacts.readArtifact("AccessControllerInterface");
     this.accessController = await deployMockContract(this.signers.owner, accessControllerArtifact.abi);
+  });
+
+  it("setController should set access controller for a feed", async function () {
+    await this.proxy.setController(ASSET_ADDRESS, USD, this.accessController.address);
+
+    const accessController = await this.proxy.accessControllers(ASSET_ADDRESS, USD);
+    expect(accessController).to.equal(this.accessController.address);
+  });
+
+  it("setController should revert for a non-owners", async function () {
+    await expect(
+      this.proxy.connect(this.signers.stranger).setController(ASSET_ADDRESS, USD, this.accessController.address),
+    ).to.be.revertedWith("Only callable by owner");
+  });
+
+  it("access controls should work for getter", async function () {
+    await this.proxy.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
+    await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
+
+    // Access control is disabled when no controller is set
+    expect(await this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.equal(TEST_ANSWER);
+
+    // Should revert because access is set to false
+    await this.proxy.setController(ASSET_ADDRESS, USD, this.accessController.address);
+    const msgData = this.proxy.interface.encodeFunctionData("latestAnswer", [ASSET_ADDRESS, USD]);
+    await this.accessController.mock.hasAccess.withArgs(this.signers.stranger.address, msgData).returns(false); // Mock controller access
+    await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
+    await expect(this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.be.revertedWith(
+      "No access",
+    );
+
+    // Should pass because access is set to true
+    await this.accessController.mock.hasAccess.withArgs(this.signers.stranger.address, msgData).returns(true); // Mock controller access
+    expect(await this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.equal(TEST_ANSWER);
   });
 
   it("latestAnswer returns the latest answer of a feed", async function () {
@@ -99,39 +134,33 @@ describe("FeedProxy", function () {
     await expect(this.proxy.getTimestamp(ASSET_ADDRESS, USD, TEST_ROUND)).to.be.revertedWith(
       "function call to a non-contract account",
     );
-  });    
-
-  it("setController should set acess controller for a feed", async function () {
-    await this.proxy.setController(ASSET_ADDRESS, USD, this.accessController.address);
-
-    const accessController = await this.proxy.accessControllers(ASSET_ADDRESS, USD);
-    expect(accessController).to.equal(this.accessController.address);
   });
 
-  it("setController should revert for a non-owners", async function () {
-    await expect(
-      this.proxy.connect(this.signers.stranger).setController(ASSET_ADDRESS, USD, this.accessController.address),
-    ).to.be.revertedWith("Only callable by owner");
-  });
-
-  it("access controls should work for getter", async function () {
+  it("latestRoundData returns the latest round data of a feed", async function () {
     await this.proxy.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
-    await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
+    await this.feed.mock.latestRoundData.returns(...TEST_ROUND_DATA); // Mock feed response
 
-    // Access control is disabled when no controller is set
-    expect(await this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.equal(TEST_ANSWER);
-
-    // Should revert because access is set to false
-    await this.proxy.setController(ASSET_ADDRESS, USD, this.accessController.address);
-    const msgData = this.proxy.interface.encodeFunctionData("latestAnswer", [ASSET_ADDRESS, USD]);
-    await this.accessController.mock.hasAccess.withArgs(this.signers.stranger.address, msgData).returns(false); // Mock controller access
-    await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
-    await expect(this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.be.revertedWith(
-      "No access",
-    );
-
-    // Should pass because access is set to true
-    await this.accessController.mock.hasAccess.withArgs(this.signers.stranger.address, msgData).returns(true); // Mock controller access
-    expect(await this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.equal(TEST_ANSWER);
+    const roundData = await this.proxy.latestRoundData(ASSET_ADDRESS, USD);
+    expect(roundData).to.eql(TEST_ROUND_DATA);
   });
+
+  it("latestRoundData should revert for a non-existent feed", async function () {
+    await expect(this.proxy.latestRoundData(ASSET_ADDRESS, USD)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
+  });
+
+  it("getRoundData returns the latest round data of a feed", async function () {
+    await this.proxy.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
+    await this.feed.mock.getRoundData.withArgs(TEST_ROUND).returns(...TEST_ROUND_DATA); // Mock feed response
+
+    const roundData = await this.proxy.getRoundData(ASSET_ADDRESS, USD, TEST_ROUND);
+    expect(roundData).to.eql(TEST_ROUND_DATA);
+  });
+
+  it("getRoundData should revert for a non-existent feed", async function () {
+    await expect(this.proxy.getRoundData(ASSET_ADDRESS, USD, TEST_ROUND)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
+  });  
 });

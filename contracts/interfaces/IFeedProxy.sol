@@ -21,6 +21,7 @@ interface IFeedProxy is IFeedRegistry {
 
   // V2 Aggregator interface
   // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.7/interfaces/AggregatorInterface.sol
+
   function latestAnswer(
     address asset,
     bytes32 denomination
@@ -76,33 +77,32 @@ interface IFeedProxy is IFeedRegistry {
   // V3 Aggregator interface
   // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.7/interfaces/AggregatorV3Interface.sol    
 
-  // function latestRoundData(
-  //   address asset,
-  //   bytes32 denomination
-  // )
-  //   external
-  //   view
-  //   returns (
-  //     uint80 roundId,
-  //     int256 answer,
-  //     uint256 startedAt,
-  //     uint256 updatedAt,
-  //     uint80 answeredInRound
-  //   );
+  function latestRoundData(
+    address asset,
+    bytes32 denomination
+  )
+    external
+    view
+    returns (
+      uint80 roundId,
+      int256 answer,
+      uint256 startedAt,
+      uint256 updatedAt,
+      uint80 answeredInRound
+    );
 
-  // function getRoundData(
-  //   address asset,
-  //   bytes32 denomination,    
-  //   uint80 _roundId
-  // )
-  //   external
-  //   view
-  //   returns (
-  //     uint80 roundId,
-  //     int256 answer,
-  //     uint256 startedAt,
-  //     uint256 updatedAt,
-  //     uint80 answeredInRound
-  //   );
-
+  function getRoundData(
+    address asset,
+    bytes32 denomination,    
+    uint80 _roundId
+  )
+    external
+    view
+    returns (
+      uint80 roundId,
+      int256 answer,
+      uint256 startedAt,
+      uint256 updatedAt,
+      uint80 answeredInRound
+    );
 }

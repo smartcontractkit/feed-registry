@@ -13,9 +13,6 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
   // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.6/AggregatorProxy.sol
   mapping(address => mapping(bytes32 => AccessControllerInterface)) public accessControllers;
 
-  // address delegate
-  // TODO: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/Proxy.sol
-
   function setController(
     address asset,
     bytes32 denomination,
@@ -106,9 +103,46 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
   {
     AggregatorV2V3Interface feed = getFeed(asset, denomination);
     return feed.getTimestamp(roundId);
+  }
+
+  function latestRoundData(
+    address asset,
+    bytes32 denomination
+  )
+    external
+    view
+    override
+    returns (
+      uint80 roundId,
+      int256 answer,
+      uint256 startedAt,
+      uint256 updatedAt,
+      uint80 answeredInRound
+    )
+  {
+    AggregatorV2V3Interface feed = getFeed(asset, denomination);
+    return feed.latestRoundData();
   }  
 
-  // TODO: full support for other getters e.g. latestRoundData
+  function getRoundData(
+    address asset,
+    bytes32 denomination,    
+    uint80 _roundId
+  )
+    external
+    view
+    override
+    returns (
+      uint80 roundId,
+      int256 answer,
+      uint256 startedAt,
+      uint256 updatedAt,
+      uint80 answeredInRound
+    )
+  {
+    AggregatorV2V3Interface feed = getFeed(asset, denomination);
+    return feed.getRoundData(_roundId);
+  }
 
   /**
    * @dev reverts if the caller does not have access by the accessController
