@@ -13,10 +13,10 @@ import "../interfaces/AccessControllerInterface.sol";
 contract WriteAccessController is AccessControllerInterface, Owned {
 
   bool public checkEnabled;
-  mapping(address => mapping(bytes => bool)) internal accessList;
+  mapping(address => mapping(bytes => bool)) internal s_accessList;
 
-  event AddedAccess(address user, bytes data);
-  event RemovedAccess(address user, bytes data);
+  event AccessAdded(address user, bytes data);
+  event AccessRemoved(address user, bytes data);
   event CheckAccessEnabled();
   event CheckAccessDisabled();
 
@@ -40,7 +40,7 @@ contract WriteAccessController is AccessControllerInterface, Owned {
     override
     returns (bool)
   {
-    return accessList[user][data] || !checkEnabled;
+    return s_accessList[user][data] || !checkEnabled;
   }
 
   /**
@@ -48,14 +48,17 @@ contract WriteAccessController is AccessControllerInterface, Owned {
    * @param user The address to add
    * @param data The calldata to add
    */
-  function addAccess(address user, bytes memory data)
+  function addAccess(
+    address user,
+    bytes memory data
+  )
     external
     onlyOwner()
   {
-    if (!accessList[user][data]) {
-      accessList[user][data] = true;
+    if (!s_accessList[user][data]) {
+      s_accessList[user][data] = true;
 
-      emit AddedAccess(user, data);
+      emit AccessAdded(user, data);(user, data);
     }
   }
 
@@ -64,14 +67,17 @@ contract WriteAccessController is AccessControllerInterface, Owned {
    * @param user The address to remove
    * @param data The calldata to remove
    */
-  function removeAccess(address user, bytes memory data)
+  function removeAccess(
+    address user,
+    bytes memory data
+  )
     external
     onlyOwner()
   {
-    if (accessList[user][data]) {
-      accessList[user][data] = false;
+    if (s_accessList[user][data]) {
+      s_accessList[user][data] = false;
 
-      emit RemovedAccess(user, data);
+      emit AccessRemoved(user, data);
     }
   }
 

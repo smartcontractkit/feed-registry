@@ -4,7 +4,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { FeedProxy } from "../typechain/FeedProxy";
 import { Signers } from "../types";
 import { expect } from "chai";
-import { BigNumber, ethers, utils } from "ethers";
+import { utils } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
 
 const { deployContract } = hre.waffle;
@@ -60,35 +60,31 @@ describe("ProxyFacade", function () {
 
   describe("ProxyFacade Access controls", function () {
     beforeEach(async function () {
-        await this.feedProxy.setController(this.accessController.address); // set access controller    
-    })
+      await this.feedProxy.setController(this.accessController.address); // set access controller
+    });
 
     it("proxyFacade should NOT be able to read answer from registry if not granted access", async function () {
-        await this.accessController.mock.hasAccess.returns(false); // Mock controller access
-    
-        await expect(this.proxyFacade.latestAnswer()).to.be.revertedWith(
-            "No access",
-        );
+      await this.accessController.mock.hasAccess.returns(false); // Mock controller access
+
+      await expect(this.proxyFacade.latestAnswer()).to.be.revertedWith("No access");
     });
 
     it("proxyFacade should be able to read answer from registry if not granted access", async function () {
-        await this.accessController.mock.hasAccess.returns(true); // Mock controller access
+      await this.accessController.mock.hasAccess.returns(true); // Mock controller access
 
-        expect(await this.proxyFacade.latestAnswer()).to.equal(TEST_ANSWER);
+      expect(await this.proxyFacade.latestAnswer()).to.equal(TEST_ANSWER);
     });
 
     it("proxy should NOT be able to read answer from registry if not granted access", async function () {
-        await this.accessController.mock.hasAccess.returns(false); // Mock controller access
-    
-        await expect(this.proxy.latestAnswer()).to.be.revertedWith(
-            "No access",
-        );
+      await this.accessController.mock.hasAccess.returns(false); // Mock controller access
+
+      await expect(this.proxy.latestAnswer()).to.be.revertedWith("No access");
     });
 
     it("proxy should be able to read answer from registry if not granted access", async function () {
-        await this.accessController.mock.hasAccess.returns(true); // Mock controller access
+      await this.accessController.mock.hasAccess.returns(true); // Mock controller access
 
-        expect(await this.proxy.latestAnswer()).to.equal(TEST_ANSWER);
+      expect(await this.proxy.latestAnswer()).to.equal(TEST_ANSWER);
     });
-  })
+  });
 });
