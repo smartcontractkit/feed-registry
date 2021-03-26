@@ -11,7 +11,6 @@ import { shouldBehaveLikeOwned } from "./Owned.behaviour";
 const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
 const USD = utils.keccak256(utils.toUtf8Bytes("USD"));
-const TEST_PRICE = utils.parseEther("999999");
 
 describe("FeedRegistry", function () {
   beforeEach(async function () {

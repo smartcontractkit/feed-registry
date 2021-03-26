@@ -83,6 +83,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     external
     view
     override
+    checkAccess(asset, denomination)
     returns (
       int256 answer
     )
@@ -99,6 +100,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     external
     view
     override
+    checkAccess(asset, denomination)
     returns (
       uint256 timestamp
     )
@@ -114,6 +116,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     external
     view
     override
+    checkAccess(asset, denomination)
     returns (
       uint80 roundId,
       int256 answer,
@@ -134,6 +137,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     external
     view
     override
+    checkAccess(asset, denomination)
     returns (
       uint80 roundId,
       int256 answer,
@@ -154,6 +158,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     address asset,
     bytes32 denomination
   ) {
+    // TODO: with a ProxyFacade in between, msg.sender will be the facade address instead of the consumer address
     bytes memory callData = abi.encode(asset, denomination, msg.data); // Include asset pair in payload to access controller
     require(address(s_accessController) == address(0) || s_accessController.hasAccess(msg.sender, callData), "No access");
     _;
