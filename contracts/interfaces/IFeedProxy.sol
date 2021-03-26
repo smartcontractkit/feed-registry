@@ -14,8 +14,6 @@ interface IFeedProxy is IFeedRegistry {
   );
 
   function setController(
-    address asset,
-    bytes32 denomination,
     AccessControllerInterface accessController
   ) external;
 

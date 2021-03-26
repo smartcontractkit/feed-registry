@@ -4,7 +4,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { FeedProxy } from "../typechain/FeedProxy";
 import { Signers } from "../types";
 import { expect } from "chai";
-import { BigNumber, utils } from "ethers";
+import { BigNumber, ethers, utils } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
 
 const { deployContract } = hre.waffle;
@@ -13,7 +13,7 @@ const USD = utils.keccak256(utils.toUtf8Bytes("USD"));
 const TEST_ANSWER = utils.parseEther("999999");
 const TEST_TIMESTAMP = BigNumber.from("123456789");
 const TEST_ROUND = BigNumber.from("1");
-const TEST_ROUND_DATA = [TEST_ROUND, TEST_ANSWER, TEST_TIMESTAMP, TEST_TIMESTAMP, TEST_ROUND]
+const TEST_ROUND_DATA = [TEST_ROUND, TEST_ANSWER, TEST_TIMESTAMP, TEST_TIMESTAMP, TEST_ROUND];
 
 describe("FeedProxy", function () {
   beforeEach(async function () {
@@ -33,15 +33,15 @@ describe("FeedProxy", function () {
   });
 
   it("setController should set access controller for a feed", async function () {
-    await this.proxy.setController(ASSET_ADDRESS, USD, this.accessController.address);
+    await this.proxy.setController(this.accessController.address);
 
-    const accessController = await this.proxy.accessControllers(ASSET_ADDRESS, USD);
+    const accessController = await this.proxy.accessController();
     expect(accessController).to.equal(this.accessController.address);
   });
 
   it("setController should revert for a non-owners", async function () {
     await expect(
-      this.proxy.connect(this.signers.stranger).setController(ASSET_ADDRESS, USD, this.accessController.address),
+      this.proxy.connect(this.signers.stranger).setController(this.accessController.address),
     ).to.be.revertedWith("Only callable by owner");
   });
 
@@ -53,16 +53,20 @@ describe("FeedProxy", function () {
     expect(await this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.equal(TEST_ANSWER);
 
     // Should revert because access is set to false
-    await this.proxy.setController(ASSET_ADDRESS, USD, this.accessController.address);
+    await this.proxy.setController(this.accessController.address);
     const msgData = this.proxy.interface.encodeFunctionData("latestAnswer", [ASSET_ADDRESS, USD]);
-    await this.accessController.mock.hasAccess.withArgs(this.signers.stranger.address, msgData).returns(false); // Mock controller access
+    const callData = ethers.utils.defaultAbiCoder.encode(
+      ["address", "bytes32", "bytes"],
+      [ASSET_ADDRESS, USD, msgData],
+    ); // TODO: extract to a test util
+    await this.accessController.mock.hasAccess.withArgs(this.signers.stranger.address, callData).returns(false); // Mock controller access
     await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
     await expect(this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.be.revertedWith(
       "No access",
     );
 
     // Should pass because access is set to true
-    await this.accessController.mock.hasAccess.withArgs(this.signers.stranger.address, msgData).returns(true); // Mock controller access
+    await this.accessController.mock.hasAccess.withArgs(this.signers.stranger.address, callData).returns(true); // Mock controller access
     expect(await this.proxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, USD)).to.equal(TEST_ANSWER);
   });
 
@@ -162,5 +166,5 @@ describe("FeedProxy", function () {
     await expect(this.proxy.getRoundData(ASSET_ADDRESS, USD, TEST_ROUND)).to.be.revertedWith(
       "function call to a non-contract account",
     );
-  });  
+  });
 });

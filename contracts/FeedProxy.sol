@@ -11,18 +11,20 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
   // TODO: s_proposedFeeds? for two-step changes?
   // TODO: port phases / currentPhase logic from AggregatorProxy 
   // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.6/AggregatorProxy.sol
-  mapping(address => mapping(bytes32 => AccessControllerInterface)) public accessControllers;
+  AccessControllerInterface private s_accessController;
 
   function setController(
-    address asset,
-    bytes32 denomination,
-    AccessControllerInterface accessController
+    AccessControllerInterface _accessController
   )
     external
     override
     onlyOwner()
   {
-    accessControllers[asset][denomination] = AccessControllerInterface(accessController);
+    s_accessController = _accessController;
+  }
+
+  function accessController() public view returns (AccessControllerInterface) {
+    return s_accessController;
   }
 
   /**
@@ -145,15 +147,15 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
   }
 
   /**
-   * @dev reverts if the caller does not have access by the accessController
+   * @dev reverts if the caller does not have access to the feed
    * contract or is the contract itself.
    */
   modifier checkAccess(
     address asset,
     bytes32 denomination
   ) {
-    AccessControllerInterface ac = accessControllers[asset][denomination];
-    require(address(ac) == address(0) || ac.hasAccess(msg.sender, msg.data), "No access");
+    bytes memory callData = abi.encode(asset, denomination, msg.data); // Include asset pair in payload to access controller
+    require(address(s_accessController) == address(0) || s_accessController.hasAccess(msg.sender, callData), "No access");
     _;
   }
 }
