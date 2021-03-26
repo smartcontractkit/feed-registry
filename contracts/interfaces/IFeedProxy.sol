@@ -51,38 +51,27 @@ interface IFeedProxy is IFeedRegistry {
       uint256 roundId
     );
 
-  // function getAnswer(
-  //   address asset,
-  //   bytes32 denomination,
-  //   uint256 roundId
-  // )
-  //   external
-  //   view
-  //   returns (
-  //     uint256 timestamp
-  //   );
+  function getAnswer(
+    address asset,
+    bytes32 denomination,
+    uint256 roundId
+  )
+    external
+    view
+    returns (
+      int256 answer
+    );
 
-  // function getAnswer(
-  //   address asset,
-  //   bytes32 denomination,
-  //   uint256 roundId
-  // )
-  //   external
-  //   view
-  //   returns (
-  //     int256 answer
-  //   );
-
-  // function getTimestamp(
-  //   address asset,
-  //   bytes32 denomination,
-  //   uint256 roundId
-  // )
-  //   external
-  //   view
-  //   returns (
-  //     uint256 timestamp
-  //   );
+  function getTimestamp(
+    address asset,
+    bytes32 denomination,
+    uint256 roundId
+  )
+    external
+    view
+    returns (
+      uint256 timestamp
+    );
 
   // V3 Aggregator interface
   // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.7/interfaces/AggregatorV3Interface.sol    

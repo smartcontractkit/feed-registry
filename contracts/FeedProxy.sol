@@ -43,7 +43,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     returns (int256 price) 
   {
     AggregatorV2V3Interface feed = getFeed(asset, denomination);
-    price = feed.latestAnswer();
+    return feed.latestAnswer();
   }
 
   function latestTimestamp(
@@ -57,7 +57,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     returns (uint256 timestamp) 
   {
     AggregatorV2V3Interface feed = getFeed(asset, denomination);
-    timestamp = feed.latestTimestamp();
+    return feed.latestTimestamp();
   }
 
   function latestRound(
@@ -73,8 +73,40 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     ) 
   {
     AggregatorV2V3Interface feed = getFeed(asset, denomination);
-    roundId = feed.latestRound();
+    return feed.latestRound();
   }
+
+  function getAnswer(
+    address asset,
+    bytes32 denomination,
+    uint256 roundId
+  )
+    external
+    view
+    override
+    returns (
+      int256 answer
+    )
+  {
+    AggregatorV2V3Interface feed = getFeed(asset, denomination);
+    return feed.getAnswer(roundId);
+  }
+
+  function getTimestamp(
+    address asset,
+    bytes32 denomination,
+    uint256 roundId
+  )
+    external
+    view
+    override
+    returns (
+      uint256 timestamp
+    )
+  {
+    AggregatorV2V3Interface feed = getFeed(asset, denomination);
+    return feed.getTimestamp(roundId);
+  }  
 
   // TODO: full support for other getters e.g. latestRoundData
 
