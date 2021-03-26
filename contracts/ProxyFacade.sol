@@ -7,9 +7,7 @@ import "./interfaces/IFeedProxy.sol";
 
 // This contract sits between AggregatorProxy -> ProxyFacade -> FeedRegistry
 // TODO: For the access controls in FeedRegistry to work with this contract:
-// - Both ProxyFacade and AggregatorProxy would also need to point to the feedProxy's access controller
-// and check that msg.sender hasAccess
-
+// Both ProxyFacade and AggregatorProxy would also need to point to an access controller and check that msg.sender hasAccess
 contract ProxyFacade is AggregatorV2V3Interface {
   IFeedProxy private s_feedProxy;
   address private s_asset;
@@ -26,7 +24,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     s_denomination = _denomination;
   }
 
-  function feedProxy()
+  function getFeedProxy()
     public
     view
     returns (
@@ -36,7 +34,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     return s_feedProxy;
   }
 
-  function asset()
+  function getAsset()
     public
     view
     returns (
@@ -46,7 +44,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     return s_asset;
   }
 
-  function denomination()
+  function getDenomination()
     public
     view
     returns (

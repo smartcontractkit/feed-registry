@@ -195,15 +195,11 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     return feed.getRoundData(_roundId);
   }
 
-  /**
-   * @dev reverts if the caller does not have access to the feed
-   * contract or is the contract itself.
-   */
   modifier checkAccess(
     address asset,
     bytes32 denomination
   ) {
-    bytes memory callData = abi.encode(asset, denomination, msg.data); // Include asset pair (TKN / USD) in payload to access controller
+    bytes memory callData = abi.encode(asset, denomination, msg.data); // Includes asset pair (TKN / USD) in payload to access controller
     require(address(s_accessController) == address(0) || s_accessController.hasAccess(msg.sender, callData), "No access");
     _;
   }
