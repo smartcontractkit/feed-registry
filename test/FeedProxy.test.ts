@@ -23,7 +23,7 @@ describe("FeedProxy", function () {
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await hre.ethers.getSigners();
     this.signers.owner = signers[0];
-    this.signers.stranger = signers[1];
+    this.signers.other = signers[1];
 
     const feedProxyArtifact: Artifact = await hre.artifacts.readArtifact("FeedProxy");
     this.feedProxy = <FeedProxy>await deployContract(this.signers.owner, feedProxyArtifact, []);
@@ -44,7 +44,7 @@ describe("FeedProxy", function () {
 
   it("setController should revert for a non-owners", async function () {
     await expect(
-      this.feedProxy.connect(this.signers.stranger).setController(this.accessController.address),
+      this.feedProxy.connect(this.signers.other).setController(this.accessController.address),
     ).to.be.revertedWith("Only callable by owner");
   });
 
@@ -53,7 +53,9 @@ describe("FeedProxy", function () {
     await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
 
     // Access control is disabled when no controller is set
-    expect(await this.feedProxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, DENOMINATION)).to.equal(TEST_ANSWER);
+    expect(await this.feedProxy.connect(this.signers.other).latestAnswer(ASSET_ADDRESS, DENOMINATION)).to.equal(
+      TEST_ANSWER,
+    );
 
     // Should revert because access is set to false
     await this.feedProxy.setController(this.accessController.address);
@@ -62,15 +64,17 @@ describe("FeedProxy", function () {
       ["address", "bytes32", "bytes"],
       [ASSET_ADDRESS, DENOMINATION, msgData],
     ); // TODO: extract to a test util
-    await this.accessController.mock.hasAccess.withArgs(this.signers.stranger.address, callData).returns(false); // Mock controller access
+    await this.accessController.mock.hasAccess.withArgs(this.signers.other.address, callData).returns(false); // Mock controller access
     await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
-    await expect(this.feedProxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
-      "No access",
-    );
+    await expect(
+      this.feedProxy.connect(this.signers.other).latestAnswer(ASSET_ADDRESS, DENOMINATION),
+    ).to.be.revertedWith("No access");
 
     // Should pass because access is set to true
-    await this.accessController.mock.hasAccess.withArgs(this.signers.stranger.address, callData).returns(true); // Mock controller access
-    expect(await this.feedProxy.connect(this.signers.stranger).latestAnswer(ASSET_ADDRESS, DENOMINATION)).to.equal(TEST_ANSWER);
+    await this.accessController.mock.hasAccess.withArgs(this.signers.other.address, callData).returns(true); // Mock controller access
+    expect(await this.feedProxy.connect(this.signers.other).latestAnswer(ASSET_ADDRESS, DENOMINATION)).to.equal(
+      TEST_ANSWER,
+    );
   });
 
   it("decimals returns the latest answer of a feed", async function () {
@@ -82,7 +86,9 @@ describe("FeedProxy", function () {
   });
 
   it("decimals should revert for a non-existent feed", async function () {
-    await expect(this.feedProxy.decimals(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith("function call to a non-contract account");
+    await expect(this.feedProxy.decimals(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
   });
 
   it("description returns the latest answer of a feed", async function () {
@@ -108,7 +114,9 @@ describe("FeedProxy", function () {
   });
 
   it("version should revert for a non-existent feed", async function () {
-    await expect(this.feedProxy.version(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith("function call to a non-contract account");
+    await expect(this.feedProxy.version(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
   });
 
   it("latestAnswer returns the latest answer of a feed", async function () {

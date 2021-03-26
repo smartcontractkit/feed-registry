@@ -17,7 +17,7 @@ describe("ProxyFacade", function () {
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await hre.ethers.getSigners();
     this.signers.owner = signers[0];
-    this.signers.stranger = signers[1];
+    this.signers.other = signers[1];
 
     const feedProxyArtifact: Artifact = await hre.artifacts.readArtifact("FeedProxy");
     this.feedProxy = <FeedProxy>await deployContract(this.signers.owner, feedProxyArtifact, []);
@@ -28,10 +28,18 @@ describe("ProxyFacade", function () {
     await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
 
     const proxyFacadeArtifact: Artifact = await hre.artifacts.readArtifact("ProxyFacade");
-    this.proxyFacade = await deployContract(this.signers.owner, proxyFacadeArtifact, [this.feedProxy.address, ASSET_ADDRESS, DENOMINATION]);
+    this.proxyFacade = await deployContract(this.signers.owner, proxyFacadeArtifact, [
+      this.feedProxy.address,
+      ASSET_ADDRESS,
+      DENOMINATION,
+    ]);
 
     const proxyArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorProxy");
     this.proxy = await deployContract(this.signers.owner, proxyArtifact, [this.proxyFacade.address]);
+
+    // TODO: vendor v0.6/SimpleWriteAccessController for testing purposes
+    const accessControllerArtifact: Artifact = await hre.artifacts.readArtifact("AccessControllerInterface");
+    this.accessController = await deployMockContract(this.signers.owner, accessControllerArtifact.abi);
   });
 
   it("proxyFacade should be able to read answer from registry", async function () {
@@ -39,18 +47,48 @@ describe("ProxyFacade", function () {
     expect(await this.proxyFacade.getAsset()).to.equal(ASSET_ADDRESS);
     expect(await this.proxyFacade.getDenomination()).to.equal(DENOMINATION);
 
-    const latestAnswer = await this.proxyFacade.latestAnswer();
-    expect(latestAnswer).to.equal(latestAnswer);
-
+    expect(await this.proxyFacade.latestAnswer()).to.equal(TEST_ANSWER);
     // TODO: other getters
   });
 
   it("proxy should be able to read answer through facade", async function () {
     expect(await this.proxy.aggregator()).to.equal(this.proxyFacade.address);
 
-    const latestAnswer = await this.proxy.latestAnswer();
-    expect(latestAnswer).to.equal(latestAnswer);
-
+    expect(await this.proxy.latestAnswer()).to.equal(TEST_ANSWER);
     // TODO: other getters
   });
+
+  describe("ProxyFacade Access controls", function () {
+    beforeEach(async function () {
+        await this.feedProxy.setController(this.accessController.address); // set access controller    
+    })
+
+    it("proxyFacade should NOT be able to read answer from registry if not granted access", async function () {
+        await this.accessController.mock.hasAccess.returns(false); // Mock controller access
+    
+        await expect(this.proxyFacade.latestAnswer()).to.be.revertedWith(
+            "No access",
+        );
+    });
+
+    it("proxyFacade should be able to read answer from registry if not granted access", async function () {
+        await this.accessController.mock.hasAccess.returns(true); // Mock controller access
+
+        expect(await this.proxyFacade.latestAnswer()).to.equal(TEST_ANSWER);
+    });
+
+    it("proxy should NOT be able to read answer from registry if not granted access", async function () {
+        await this.accessController.mock.hasAccess.returns(false); // Mock controller access
+    
+        await expect(this.proxy.latestAnswer()).to.be.revertedWith(
+            "No access",
+        );
+    });
+
+    it("proxy should be able to read answer from registry if not granted access", async function () {
+        await this.accessController.mock.hasAccess.returns(true); // Mock controller access
+
+        expect(await this.proxy.latestAnswer()).to.equal(TEST_ANSWER);
+    });
+  })
 });

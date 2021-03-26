@@ -17,7 +17,7 @@ describe("FeedRegistry", function () {
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await hre.ethers.getSigners();
     this.signers.owner = signers[0];
-    this.signers.stranger = signers[1];
+    this.signers.other = signers[1];
 
     const registryArtifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
     this.registry = <FeedRegistry>await deployContract(this.signers.owner, registryArtifact, []);
@@ -57,7 +57,7 @@ describe("FeedRegistry", function () {
 
   it("non-owners cannot add a feed", async function () {
     await expect(
-      this.registry.connect(this.signers.stranger).addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]),
+      this.registry.connect(this.signers.other).addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]),
     ).to.be.revertedWith("Only callable by owner");
   });
 
@@ -76,7 +76,7 @@ describe("FeedRegistry", function () {
 
   it("non-owners cannot remove a feed", async function () {
     await this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
-    await expect(this.registry.connect(this.signers.stranger).removeFeeds([ASSET_ADDRESS], [USD])).to.be.revertedWith(
+    await expect(this.registry.connect(this.signers.other).removeFeeds([ASSET_ADDRESS], [USD])).to.be.revertedWith(
       "Only callable by owner",
     );
 
