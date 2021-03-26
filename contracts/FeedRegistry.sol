@@ -94,7 +94,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
   )
     internal
   {
-    require(feedAddress.isContract(), "feed is not a contract");
+    require(feedAddress.isContract(), "feed is not a contract"); // NOTE: this does not work on OVM
     AggregatorV2V3Interface feed = AggregatorV2V3Interface(feedAddress);
     if (s_feeds[asset][denomination] != feed) {
       s_feeds[asset][denomination] = feed;

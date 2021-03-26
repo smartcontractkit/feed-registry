@@ -11,9 +11,9 @@ const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
 const USD = utils.keccak256(utils.toUtf8Bytes("USD"));
 const TEST_ANSWER = utils.parseEther("999999");
-const TEST_DESCRIPTION = 'TKN / USD'
-const TEST_DECIMALS = 18
-const TEST_VERSION = 4
+const TEST_DESCRIPTION = "TKN / USD";
+const TEST_DECIMALS = 18;
+const TEST_VERSION = 4;
 const TEST_TIMESTAMP = BigNumber.from("123456789");
 const TEST_ROUND = BigNumber.from("1");
 const TEST_ROUND_DATA = [TEST_ROUND, TEST_ANSWER, TEST_TIMESTAMP, TEST_TIMESTAMP, TEST_ROUND];
@@ -82,9 +82,7 @@ describe("FeedProxy", function () {
   });
 
   it("decimals should revert for a non-existent feed", async function () {
-    await expect(this.proxy.decimals(ASSET_ADDRESS, USD)).to.be.revertedWith(
-      "function call to a non-contract account",
-    );
+    await expect(this.proxy.decimals(ASSET_ADDRESS, USD)).to.be.revertedWith("function call to a non-contract account");
   });
 
   it("description returns the latest answer of a feed", async function () {
@@ -110,9 +108,7 @@ describe("FeedProxy", function () {
   });
 
   it("decimals should revert for a non-existent feed", async function () {
-    await expect(this.proxy.decimals(ASSET_ADDRESS, USD)).to.be.revertedWith(
-      "function call to a non-contract account",
-    );
+    await expect(this.proxy.decimals(ASSET_ADDRESS, USD)).to.be.revertedWith("function call to a non-contract account");
   });
 
   it("latestAnswer returns the latest answer of a feed", async function () {
