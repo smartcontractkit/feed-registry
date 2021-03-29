@@ -14,7 +14,7 @@ import "../interfaces/AccessControllerInterface.sol";
 contract WriteAccessController is AccessControllerInterface, Owned {
   bool public checkEnabled;
   mapping(address => bool) internal s_globalAccessList;
-  mapping(address => mapping(bytes => bool)) internal s_accessList;
+  mapping(address => mapping(bytes => bool)) internal s_localAccessList;
 
   event AccessAdded(address user, bytes data);
   event AccessRemoved(address user, bytes data);
@@ -41,7 +41,7 @@ contract WriteAccessController is AccessControllerInterface, Owned {
     override
     returns (bool)
   {
-    return s_globalAccessList[user] || s_accessList[user][data] || !checkEnabled;
+    return s_globalAccessList[user] || s_localAccessList[user][data] || !checkEnabled;
   }
 
   /**
@@ -57,12 +57,10 @@ contract WriteAccessController is AccessControllerInterface, Owned {
     onlyOwner()
   {
     if (data.length == 0 && !s_globalAccessList[user]) {
-      s_globalAccessList[user] = true;
-      emit AccessAdded(user, data);
+      _addGlobalAccess(user);
     }
-    if (data.length != 0 && !s_accessList[user][data]) {
-      s_accessList[user][data] = true;
-      emit AccessAdded(user, data);
+    if (data.length != 0 && !s_localAccessList[user][data]) {
+      _addLocalAccess(user, data);
     }
   }
 
@@ -79,12 +77,10 @@ contract WriteAccessController is AccessControllerInterface, Owned {
     onlyOwner()
   {
     if (data.length == 0 && s_globalAccessList[user]) {
-      s_globalAccessList[user] = false;
-      emit AccessRemoved(user, data);
+      _removeGlobalAccess(user);
     }
-    if (data.length != 0 && s_accessList[user][data]) {
-      s_accessList[user][data] = false;
-      emit AccessRemoved(user, data);
+    if (data.length != 0 && s_localAccessList[user][data]) {
+      _removeLocalAccess(user, data);
     }
   }
 
@@ -121,4 +117,24 @@ contract WriteAccessController is AccessControllerInterface, Owned {
     require(hasAccess(msg.sender, msg.data), "No access");
     _;
   }
+
+  function _addGlobalAccess(address user) internal {
+    s_globalAccessList[user] = true;
+    emit AccessAdded(user, ""); 
+  }
+
+  function _removeGlobalAccess(address user) internal {
+    s_globalAccessList[user] = false;
+    emit AccessRemoved(user, "");
+  }
+
+  function _addLocalAccess(address user, bytes memory data) internal {
+    s_localAccessList[user][data] = true;
+    emit AccessAdded(user, data);
+  }
+
+  function _removeLocalAccess(address user, bytes memory data) internal {
+    s_localAccessList[user][data] = false;
+    emit AccessRemoved(user, data);
+  }  
 }

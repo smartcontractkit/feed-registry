@@ -17,7 +17,6 @@ import "./WriteAccessController.sol";
  * WriteAccessController for that. 
  */
 contract PairReadAccessController is WriteAccessController {
-
   /**
    * @notice Returns the access of an address to an asset/denomination pair
    * @param account The address to query
