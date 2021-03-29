@@ -38,7 +38,6 @@ contract PairReadAccessController is WriteAccessController {
       bytes32 denomination
     ) = abi.decode(data, (address, bytes32));
     bytes memory pairData = abi.encode(asset, denomination); // Parse only asset pair (TKN / USD)
-    // TODO: Do we need try catch here?
-    return super.hasAccess(account, pairData) || account == tx.origin; // solhint-disable-line
+    return super.hasAccess(account, pairData) || account == tx.origin; // solhint-disable avoid-tx-origin
   }
 }
