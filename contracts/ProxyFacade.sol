@@ -6,20 +6,20 @@ import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./interfaces/IFeedProxy.sol";
 
 // This contract sits between AggregatorProxy -> ProxyFacade -> FeedRegistry
-// TODO: For the access controls in FeedRegistry to work with this contract:
-// Both ProxyFacade and AggregatorProxy would also need to point to an access controller and check that msg.sender hasAccess
 contract ProxyFacade is AggregatorV2V3Interface {
   IFeedProxy private s_feedProxy;
+  AccessControllerInterface private s_accessController;
   address private s_asset;
   bytes32 private s_denomination;
-  // TODO: accessController will be needed here for access controls to be enforcable
 
   constructor(
     address _feedProxy,
+    AccessControllerInterface _accessController,
     address _asset,
     bytes32 _denomination
   ) {
     s_feedProxy = IFeedProxy(_feedProxy);
+    s_accessController = _accessController;
     s_asset = _asset;
     s_denomination = _denomination;
   }
@@ -33,6 +33,10 @@ contract ProxyFacade is AggregatorV2V3Interface {
   {
     return s_feedProxy;
   }
+
+  function getAccessController() public view returns (AccessControllerInterface) {
+    return s_accessController;
+  }  
 
   function getAsset()
     public
@@ -60,6 +64,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     external
     view
     override
+    checkAccess()
     returns
     (
       int256
@@ -72,6 +77,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     external
     view
     override
+    checkAccess()
     returns (
       uint256
     )
@@ -83,6 +89,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     external
     view
     override
+    checkAccess()
     returns (
       uint256
     )
@@ -96,6 +103,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     external
     view
     override
+    checkAccess()
     returns (
       int256
     )
@@ -109,6 +117,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     external
     view
     override
+    checkAccess()
     returns (
       uint256
     )
@@ -122,6 +131,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     external
     view
     override
+    checkAccess()
     returns (
       uint8
     )
@@ -133,6 +143,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     external
     view
     override
+    checkAccess()
     returns (
       string memory
     )
@@ -144,6 +155,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     external
     view
     override
+    checkAccess()
     returns (
       uint256
     )
@@ -155,6 +167,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     external
     view
     override
+    checkAccess()
     returns (
       uint80 roundId,
       int256 answer,
@@ -170,6 +183,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     external
     view
     override
+    checkAccess()
     returns (
       uint80 roundId,
       int256 answer,
@@ -180,4 +194,10 @@ contract ProxyFacade is AggregatorV2V3Interface {
   {
     return s_feedProxy.latestRoundData(s_asset, s_denomination);
   }
+
+  modifier checkAccess() {
+    bytes memory callData = abi.encode(s_asset, s_denomination, msg.data); // Includes asset pair (TKN / USD) in payload to access controller
+    require(address(s_accessController) == address(0) || s_accessController.hasAccess(msg.sender, callData), "No access");
+    _;
+  }  
 }

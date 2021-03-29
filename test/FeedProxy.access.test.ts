@@ -43,7 +43,7 @@ describe("FeedProxy Access controls", function () {
   it("setController should set access controller for a feed", async function () {
     await this.feedProxy.setController(this.accessController.address);
 
-    const accessController = await this.feedProxy.accessController();
+    const accessController = await this.feedProxy.getAccessController();
     expect(accessController).to.equal(this.accessController.address);
   });
 

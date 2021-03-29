@@ -17,6 +17,13 @@ interface IFeedProxy is IFeedRegistry {
     AccessControllerInterface accessController
   ) external;
 
+  function getAccessController() 
+    external 
+    view 
+    returns (
+      AccessControllerInterface
+    );
+
   // V2 Aggregator interface
   // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.7/interfaces/AggregatorInterface.sol
 

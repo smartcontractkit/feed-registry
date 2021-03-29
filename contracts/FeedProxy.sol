@@ -23,7 +23,14 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     s_accessController = _accessController;
   }
 
-  function accessController() public view returns (AccessControllerInterface) {
+  function getAccessController() 
+    external
+    view
+    override
+    returns (
+      AccessControllerInterface
+    )
+  {
     return s_accessController;
   }
 
