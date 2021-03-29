@@ -10,7 +10,7 @@ import { shouldBehaveLikeOwned } from "./Owned.behaviour";
 
 const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
-const USD = utils.keccak256(utils.toUtf8Bytes("USD"));
+const DENOMINATION = utils.keccak256(utils.toUtf8Bytes("USD"));
 
 describe("FeedRegistry", function () {
   beforeEach(async function () {
@@ -21,6 +21,7 @@ describe("FeedRegistry", function () {
 
     const registryArtifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
     this.registry = <FeedRegistry>await deployContract(this.signers.owner, registryArtifact, []);
+    this.owned = this.registry;
 
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
@@ -31,11 +32,11 @@ describe("FeedRegistry", function () {
   });
 
   it("owner can add a feed", async function () {
-    await expect(this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]))
+    await expect(this.registry.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]))
       .to.emit(this.registry, "FeedSet")
-      .withArgs(ASSET_ADDRESS, USD, this.feed.address);
+      .withArgs(ASSET_ADDRESS, DENOMINATION, this.feed.address);
 
-    const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
+    const feed = await this.registry.getFeed(ASSET_ADDRESS, DENOMINATION);
     expect(feed).to.equal(this.feed.address);
 
     const isFeedEnabled = await this.registry.isFeedEnabled(feed);
@@ -43,31 +44,31 @@ describe("FeedRegistry", function () {
   });
 
   it("subsequent add feeds should not emit events", async function () {
-    await expect(this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]))
+    await expect(this.registry.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]))
       .to.emit(this.registry, "FeedSet")
-      .withArgs(ASSET_ADDRESS, USD, this.feed.address);
-    await expect(this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address])).to.not.emit(
+      .withArgs(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await expect(this.registry.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address])).to.not.emit(
       this.registry,
       "FeedSet",
     );
 
-    const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
+    const feed = await this.registry.getFeed(ASSET_ADDRESS, DENOMINATION);
     expect(feed).to.equal(this.feed.address);
   });
 
   it("non-owners cannot add a feed", async function () {
     await expect(
-      this.registry.connect(this.signers.other).addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]),
+      this.registry.connect(this.signers.other).addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]),
     ).to.be.revertedWith("Only callable by owner");
   });
 
   it("owner can remove a feed", async function () {
-    await this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
-    await expect(this.registry.removeFeeds([ASSET_ADDRESS], [USD]))
+    await this.registry.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
+    await expect(this.registry.removeFeeds([ASSET_ADDRESS], [DENOMINATION]))
       .to.emit(this.registry, "FeedSet")
-      .withArgs(ASSET_ADDRESS, USD, ethers.constants.AddressZero);
+      .withArgs(ASSET_ADDRESS, DENOMINATION, ethers.constants.AddressZero);
 
-    const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
+    const feed = await this.registry.getFeed(ASSET_ADDRESS, DENOMINATION);
     expect(feed).to.equal(ethers.constants.AddressZero);
 
     const isFeedEnabled = await this.registry.isFeedEnabled(feed);
@@ -75,12 +76,12 @@ describe("FeedRegistry", function () {
   });
 
   it("non-owners cannot remove a feed", async function () {
-    await this.registry.addFeeds([ASSET_ADDRESS], [USD], [this.feed.address]);
-    await expect(this.registry.connect(this.signers.other).removeFeeds([ASSET_ADDRESS], [USD])).to.be.revertedWith(
+    await this.registry.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
+    await expect(this.registry.connect(this.signers.other).removeFeeds([ASSET_ADDRESS], [DENOMINATION])).to.be.revertedWith(
       "Only callable by owner",
     );
 
-    const feed = await this.registry.getFeed(ASSET_ADDRESS, USD);
+    const feed = await this.registry.getFeed(ASSET_ADDRESS, DENOMINATION);
     expect(feed).to.equal(this.feed.address);
   });
 

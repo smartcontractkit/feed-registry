@@ -7,6 +7,7 @@ import "../interfaces/AccessControllerInterface.sol";
 
 /**
  * @title WriteAccessController
+ * @notice Has two access lists: a global list and a data-specific list.
  * @dev does not make any special permissions for EOAs, see
  * ReadAccessController for that.
  */
