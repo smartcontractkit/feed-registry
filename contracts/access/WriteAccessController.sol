@@ -11,8 +11,8 @@ import "../interfaces/AccessControllerInterface.sol";
  * ReadAccessController for that.
  */
 contract WriteAccessController is AccessControllerInterface, Owned {
-
   bool public checkEnabled;
+  mapping(address => bool) internal s_globalAccessList;
   mapping(address => mapping(bytes => bool)) internal s_accessList;
 
   event AccessAdded(address user, bytes data);
@@ -40,7 +40,7 @@ contract WriteAccessController is AccessControllerInterface, Owned {
     override
     returns (bool)
   {
-    return s_accessList[user][data] || !checkEnabled;
+    return s_globalAccessList[user] || s_accessList[user][data] || !checkEnabled;
   }
 
   /**
@@ -55,10 +55,13 @@ contract WriteAccessController is AccessControllerInterface, Owned {
     external
     onlyOwner()
   {
-    if (!s_accessList[user][data]) {
+    if (data.length == 0 && !s_globalAccessList[user]) {
+      s_globalAccessList[user] = true;
+      emit AccessAdded(user, data);
+    }
+    if (data.length != 0 && !s_accessList[user][data]) {
       s_accessList[user][data] = true;
-
-      emit AccessAdded(user, data);(user, data);
+      emit AccessAdded(user, data);
     }
   }
 
@@ -74,9 +77,12 @@ contract WriteAccessController is AccessControllerInterface, Owned {
     external
     onlyOwner()
   {
-    if (s_accessList[user][data]) {
+    if (data.length == 0 && s_globalAccessList[user]) {
+      s_globalAccessList[user] = false;
+      emit AccessRemoved(user, data);
+    }
+    if (data.length != 0 && s_accessList[user][data]) {
       s_accessList[user][data] = false;
-
       emit AccessRemoved(user, data);
     }
   }
@@ -90,7 +96,6 @@ contract WriteAccessController is AccessControllerInterface, Owned {
   {
     if (!checkEnabled) {
       checkEnabled = true;
-
       emit CheckAccessEnabled();
     }
   }
@@ -104,7 +109,6 @@ contract WriteAccessController is AccessControllerInterface, Owned {
   {
     if (checkEnabled) {
       checkEnabled = false;
-
       emit CheckAccessDisabled();
     }
   }

@@ -4,8 +4,6 @@ pragma solidity 0.7.6;
 
 import "./WriteAccessController.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @title ReadAccessController
  * @notice Gives access to:
@@ -18,7 +16,6 @@ import "hardhat/console.sol";
  * WriteAccessController for that.
  */
 contract ReadAccessController is WriteAccessController {
-
   /**
    * @notice Returns the access of an address
    * @param account The address to query
@@ -36,5 +33,4 @@ contract ReadAccessController is WriteAccessController {
   {
     return super.hasAccess(account, data) || account == tx.origin; // solhint-disable-line
   }
-
 }
