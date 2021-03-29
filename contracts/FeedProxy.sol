@@ -39,7 +39,7 @@ contract FeedProxy is IFeedProxy, FeedRegistry {
     view
     override
     checkAccess(asset, denomination)
-    returns (int256 price) 
+    returns (int256 answer) 
   {
     AggregatorV2V3Interface feed = getFeed(asset, denomination);
     return feed.latestAnswer();
