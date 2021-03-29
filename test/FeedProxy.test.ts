@@ -6,7 +6,6 @@ import { Signers } from "../types";
 import { expect } from "chai";
 import { BigNumber, ethers, utils } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
-import { FeedProxyAccessController } from "../typechain/FeedProxyAccessController";
 
 const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
@@ -31,56 +30,6 @@ describe("FeedProxy", function () {
 
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
-
-    const accessControllerArtifact: Artifact = await hre.artifacts.readArtifact("FeedProxyAccessController");
-    this.accessController = <FeedProxyAccessController>await deployContract(this.signers.owner, accessControllerArtifact);
-  });
-
-  it("setController should set access controller for a feed", async function () {
-    await this.feedProxy.setController(this.accessController.address);
-
-    const accessController = await this.feedProxy.accessController();
-    expect(accessController).to.equal(this.accessController.address);
-  });
-
-  it("setController should revert for a non-owners", async function () {
-    await expect(
-      this.feedProxy.connect(this.signers.other).setController(this.accessController.address),
-    ).to.be.revertedWith("Only callable by owner");
-  });
-
-  // TODO
-  it.skip("access controls should work for getter", async function () {
-    await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
-    await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
-
-    // Access control is disabled when no controller is set
-    expect(await this.feedProxy.connect(this.signers.other).latestAnswer(ASSET_ADDRESS, DENOMINATION)).to.equal(
-      TEST_ANSWER,
-    );
-
-    // Should revert because access is set to false
-    await this.feedProxy.setController(this.accessController.address);
-    const msgData = this.feedProxy.interface.encodeFunctionData("latestAnswer", [ASSET_ADDRESS, DENOMINATION]);
-    const callData = ethers.utils.defaultAbiCoder.encode(
-      ["address", "bytes32", "bytes"],
-      [ASSET_ADDRESS, DENOMINATION, msgData],
-    ); // TODO: extract to a test util
-    const assetData = ethers.utils.defaultAbiCoder.encode(
-      ["address", "bytes32"],
-      [ASSET_ADDRESS, DENOMINATION],
-    );
-    await this.accessController.addAccess(this.signers.other, assetData); // TOFIX: this won't work from an EOA address
-    await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
-    await expect(
-      this.feedProxy.connect(this.signers.other).latestAnswer(ASSET_ADDRESS, DENOMINATION),
-    ).to.be.revertedWith("No access");
-
-    // Should pass because access is set to true
-    await this.accessController.mock.hasAccess.withArgs(this.signers.other.address, callData).returns(true); // Mock controller access
-    expect(await this.feedProxy.connect(this.signers.other).latestAnswer(ASSET_ADDRESS, DENOMINATION)).to.equal(
-      TEST_ANSWER,
-    );
   });
 
   it("decimals returns the latest answer of a feed", async function () {

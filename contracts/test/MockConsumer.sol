@@ -4,16 +4,12 @@ pragma solidity 0.7.6;
 
 import "../interfaces/IFeedProxy.sol";
 
-contract MockFeedProxyConsumer {
+contract MockConsumer {
   IFeedProxy private s_feedProxy;
-
-  address public immutable ASSET = 0x0000000000000000000000000000000000000001;
-  bytes32 public immutable DENOMINATION = keccak256("USD");
 
   constructor(
     IFeedProxy feedProxy
   ) {
-    require(address(feedProxy) != address(0), "Invalid feedProxy address");
     s_feedProxy = feedProxy;
   }
 
@@ -27,13 +23,16 @@ contract MockFeedProxyConsumer {
     return s_feedProxy;
   }
 
-  function read() 
+  function read(
+    address asset,
+    bytes32 denomination
+  ) 
     public 
     view 
     returns (
       int256
     ) 
   {
-    return s_feedProxy.latestAnswer(ASSET, DENOMINATION);
+    return s_feedProxy.latestAnswer(asset, denomination);
   }
 }
