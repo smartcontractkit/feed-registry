@@ -77,9 +77,9 @@ describe("FeedRegistry", function () {
 
   it("non-owners cannot remove a feed", async function () {
     await this.registry.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
-    await expect(this.registry.connect(this.signers.other).removeFeeds([ASSET_ADDRESS], [DENOMINATION])).to.be.revertedWith(
-      "Only callable by owner",
-    );
+    await expect(
+      this.registry.connect(this.signers.other).removeFeeds([ASSET_ADDRESS], [DENOMINATION]),
+    ).to.be.revertedWith("Only callable by owner");
 
     const feed = await this.registry.getFeed(ASSET_ADDRESS, DENOMINATION);
     expect(feed).to.equal(this.feed.address);
