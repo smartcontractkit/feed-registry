@@ -5,7 +5,7 @@ import { Signers } from "../../types";
 import { expect } from "chai";
 import { ethers, utils } from "ethers";
 import { WriteAccessController } from "../../typechain/WriteAccessController";
-import { shouldBehaveLikeOwned } from "../Owned.behaviour";
+import { shouldBehaveLikeOwned } from "../vendor/Owned.behaviour";
 
 const { deployContract } = hre.waffle;
 const TEST_ADDRESS = "0x0000000000000000000000000000000000000002";

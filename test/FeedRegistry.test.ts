@@ -6,7 +6,7 @@ import { Signers } from "../types";
 import { expect } from "chai";
 import { ethers, utils } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
-import { shouldBehaveLikeOwned } from "./Owned.behaviour";
+import { shouldBehaveLikeOwned } from "./vendor/Owned.behaviour";
 
 const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";

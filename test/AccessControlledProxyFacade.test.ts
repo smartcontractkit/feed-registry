@@ -7,8 +7,8 @@ import { expect } from "chai";
 import { ethers, utils } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
 import { PairReadAccessController } from "../typechain/PairReadAccessController";
-import { shouldBehaveLikeOwned } from "./Owned.behaviour";
-import { shouldBehaveLikeAccessControlled } from "./AccessControlled.behaviour";
+import { shouldBehaveLikeOwned } from "./vendor/Owned.behaviour";
+import { shouldBehaveLikeAccessControlled } from "./access/AccessControlled.behaviour";
 
 const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
