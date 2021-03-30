@@ -2,54 +2,33 @@
 
 pragma solidity 0.7.6;
 
-import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
-import "./vendor/Owned.sol";
 import "./interfaces/IFeedProxy.sol";
+import "./ProxyFacade.sol";
 
-// This contract sits between AggregatorProxy -> ProxyFacade -> FeedRegistry
-contract ProxyFacade is AggregatorV2V3Interface {
-  IFeedProxy internal s_feedProxy;
-  address internal s_asset;
-  bytes32 internal s_denomination;
+// ProxyFacade with access controls
+contract AccessControlledProxyFacade is ProxyFacade, Owned {
+  AccessControllerInterface internal s_accessController;
 
   constructor(
+    AccessControllerInterface accessController,
     address feedProxy,
     address asset,
     bytes32 denomination
-  ) {
-    s_feedProxy = IFeedProxy(feedProxy);
-    s_asset = asset;
-    s_denomination = denomination;
+  ) ProxyFacade(feedProxy, asset, denomination) {
+    s_accessController = accessController;
   }
 
-  function getFeedProxy()
+  function setController(
+    AccessControllerInterface _accessController
+  )
     public
-    view
-    returns (
-      IFeedProxy
-    )
+    onlyOwner()
   {
-    return s_feedProxy;
+    s_accessController = _accessController;
   }
 
-  function getAsset()
-    public
-    view
-    returns (
-      address
-    )
-  {
-    return s_asset;
-  }
-
-  function getDenomination()
-    public
-    view
-    returns (
-      bytes32
-    )
-  {
-    return s_denomination;
+  function getAccessController() public view returns (AccessControllerInterface) {
+    return s_accessController;
   }
 
   // V2
@@ -57,38 +36,38 @@ contract ProxyFacade is AggregatorV2V3Interface {
   function latestAnswer()
     public
     view
-    virtual
     override
+    checkAccess()
     returns
     (
       int256
     )
   {
-    return s_feedProxy.latestAnswer(s_asset, s_denomination);
+    return super.latestAnswer();
   }
   
   function latestTimestamp() 
     public
     view
-    virtual
     override
+    checkAccess()
     returns (
       uint256
     )
   {
-    return s_feedProxy.latestTimestamp(s_asset, s_denomination);
+    return super.latestTimestamp();
   }
 
   function latestRound() 
     public
     view
-    virtual
     override
+    checkAccess()
     returns (
       uint256
     )
   {
-    return s_feedProxy.latestRound(s_asset, s_denomination);
+    return super.latestRound();
   }
   
   function getAnswer(
@@ -96,13 +75,13 @@ contract ProxyFacade is AggregatorV2V3Interface {
   )
     public
     view
-    virtual
     override
+    checkAccess()
     returns (
       int256
     )
   {
-    return s_feedProxy.getAnswer(s_asset, s_denomination, roundId);
+    return super.getAnswer(roundId);
   }
   
   function getTimestamp(
@@ -110,13 +89,13 @@ contract ProxyFacade is AggregatorV2V3Interface {
   )
     public
     view
-    virtual
     override
+    checkAccess()
     returns (
       uint256
     )
   {
-    return s_feedProxy.getTimestamp(s_asset, s_denomination, roundId);
+    return super.getTimestamp(roundId);
   }
 
   // V3
@@ -124,44 +103,44 @@ contract ProxyFacade is AggregatorV2V3Interface {
   function decimals() 
     public
     view
-    virtual
     override
+    checkAccess()
     returns (
       uint8
     )
   {
-    return s_feedProxy.decimals(s_asset, s_denomination);
+    return super.decimals();
   }
   
   function description() 
     public
     view
-    virtual
     override
+    checkAccess()
     returns (
       string memory
     )
   {
-    return s_feedProxy.description(s_asset, s_denomination);
+    return super.description();
   }
   
   function version() 
     public
     view
-    virtual
     override
+    checkAccess()
     returns (
       uint256
     )
   {
-    return s_feedProxy.version(s_asset, s_denomination);
+    return super.version();
   }
 
   function getRoundData(uint80 _roundId)
     public
     view
-    virtual
     override
+    checkAccess()
     returns (
       uint80 roundId,
       int256 answer,
@@ -170,14 +149,14 @@ contract ProxyFacade is AggregatorV2V3Interface {
       uint80 answeredInRound
     )
   {
-    return s_feedProxy.getRoundData(s_asset, s_denomination, _roundId);
+    return super.getRoundData(_roundId);
   }
 
   function latestRoundData()
     public
     view
-    virtual
     override
+    checkAccess()
     returns (
       uint80 roundId,
       int256 answer,
@@ -186,6 +165,12 @@ contract ProxyFacade is AggregatorV2V3Interface {
       uint80 answeredInRound
     )
   {
-    return s_feedProxy.latestRoundData(s_asset, s_denomination);
+    return super.latestRoundData();
   }
+
+  modifier checkAccess() {
+    bytes memory callData = abi.encode(s_asset, s_denomination, msg.data); // Includes asset pair (TKN / USD) in payload to access controller
+    require(address(s_accessController) == address(0) || s_accessController.hasAccess(msg.sender, callData), "No access");
+    _;
+  }  
 }
