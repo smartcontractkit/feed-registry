@@ -3,37 +3,14 @@
 pragma solidity 0.7.6;
 
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
-import "./interfaces/AccessControllerInterface.sol";
+import "./access/AccessControlled.sol";
 import "./interfaces/IFeedProxy.sol";
 import "./FeedRegistry.sol";
 
-contract FeedProxy is IFeedProxy, FeedRegistry {
+contract FeedProxy is IFeedProxy, FeedRegistry, AccessControlled {
   // TODO: s_proposedFeeds? for two-step changes?
   // TODO: port phases / currentPhase logic from AggregatorProxy 
   // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.6/AggregatorProxy.sol
-  AccessControllerInterface private s_accessController;
-
-  function setController(
-    AccessControllerInterface _accessController
-  )
-    external
-    override
-    onlyOwner()
-  {
-    s_accessController = _accessController;
-  }
-
-  function getAccessController() 
-    external
-    view
-    override
-    returns (
-      AccessControllerInterface
-    )
-  {
-    return s_accessController;
-  }
-
   /**
    * @notice retrieve the latest answer of a feed, given an asset / denomination pair
    * or reverts if feed is either unset or has not granted access

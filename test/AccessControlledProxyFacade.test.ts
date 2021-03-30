@@ -13,6 +13,7 @@ const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
 const DENOMINATION = utils.keccak256(utils.toUtf8Bytes("USD"));
 const PAIR_DATA = ethers.utils.defaultAbiCoder.encode(["address", "bytes32"], [ASSET_ADDRESS, DENOMINATION]);
+const TEST_ADDRESS = "0x0000000000000000000000000000000000000002";
 const TEST_ANSWER = utils.parseEther("999999");
 
 describe("AccessControlledProxyFacade", function () {
@@ -50,11 +51,22 @@ describe("AccessControlledProxyFacade", function () {
 
   it("proxyFacade should be initialized correctly", async function () {
     expect(await this.proxyFacade.getFeedProxy()).to.equal(this.feedProxy.address);
-    expect(await this.proxyFacade.getAccessController()).to.equal(this.accessController.address);
+    expect(await this.proxyFacade.getController()).to.equal(this.accessController.address);
     expect(await this.proxyFacade.getAsset()).to.equal(ASSET_ADDRESS);
     expect(await this.proxyFacade.getDenomination()).to.equal(DENOMINATION);
     expect(await this.proxyFacade.latestAnswer()).to.equal(TEST_ANSWER);
     // TODO: other getters
+  });
+
+  it("owner can set access controller", async function () {
+    await this.proxyFacade.setController(TEST_ADDRESS);
+    expect(await this.proxyFacade.getController()).to.equal(TEST_ADDRESS);
+  });
+
+  it("non-owners cannot set access controller", async function () {
+    await expect(this.proxyFacade.connect(this.signers.other).setController(TEST_ADDRESS)).to.be.revertedWith(
+      "Only callable by owner",
+    );
   });
 
   it("proxyFacade should be able to read answer from registry", async function () {
@@ -68,6 +80,8 @@ describe("AccessControlledProxyFacade", function () {
     expect(await this.proxy.latestAnswer()).to.equal(TEST_ANSWER);
     // TODO: other getters
   });
+
+  //
 
   describe("With access controls enabled", function () {
     beforeEach(async function () {

@@ -2,33 +2,20 @@
 
 pragma solidity 0.7.6;
 
+import "./access/AccessControlled.sol";
+import "./interfaces/AccessControllerInterface.sol";
 import "./interfaces/IFeedProxy.sol";
 import "./ProxyFacade.sol";
 
 // ProxyFacade with access controls
-contract AccessControlledProxyFacade is ProxyFacade, Owned {
-  AccessControllerInterface internal s_accessController;
-
+contract AccessControlledProxyFacade is ProxyFacade, AccessControlled {
   constructor(
     AccessControllerInterface accessController,
     address feedProxy,
     address asset,
     bytes32 denomination
   ) ProxyFacade(feedProxy, asset, denomination) {
-    s_accessController = accessController;
-  }
-
-  function setController(
-    AccessControllerInterface _accessController
-  )
-    public
-    onlyOwner()
-  {
-    s_accessController = _accessController;
-  }
-
-  function getAccessController() public view returns (AccessControllerInterface) {
-    return s_accessController;
+    setController(accessController);
   }
 
   // V2

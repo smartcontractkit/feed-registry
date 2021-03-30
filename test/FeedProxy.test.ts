@@ -10,6 +10,7 @@ import { deployMockContract } from "ethereum-waffle";
 const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
 const DENOMINATION = utils.keccak256(utils.toUtf8Bytes("USD"));
+const TEST_ADDRESS = "0x0000000000000000000000000000000000000002";
 const TEST_ANSWER = utils.parseEther("999999");
 const TEST_DESCRIPTION = "TKN / USD";
 const TEST_DECIMALS = 18;
@@ -30,6 +31,17 @@ describe("FeedProxy", function () {
 
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
+  });
+
+  it("owner can set access controller", async function () {
+    await this.feedProxy.setController(TEST_ADDRESS);
+    expect(await this.feedProxy.getController()).to.equal(TEST_ADDRESS);
+  });
+
+  it("non-owners cannot set access controller", async function () {
+    await expect(this.feedProxy.connect(this.signers.other).setController(TEST_ADDRESS)).to.be.revertedWith(
+      "Only callable by owner",
+    );
   });
 
   it("decimals returns the latest answer of a feed", async function () {
