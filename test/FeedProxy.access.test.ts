@@ -8,6 +8,7 @@ import { ethers, utils } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
 import { PairReadAccessController } from "../typechain/PairReadAccessController";
 import { MockConsumer } from "../typechain/MockConsumer";
+import { shouldBehaveLikeAccessControlled } from "./AccessControlled.behaviour";
 
 const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
@@ -24,6 +25,7 @@ describe("FeedProxy Access controls", function () {
 
     const feedProxyArtifact: Artifact = await hre.artifacts.readArtifact("FeedProxy");
     this.feedProxy = <FeedProxy>await deployContract(this.signers.owner, feedProxyArtifact, []);
+    this.accessControlled = this.feedProxy;
 
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
@@ -38,19 +40,6 @@ describe("FeedProxy Access controls", function () {
     const consumerArtifact: Artifact = await hre.artifacts.readArtifact("MockConsumer");
     this.consumer = <MockConsumer>await deployContract(this.signers.owner, consumerArtifact, [this.feedProxy.address]);
     expect(await this.consumer.getFeedProxy()).to.equal(this.feedProxy.address);
-  });
-
-  it("setController should set access controller for a feed", async function () {
-    await this.feedProxy.setController(this.accessController.address);
-
-    const accessController = await this.feedProxy.getController();
-    expect(accessController).to.equal(this.accessController.address);
-  });
-
-  it("setController should revert for a non-owners", async function () {
-    await expect(
-      this.feedProxy.connect(this.signers.other).setController(this.accessController.address),
-    ).to.be.revertedWith("Only callable by owner");
   });
 
   it("access controls should work for getter", async function () {
@@ -69,4 +58,6 @@ describe("FeedProxy Access controls", function () {
     expect(await this.accessController.hasAccess(this.consumer.address, PAIR_DATA)).to.equal(true);
     expect(await this.consumer.read(ASSET_ADDRESS, DENOMINATION)).to.equal(TEST_ANSWER);
   });
+
+  shouldBehaveLikeAccessControlled();
 });

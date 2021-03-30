@@ -8,6 +8,7 @@ import { ethers, utils } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
 import { PairReadAccessController } from "../typechain/PairReadAccessController";
 import { shouldBehaveLikeOwned } from "./Owned.behaviour";
+import { shouldBehaveLikeAccessControlled } from "./AccessControlled.behaviour";
 
 const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
@@ -44,6 +45,7 @@ describe("AccessControlledProxyFacade", function () {
       DENOMINATION,
     ]);
     this.owned = this.proxyFacade;
+    this.accessControlled = this.proxyFacade;
 
     const proxyArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorProxy");
     this.proxy = await deployContract(this.signers.owner, proxyArtifact, [this.proxyFacade.address]);
@@ -58,17 +60,6 @@ describe("AccessControlledProxyFacade", function () {
     // TODO: other getters
   });
 
-  it("owner can set access controller", async function () {
-    await this.proxyFacade.setController(TEST_ADDRESS);
-    expect(await this.proxyFacade.getController()).to.equal(TEST_ADDRESS);
-  });
-
-  it("non-owners cannot set access controller", async function () {
-    await expect(this.proxyFacade.connect(this.signers.other).setController(TEST_ADDRESS)).to.be.revertedWith(
-      "Only callable by owner",
-    );
-  });
-
   it("proxyFacade should be able to read answer from registry", async function () {
     expect(await this.proxyFacade.latestAnswer()).to.equal(TEST_ANSWER);
     // TODO: other getters
@@ -80,8 +71,6 @@ describe("AccessControlledProxyFacade", function () {
     expect(await this.proxy.latestAnswer()).to.equal(TEST_ANSWER);
     // TODO: other getters
   });
-
-  //
 
   describe("With access controls enabled", function () {
     beforeEach(async function () {
@@ -115,4 +104,5 @@ describe("AccessControlledProxyFacade", function () {
   });
 
   shouldBehaveLikeOwned();
+  shouldBehaveLikeAccessControlled();
 });

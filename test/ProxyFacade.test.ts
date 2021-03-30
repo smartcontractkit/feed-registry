@@ -4,9 +4,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { FeedProxy } from "../typechain/FeedProxy";
 import { Signers } from "../types";
 import { expect } from "chai";
-import { ethers, utils } from "ethers";
+import { utils } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
-import { PairReadAccessController } from "../typechain/PairReadAccessController";
 
 const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
