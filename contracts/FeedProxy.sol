@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity 0.7.6;
-pragma abicoder v2;
+pragma abicoder v2; // solhint-disable compiler-version
 
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./access/AccessControlled.sol";
 import "./interfaces/IFeedProxy.sol";
 import "./vendor/Address.sol";
-
-import "hardhat/console.sol";
 
 contract FeedProxy is IFeedProxy, AccessControlled {
   using Address for address;

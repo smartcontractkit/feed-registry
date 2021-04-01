@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity 0.7.6;
-pragma abicoder v2;
+pragma abicoder v2; // solhint-disable compiler-version
 
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./IAccessControlled.sol";
