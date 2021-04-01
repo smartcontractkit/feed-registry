@@ -475,5 +475,4 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     require(address(s_proposedFeeds[asset][denomination]) != address(0), "No proposed feed present");
     _;
   }
-
 }
