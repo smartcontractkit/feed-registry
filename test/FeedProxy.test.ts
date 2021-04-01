@@ -193,7 +193,7 @@ describe("FeedProxy", function () {
     await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feed.mock.getAnswer.withArgs(TEST_ROUND).returns(TEST_ANSWER); // Mock feed response
 
-    const answer = await this.feedProxy.getAnswer(ASSET_ADDRESS, DENOMINATION, TEST_ROUND);
+    const answer = await this.feedProxy.getAnswer(ASSET_ADDRESS, DENOMINATION, PHASE_BASE.add(TEST_ROUND));
     expect(answer).to.equal(TEST_ANSWER);
   });
 
@@ -206,7 +206,7 @@ describe("FeedProxy", function () {
     await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feed.mock.getTimestamp.withArgs(TEST_ROUND).returns(TEST_TIMESTAMP); // Mock feed response
 
-    const timestamp = await this.feedProxy.getTimestamp(ASSET_ADDRESS, DENOMINATION, TEST_ROUND);
+    const timestamp = await this.feedProxy.getTimestamp(ASSET_ADDRESS, DENOMINATION, PHASE_BASE.add(TEST_ROUND));
     expect(timestamp).to.equal(TEST_TIMESTAMP);
   });
 

@@ -208,7 +208,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     if (roundId > MAX_ID) return 0;
     
     (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(roundId);
-    AggregatorV2V3Interface feed = getFeed(asset, denomination);
+    AggregatorV2V3Interface feed = getPhaseFeed(asset, denomination, phaseId);
     if (address(feed) == address(0)) return 0;
 
     return feed.getAnswer(aggregatorRoundId);
@@ -230,10 +230,10 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     if (roundId > MAX_ID) return 0;
     
     (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(roundId);
-    AggregatorV2V3Interface feed = getFeed(asset, denomination);
+    AggregatorV2V3Interface feed = getPhaseFeed(asset, denomination, phaseId);
     if (address(feed) == address(0)) return 0;
     
-    return feed.getTimestamp(roundId);
+    return feed.getTimestamp(aggregatorRoundId);
   }
 
   function decimals(
