@@ -20,6 +20,8 @@ const TEST_ROUND = BigNumber.from("1");
 const TEST_ROUND_DATA = [TEST_ROUND, TEST_ANSWER, TEST_TIMESTAMP, TEST_TIMESTAMP, TEST_ROUND];
 const TEST_ADDRESS = "0x0000000000000000000000000000000000000002";
 
+const PHASE_BASE = BigNumber.from(2).pow(64);
+
 describe("FeedProxy", function () {
   beforeEach(async function () {
     this.signers = {} as Signers;
@@ -37,6 +39,7 @@ describe("FeedProxy", function () {
 
   it("should initialize correctly", async function () {
     expect(await this.feedProxy.owner()).to.equal(this.signers.owner.address);
+    expect(await this.feedProxy.getPhaseId(ASSET_ADDRESS, DENOMINATION)).to.equal(0);
   });
 
   it("owner can add a feed", async function () {
@@ -79,8 +82,7 @@ describe("FeedProxy", function () {
     ).to.be.revertedWith("Only callable by owner");
   });
 
-  // DEBUG
-  it.skip("owner can remove a feed", async function () {
+  it("owner can remove a feed", async function () {
     // Add
     await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
@@ -92,149 +94,155 @@ describe("FeedProxy", function () {
     const feed = await this.feedProxy.getFeed(ASSET_ADDRESS, DENOMINATION);
     expect(feed).to.equal(ethers.constants.AddressZero);
 
-    const isFeedEnabled = await this.feedProxy.isFeedEnabled(feed);
+    const isFeedEnabled = await this.feedProxy.isFeedEnabled(this.feed.address);
     expect(isFeedEnabled).to.equal(false);
   });
 
-  // it("decimals returns the latest answer of a feed", async function () {
-  //   await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
-  //   await this.feed.mock.decimals.returns(TEST_DECIMALS); // Mock feed response
+  it("decimals returns the latest answer of a feed", async function () {
+    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feed.mock.decimals.returns(TEST_DECIMALS); // Mock feed response
 
-  //   const decimals = await this.feedProxy.decimals(ASSET_ADDRESS, DENOMINATION);
-  //   expect(decimals).to.equal(TEST_DECIMALS);
-  // });
+    const decimals = await this.feedProxy.decimals(ASSET_ADDRESS, DENOMINATION);
+    expect(decimals).to.equal(TEST_DECIMALS);
+  });
 
-  // it("decimals should revert for a non-existent feed", async function () {
-  //   await expect(this.feedProxy.decimals(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
-  //     "function call to a non-contract account",
-  //   );
-  // });
+  it("decimals should revert for a non-existent feed", async function () {
+    await expect(this.feedProxy.decimals(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
+  });
 
-  // it("description returns the latest answer of a feed", async function () {
-  //   await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
-  //   await this.feed.mock.description.returns(TEST_DESCRIPTION); // Mock feed response
+  it("description returns the latest answer of a feed", async function () {
+    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feed.mock.description.returns(TEST_DESCRIPTION); // Mock feed response
 
-  //   const description = await this.feedProxy.description(ASSET_ADDRESS, DENOMINATION);
-  //   expect(description).to.equal(TEST_DESCRIPTION);
-  // });
+    const description = await this.feedProxy.description(ASSET_ADDRESS, DENOMINATION);
+    expect(description).to.equal(TEST_DESCRIPTION);
+  });
 
-  // it("description should revert for a non-existent feed", async function () {
-  //   await expect(this.feedProxy.description(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
-  //     "function call to a non-contract account",
-  //   );
-  // });
+  it("description should revert for a non-existent feed", async function () {
+    await expect(this.feedProxy.description(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
+  });
 
-  // it("version returns the latest answer of a feed", async function () {
-  //   await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
-  //   await this.feed.mock.version.returns(TEST_VERSION); // Mock feed response
+  it("version returns the latest answer of a feed", async function () {
+    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feed.mock.version.returns(TEST_VERSION); // Mock feed response
 
-  //   const version = await this.feedProxy.version(ASSET_ADDRESS, DENOMINATION);
-  //   expect(version).to.equal(TEST_VERSION);
-  // });
+    const version = await this.feedProxy.version(ASSET_ADDRESS, DENOMINATION);
+    expect(version).to.equal(TEST_VERSION);
+  });
 
-  // it("version should revert for a non-existent feed", async function () {
-  //   await expect(this.feedProxy.version(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
-  //     "function call to a non-contract account",
-  //   );
-  // });
+  it("version should revert for a non-existent feed", async function () {
+    await expect(this.feedProxy.version(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
+  });
 
-  // it("latestAnswer returns the latest answer of a feed", async function () {
-  //   await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
-  //   await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
+  it("latestAnswer returns the latest answer of a feed", async function () {
+    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
 
-  //   const answer = await this.feedProxy.latestAnswer(ASSET_ADDRESS, DENOMINATION);
-  //   expect(answer).to.equal(TEST_ANSWER);
-  // });
+    const answer = await this.feedProxy.latestAnswer(ASSET_ADDRESS, DENOMINATION);
+    expect(answer).to.equal(TEST_ANSWER);
+  });
 
-  // it("latestAnswer should revert for a non-existent feed", async function () {
-  //   await expect(this.feedProxy.latestAnswer(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
-  //     "function call to a non-contract account",
-  //   );
-  // });
+  it("latestAnswer should revert for a non-existent feed", async function () {
+    await expect(this.feedProxy.latestAnswer(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
+  });
 
-  // it("latestTimestamp returns the latest answer of a feed", async function () {
-  //   await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
-  //   await this.feed.mock.latestTimestamp.returns(TEST_TIMESTAMP); // Mock feed response
+  it("latestTimestamp returns the latest answer of a feed", async function () {
+    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feed.mock.latestTimestamp.returns(TEST_TIMESTAMP); // Mock feed response
 
-  //   const latestTimestamp = await this.feedProxy.latestTimestamp(ASSET_ADDRESS, DENOMINATION);
-  //   expect(latestTimestamp).to.equal(TEST_TIMESTAMP);
-  // });
+    const latestTimestamp = await this.feedProxy.latestTimestamp(ASSET_ADDRESS, DENOMINATION);
+    expect(latestTimestamp).to.equal(TEST_TIMESTAMP);
+  });
 
-  // it("latestTimestamp should revert for a non-existent feed", async function () {
-  //   await expect(this.feedProxy.latestTimestamp(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
-  //     "function call to a non-contract account",
-  //   );
-  // });
+  it("latestTimestamp should revert for a non-existent feed", async function () {
+    await expect(this.feedProxy.latestTimestamp(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
+  });
 
-  // it("latestRound returns the latest answer of a feed", async function () {
-  //   await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
-  //   await this.feed.mock.latestRound.returns(TEST_ROUND); // Mock feed response
+  it("latestRound returns the latest round of a feed", async function () {
+    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feed.mock.latestRound.returns(TEST_ROUND); // Mock feed response
 
-  //   const latestRound = await this.feedProxy.latestRound(ASSET_ADDRESS, DENOMINATION);
-  //   expect(latestRound).to.equal(TEST_ROUND);
-  // });
+    const latestRound = await this.feedProxy.latestRound(ASSET_ADDRESS, DENOMINATION);
+    expect(latestRound).to.equal(PHASE_BASE.add(TEST_ROUND));
+  });
 
-  // it("latestRound should revert for a non-existent feed", async function () {
-  //   await expect(this.feedProxy.latestRound(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
-  //     "function call to a non-contract account",
-  //   );
-  // });
+  it("latestRound should revert for a non-existent feed", async function () {
+    await expect(this.feedProxy.latestRound(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
+  });
 
-  // it("getAnswer returns the answer of a round", async function () {
-  //   await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
-  //   await this.feed.mock.getAnswer.withArgs(TEST_ROUND).returns(TEST_ANSWER); // Mock feed response
+  it("getAnswer returns the answer of a round", async function () {
+    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feed.mock.getAnswer.withArgs(TEST_ROUND).returns(TEST_ANSWER); // Mock feed response
 
-  //   const answer = await this.feedProxy.getAnswer(ASSET_ADDRESS, DENOMINATION, TEST_ROUND);
-  //   expect(answer).to.equal(TEST_ANSWER);
-  // });
+    const answer = await this.feedProxy.getAnswer(ASSET_ADDRESS, DENOMINATION, TEST_ROUND);
+    expect(answer).to.equal(TEST_ANSWER);
+  });
 
-  // it("getAnswer should revert for a non-existent feed", async function () {
-  //   await expect(this.feedProxy.getAnswer(ASSET_ADDRESS, DENOMINATION, TEST_ROUND)).to.be.revertedWith(
-  //     "function call to a non-contract account",
-  //   );
-  // });
+  it("getAnswer does not revert when called with a non existent round ID", async function () {
+    expect(await this.feedProxy.getAnswer(ASSET_ADDRESS, DENOMINATION, TEST_ROUND)).to.equal(0);
+  });
 
-  // it("getTimestamp returns the timestamp of a round", async function () {
-  //   await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
-  //   await this.feed.mock.getTimestamp.withArgs(TEST_ROUND).returns(TEST_TIMESTAMP); // Mock feed response
+  it("getTimestamp returns the timestamp of a round", async function () {
+    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feed.mock.getTimestamp.withArgs(TEST_ROUND).returns(TEST_TIMESTAMP); // Mock feed response
 
-  //   const timestamp = await this.feedProxy.getTimestamp(ASSET_ADDRESS, DENOMINATION, TEST_ROUND);
-  //   expect(timestamp).to.equal(TEST_TIMESTAMP);
-  // });
+    const timestamp = await this.feedProxy.getTimestamp(ASSET_ADDRESS, DENOMINATION, TEST_ROUND);
+    expect(timestamp).to.equal(TEST_TIMESTAMP);
+  });
 
-  // it("getTimestamp should revert for a non-existent feed", async function () {
-  //   await expect(this.feedProxy.getTimestamp(ASSET_ADDRESS, DENOMINATION, TEST_ROUND)).to.be.revertedWith(
-  //     "function call to a non-contract account",
-  //   );
-  // });
+  it("getTimestamp should revert for a non-existent feed", async function () {
+    expect(await this.feedProxy.getTimestamp(ASSET_ADDRESS, DENOMINATION, TEST_ROUND)).to.equal(0);
+  });
 
-  // it("latestRoundData returns the latest round data of a feed", async function () {
-  //   await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
-  //   await this.feed.mock.latestRoundData.returns(...TEST_ROUND_DATA); // Mock feed response
+  it("latestRoundData returns the latest round data of a feed", async function () {
+    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feed.mock.latestRoundData.returns(...TEST_ROUND_DATA); // Mock feed response
 
-  //   const roundData = await this.feedProxy.latestRoundData(ASSET_ADDRESS, DENOMINATION);
-  //   expect(roundData).to.eql(TEST_ROUND_DATA);
-  // });
+    const roundData = await this.feedProxy.latestRoundData(ASSET_ADDRESS, DENOMINATION);
+    expect(roundData).to.eql(TEST_ROUND_DATA);
+  });
 
-  // it("latestRoundData should revert for a non-existent feed", async function () {
-  //   await expect(this.feedProxy.latestRoundData(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
-  //     "function call to a non-contract account",
-  //   );
-  // });
+  it("latestRoundData should revert for a non-existent feed", async function () {
+    await expect(this.feedProxy.latestRoundData(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
+  });
 
-  // it("getRoundData returns the latest round data of a feed", async function () {
-  //   await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
-  //   await this.feed.mock.getRoundData.withArgs(TEST_ROUND).returns(...TEST_ROUND_DATA); // Mock feed response
+  it("getRoundData returns the latest round data of a feed", async function () {
+    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feed.mock.getRoundData.withArgs(TEST_ROUND).returns(...TEST_ROUND_DATA); // Mock feed response
 
-  //   const roundData = await this.feedProxy.getRoundData(ASSET_ADDRESS, DENOMINATION, TEST_ROUND);
-  //   expect(roundData).to.eql(TEST_ROUND_DATA);
-  // });
+    const roundData = await this.feedProxy.getRoundData(ASSET_ADDRESS, DENOMINATION, TEST_ROUND);
+    expect(roundData).to.eql(TEST_ROUND_DATA);
+  });
 
-  // it("getRoundData should revert for a non-existent feed", async function () {
-  //   await expect(this.feedProxy.getRoundData(ASSET_ADDRESS, DENOMINATION, TEST_ROUND)).to.be.revertedWith(
-  //     "function call to a non-contract account",
-  //   );
-  // });
+  it("getRoundData should revert for a non-existent feed", async function () {
+    await expect(this.feedProxy.getRoundData(ASSET_ADDRESS, DENOMINATION, TEST_ROUND)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
+  });
 
-  // shouldBehaveLikeAccessControlled();
+  shouldBehaveLikeAccessControlled();
 });

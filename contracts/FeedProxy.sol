@@ -8,6 +8,8 @@ import "./access/AccessControlled.sol";
 import "./interfaces/IFeedProxy.sol";
 import "./vendor/Address.sol";
 
+import "hardhat/console.sol";
+
 contract FeedProxy is IFeedProxy, AccessControlled {
   using Address for address;
 
