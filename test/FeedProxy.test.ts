@@ -4,7 +4,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { FeedProxy } from "../typechain/FeedProxy";
 import { Signers } from "../types";
 import { expect } from "chai";
-import { BigNumber, utils } from "ethers";
+import { BigNumber, ethers, utils } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
 import { shouldBehaveLikeAccessControlled } from "./access/AccessControlled.behaviour";
 
@@ -32,6 +32,64 @@ describe("FeedProxy", function () {
 
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
+  });
+
+  it("should initialize correctly", async function () {
+    expect(await this.feedProxy.owner()).to.equal(this.signers.owner.address);
+  });
+
+  it("owner can add a feed", async function () {
+    await expect(this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]))
+      .to.emit(this.feedProxy, "FeedSet")
+      .withArgs(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+
+    const feed = await this.feedProxy.getFeed(ASSET_ADDRESS, DENOMINATION);
+    expect(feed).to.equal(this.feed.address);
+
+    const isFeedEnabled = await this.feedProxy.isFeedEnabled(feed);
+    expect(isFeedEnabled);
+  });
+
+  it("subsequent add feeds should not emit events", async function () {
+    await expect(this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]))
+      .to.emit(this.feedProxy, "FeedSet")
+      .withArgs(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await expect(this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address])).to.not.emit(
+      this.feedProxy,
+      "FeedSet",
+    );
+
+    const feed = await this.feedProxy.getFeed(ASSET_ADDRESS, DENOMINATION);
+    expect(feed).to.equal(this.feed.address);
+  });
+
+  it("non-owners cannot add a feed", async function () {
+    await expect(
+      this.feedProxy.connect(this.signers.other).addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]),
+    ).to.be.revertedWith("Only callable by owner");
+  });
+
+  it("owner can remove a feed", async function () {
+    await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
+    await expect(this.feedProxy.removeFeeds([ASSET_ADDRESS], [DENOMINATION]))
+      .to.emit(this.feedProxy, "FeedSet")
+      .withArgs(ASSET_ADDRESS, DENOMINATION, ethers.constants.AddressZero);
+
+    const feed = await this.feedProxy.getFeed(ASSET_ADDRESS, DENOMINATION);
+    expect(feed).to.equal(ethers.constants.AddressZero);
+
+    const isFeedEnabled = await this.feedProxy.isFeedEnabled(feed);
+    expect(isFeedEnabled).to.equal(false);
+  });
+
+  it("non-owners cannot remove a feed", async function () {
+    await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
+    await expect(
+      this.feedProxy.connect(this.signers.other).removeFeeds([ASSET_ADDRESS], [DENOMINATION]),
+    ).to.be.revertedWith("Only callable by owner");
+
+    const feed = await this.feedProxy.getFeed(ASSET_ADDRESS, DENOMINATION);
+    expect(feed).to.equal(this.feed.address);
   });
 
   it("decimals returns the latest answer of a feed", async function () {
