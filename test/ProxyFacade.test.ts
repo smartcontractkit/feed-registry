@@ -25,7 +25,8 @@ describe("ProxyFacade", function () {
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
     await this.feed.mock.latestAnswer.returns(TEST_ANSWER);
-    await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
+    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
 
     const proxyFacadeArtifact: Artifact = await hre.artifacts.readArtifact("ProxyFacade");
     this.proxyFacade = await deployContract(this.signers.owner, proxyFacadeArtifact, [

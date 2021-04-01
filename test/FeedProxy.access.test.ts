@@ -29,7 +29,8 @@ describe("FeedProxy Access controls", function () {
 
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
-    await this.feedProxy.addFeeds([ASSET_ADDRESS], [DENOMINATION], [this.feed.address]);
+    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
 
     const accessControllerArtifact: Artifact = await hre.artifacts.readArtifact("PairReadAccessController");

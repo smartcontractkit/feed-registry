@@ -4,7 +4,6 @@ pragma solidity 0.7.6;
 pragma abicoder v2;
 
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
-// import "@chainlink/contracts/src/v0.7/interfaces/AggregatorProxyInterface.sol"; // is AggregatorV2V3Interface
 import "./access/AccessControlled.sol";
 import "./interfaces/IFeedProxy.sol";
 import "./vendor/Address.sol";
