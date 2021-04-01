@@ -10,8 +10,8 @@ import "./vendor/Address.sol";
 contract FeedRegistry is IFeedRegistry, Owned {
   using Address for address;
 
-  mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) internal s_feeds;
-  mapping(AggregatorV2V3Interface => bool) internal s_isEnabled;
+  mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) private s_feeds;
+  mapping(AggregatorV2V3Interface => bool) private s_isEnabled;
 
   /**
    * @notice called by the owner to add feeds

@@ -1,31 +1,56 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity 0.7.6;
+pragma abicoder v2;
 
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./IAccessControlled.sol";
 
 interface IFeedProxy is IAccessControlled {
-  event FeedSet(
+  struct Phase {
+    uint16 id;
+    AggregatorV2V3Interface feed;
+  }
+
+  event FeedProposed(
     address indexed asset, 
-    bytes32 indexed denomination, 
-    address indexed feed
+    bytes32 indexed denomination,
+    address currentFeed,
+    address indexed proposedFeed
+  );
+  event FeedConfirmed(
+    address indexed asset, 
+    bytes32 indexed denomination,
+    address previousFeed,
+    address indexed latestFeed
   );
 
-  function addFeeds(
-    address[] calldata assets,
-    bytes32[] calldata denominations,
-    address[] calldata feeds
+  function proposeFeed(
+    address asset,
+    bytes32 denomination,
+    address feedAddress
   ) external;
 
-  function removeFeeds(
-    address[] calldata assets,
-    bytes32[] calldata denominations
+  function confirmFeed(
+    address asset,
+    bytes32 denomination,
+    address feedAddress
   ) external;
 
   function getFeed(
     address asset,
     bytes32 denomination
+  )
+    external
+    view
+    returns (
+      AggregatorV2V3Interface feed
+    );
+
+  function getPhaseFeed(
+    address asset,
+    bytes32 denomination,
+    uint16 phaseId
   )
     external
     view
@@ -41,6 +66,28 @@ interface IFeedProxy is IAccessControlled {
     returns (
       bool
     );
+
+
+  // Phases
+  function getCurrentPhase(
+    address asset,
+    bytes32 denomination
+  )
+    external
+    view
+    returns (
+      Phase memory currentPhase
+    );  
+
+  function getPhaseId(
+    address asset,
+    bytes32 denomination
+  )
+    external
+    view
+    returns (
+      uint16
+    );  
 
   // V2 Aggregator interface
   // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.7/interfaces/AggregatorInterface.sol
@@ -153,6 +200,47 @@ interface IFeedProxy is IAccessControlled {
     view
     returns (
       uint80 roundId,
+      int256 answer,
+      uint256 startedAt,
+      uint256 updatedAt,
+      uint80 answeredInRound
+    );
+
+  // Proposed feed
+
+  function getProposedFeed(
+    address asset,
+    bytes32 denomination
+  )
+    external
+    view
+    returns (
+      AggregatorV2V3Interface proposedFeed
+    );
+
+  function proposedGetRoundData(
+    address asset,
+    bytes32 denomination,
+    uint80 roundId
+  )
+    external
+    view
+    returns (
+      uint80 id,
+      int256 answer,
+      uint256 startedAt,
+      uint256 updatedAt,
+      uint80 answeredInRound
+    );
+
+  function proposedLatestRoundData(
+    address asset,
+    bytes32 denomination
+  )
+    external
+    view
+    returns (
+      uint80 id,
       int256 answer,
       uint256 startedAt,
       uint256 updatedAt,
