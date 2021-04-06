@@ -23,8 +23,8 @@ contract FeedProxy is IFeedProxy, AccessControlled {
   uint256 constant private MAX_ID = 2**(PHASE_OFFSET+PHASE_SIZE) - 1;    
 
   mapping(AggregatorV2V3Interface => bool) private s_isFeedEnabled;
-  mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) private s_proposedFeeds; // AggregatorProxyInterface ?
-  mapping(address => mapping(bytes32 => mapping(uint16 => AggregatorV2V3Interface))) private s_phaseFeeds; // AggregatorProxyInterface ?
+  mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) private s_proposedFeeds;
+  mapping(address => mapping(bytes32 => mapping(uint16 => AggregatorV2V3Interface))) private s_phaseFeeds;
   mapping(address => mapping(bytes32 => Phase)) private s_currentPhase;
 
   /**

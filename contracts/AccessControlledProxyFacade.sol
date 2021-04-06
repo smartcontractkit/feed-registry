@@ -3,7 +3,7 @@
 pragma solidity 0.7.6;
 
 import "./access/AccessControlled.sol";
-import "./interfaces/AccessControllerInterface.sol";
+import "./vendor/AccessControllerInterface.sol";
 import "./interfaces/IFeedProxy.sol";
 import "./ProxyFacade.sol";
 

@@ -2,7 +2,7 @@
 
 pragma solidity 0.7.6;
 
-import "./AccessControllerInterface.sol";
+import "../vendor/AccessControllerInterface.sol";
 
 interface IAccessControlled {
   event AccessControllerSet(

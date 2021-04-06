@@ -2,8 +2,8 @@
 
 pragma solidity 0.7.6;
 
+import "../vendor/AccessControllerInterface.sol";
 import "../vendor/Owned.sol";
-import "../interfaces/AccessControllerInterface.sol";
 
 /**
  * @title WriteAccessController

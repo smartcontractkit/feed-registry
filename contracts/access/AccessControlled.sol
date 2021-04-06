@@ -2,8 +2,8 @@
 
 pragma solidity 0.7.6;
 
-import "../interfaces/AccessControllerInterface.sol";
 import "../interfaces/IAccessControlled.sol";
+import "../vendor/AccessControllerInterface.sol";
 import "../vendor/Owned.sol";
 
 contract AccessControlled is IAccessControlled, Owned {
