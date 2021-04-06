@@ -7,8 +7,6 @@ import "./vendor/AccessControllerInterface.sol";
 import "./interfaces/IFeedProxy.sol";
 import "./ProxyFacade.sol";
 
-import "hardhat/console.sol";
-
 /**
   * @notice facade proxy contract that conforms to the AggregatorV2V3Interface. Implements access controls.
   */
@@ -160,16 +158,9 @@ contract AccessControlledProxyFacade is ProxyFacade, AccessControlled {
   }
 
   modifier checkAccess() {
-    console.log("AccessControlledProxyFacade.checkAccess()");
     bytes memory callData = abi.encode(s_asset, s_denomination, msg.data); // Send feed idenfitier (TKN / USD) to access controller
     bool hasAccess = s_accessController.hasAccess(msg.sender, callData);
-    console.log(s_asset);
-    console.logBytes32(s_denomination);
-    console.log(msg.sender);
-    console.logBool(hasAccess);
-    console.log("Before");
     require(address(s_accessController) == address(0) || s_accessController.hasAccess(msg.sender, callData), "No access");
-    console.log("Pass");
     _;
   }  
 }
