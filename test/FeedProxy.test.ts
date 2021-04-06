@@ -39,7 +39,8 @@ describe("FeedProxy", function () {
 
   it("should initialize correctly", async function () {
     expect(await this.feedProxy.owner()).to.equal(this.signers.owner.address);
-    expect(await this.feedProxy.getPhaseId(ASSET_ADDRESS, DENOMINATION)).to.equal(0);
+    const currentPhase = await this.feedProxy.getCurrentPhase(ASSET_ADDRESS, DENOMINATION)
+    expect(currentPhase.id).to.equal(0);
   });
 
   it("owner can add a feed", async function () {

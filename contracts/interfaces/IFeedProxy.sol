@@ -67,8 +67,6 @@ interface IFeedProxy is IAccessControlled {
       bool
     );
 
-
-  // Phases
   function getCurrentPhase(
     address asset,
     bytes32 denomination
@@ -77,17 +75,7 @@ interface IFeedProxy is IAccessControlled {
     view
     returns (
       Phase memory currentPhase
-    );  
-
-  function getPhaseId(
-    address asset,
-    bytes32 denomination
-  )
-    external
-    view
-    returns (
-      uint16
-    );  
+    );
 
   // V2 Aggregator interface
   // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.7/interfaces/AggregatorInterface.sol

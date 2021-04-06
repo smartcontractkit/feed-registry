@@ -156,7 +156,7 @@ contract AccessControlledProxyFacade is ProxyFacade, AccessControlled {
   }
 
   modifier checkAccess() {
-    bytes memory callData = abi.encode(s_asset, s_denomination, msg.data); // Includes asset pair (TKN / USD) in payload to access controller
+    bytes memory callData = abi.encode(s_asset, s_denomination, msg.data); // Send feed idenfitier (TKN / USD) to access controller
     require(address(s_accessController) == address(0) || s_accessController.hasAccess(msg.sender, callData), "No access");
     _;
   }  

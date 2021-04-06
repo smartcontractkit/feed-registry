@@ -8,6 +8,13 @@ import "./access/AccessControlled.sol";
 import "./interfaces/IFeedProxy.sol";
 import "./vendor/Address.sol";
 
+/**
+  * @notice A trusted proxy for updating where current answers are read from
+  * @notice This contract provides a consistent address for consumers but delegates where it reads from to the owner, who is
+  * trusted to update it. This proxy contract works for multiple feeds, not just a single feed.
+  * @notice Only access enabled addresses are allowed to access getters for
+  * aggregated answers and round information
+  */
 contract FeedProxy is IFeedProxy, AccessControlled {
   using Address for address;
 
@@ -20,6 +27,12 @@ contract FeedProxy is IFeedProxy, AccessControlled {
   mapping(address => mapping(bytes32 => mapping(uint16 => AggregatorV2V3Interface))) private s_phaseFeeds; // AggregatorProxyInterface ?
   mapping(address => mapping(bytes32 => Phase)) private s_currentPhase;
 
+  /**
+   * @notice returns a feed's current phase
+   * @param asset asset address
+   * @param denomination denomination identifier: keccak256("USD") 
+   * @return currentPhase is the feed's current phase
+   */
   function getCurrentPhase(
     address asset,
     bytes32 denomination
@@ -34,22 +47,10 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     return s_currentPhase[asset][denomination];
   }
 
-  function getPhaseId(
-    address asset,
-    bytes32 denomination
-  )
-    public
-    view
-    override
-    returns (
-      uint16
-    )
-  {
-    return getCurrentPhase(asset, denomination).id;
-  }  
-
   /**
    * @notice retrieve the feed of an asset / denomination pair in the current phase
+   * @param asset asset address
+   * @param denomination denomination identifier: keccak256("USD")      
    */
   function getFeed(
     address asset,
@@ -66,6 +67,12 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     return currentPhase.feed;
   }
 
+  /**
+   * @notice retrieve the feed of an asset / denomination pair of a phase
+   * @param asset asset address
+   * @param denomination denomination identifier: keccak256("USD")   
+   * @param phaseId phase ID
+   */
   function getPhaseFeed(
     address asset,
     bytes32 denomination,
@@ -83,6 +90,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
 
   /**
    * @notice returns true if a feed is enabled for any pair
+   * @param feed feed address
    */
   function isFeedEnabled(
     AggregatorV2V3Interface feed
@@ -97,6 +105,12 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     return s_isFeedEnabled[feed];
   }
 
+  /**
+   * @notice Allows the owner to propose a new address for the aggregator
+   * @param asset asset address
+   * @param denomination denomination identifier: keccak256("USD")
+   * @param feedAddress The new aggregator contract address
+   */
   function proposeFeed(
     address asset,
     bytes32 denomination,
@@ -111,6 +125,15 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     emit FeedProposed(asset, denomination, address(currentPhase.feed), feedAddress);
   }
 
+  /**
+   * @notice Allows the owner to confirm and change the address
+   * to the proposed aggregator
+   * @dev Reverts if the given address doesn't match what was previously
+   * proposed
+   * @param asset asset address
+   * @param denomination denomination identifier: keccak256("USD")   
+   * @param feedAddress The new aggregator contract address
+   */
   function confirmFeed(
     address asset,
     bytes32 denomination,
@@ -143,8 +166,13 @@ contract FeedProxy is IFeedProxy, AccessControlled {
   }
 
   /**
-   * @notice retrieve the latest answer of a feed, given an asset / denomination pair
-   * or reverts if feed is either unset or has not granted access
+   * @notice Reads the current answer for an asset / denomination pair's aggregator.
+   * @param asset asset address
+   * @param denomination denomination identifier: keccak256("USD")
+   * @dev #[deprecated] Use latestRoundData instead. This does not error if no
+   * answer has been reached, it will simply return 0. Either wait to point to
+   * an already answered Aggregator or use the recommended latestRoundData
+   * instead which includes better verification information.
    */
   function latestAnswer(
     address asset, 
@@ -160,6 +188,18 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     return feed.latestAnswer();
   }
 
+  /**
+   * @notice get the latest completed round where the answer was updated. This
+   * @param asset asset address
+   * @param denomination denomination identifier: keccak256("USD")   
+   * ID includes the proxy's phase, to make sure round IDs increase even when
+   * switching to a newly deployed aggregator.
+   *
+   * @dev #[deprecated] Use latestRoundData instead. This does not error if no
+   * answer has been reached, it will simply return 0. Either wait to point to
+   * an already answered Aggregator or use the recommended latestRoundData
+   * instead which includes better verification information.
+   */
   function latestTimestamp(
     address asset, 
     bytes32 denomination
@@ -174,6 +214,17 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     return feed.latestTimestamp();
   }
 
+  /**
+   * @notice get the latest completed round where the answer was updated
+   * @param asset asset address
+   * @param denomination denomination identifier: keccak256("USD")   
+   * @dev overridden function to add the checkAccess() modifier
+   *
+   * @dev #[deprecated] Use latestRoundData instead. This does not error if no
+   * answer has been reached, it will simply return 0. Either wait to point to
+   * an already answered Aggregator or use the recommended latestRoundData
+   * instead which includes better verification information.
+   */
   function latestRound(
     address asset,
     bytes32 denomination
@@ -190,6 +241,18 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     return addPhase(currentPhase.id, uint64(currentPhase.feed.latestRound()));
   }
 
+  /**
+   * @notice get past rounds answers
+   * @param asset asset address
+   * @param denomination denomination identifier: keccak256("USD")
+   * @param roundId the answer number to retrieve the answer for
+   * @dev overridden function to add the checkAccess() modifier
+   *
+   * @dev #[deprecated] Use getRoundData instead. This does not error if no
+   * answer has been reached, it will simply return 0. Either wait to point to
+   * an already answered Aggregator or use the recommended getRoundData
+   * instead which includes better verification information.
+   */
   function getAnswer(
     address asset,
     bytes32 denomination,
@@ -212,6 +275,18 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     return feed.getAnswer(aggregatorRoundId);
   }
 
+  /**
+   * @notice get block timestamp when an answer was last updated
+   * @param asset asset address
+   * @param denomination denomination identifier: keccak256("USD")
+   * @param roundId the answer number to retrieve the updated timestamp for
+   * @dev overridden function to add the checkAccess() modifier
+   *
+   * @dev #[deprecated] Use getRoundData instead. This does not error if no
+   * answer has been reached, it will simply return 0. Either wait to point to
+   * an already answered Aggregator or use the recommended getRoundData
+   * instead which includes better verification information.
+   */
   function getTimestamp(
     address asset,
     bytes32 denomination,
@@ -234,6 +309,9 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     return feed.getTimestamp(aggregatorRoundId);
   }
 
+  /**
+   * @notice represents the number of decimals the aggregator responses represent.
+   */
   function decimals(
     address asset,
     bytes32 denomination
@@ -249,6 +327,9 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     return feed.decimals();
   }
   
+  /**
+   * @notice returns the description of the aggregator the proxy points to.
+   */
   function description(
     address asset,
     bytes32 denomination
@@ -263,7 +344,11 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     AggregatorV2V3Interface feed = getFeed(asset, denomination);
     return feed.description();
   }
-    
+
+  /**
+   * @notice the version number representing the type of aggregator the proxy
+   * points to.
+   */    
   function version(
     address asset,
     bytes32 denomination
@@ -279,6 +364,30 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     return feed.version();
   }
 
+  /**
+   * @notice get data about the latest round. Consumers are encouraged to check
+   * that they're receiving fresh data by inspecting the updatedAt and
+   * answeredInRound return values.
+   * Note that different underlying implementations of AggregatorV3Interface
+   * have slightly different semantics for some of the return values. Consumers
+   * should determine what implementations they expect to receive
+   * data from and validate that they can properly handle return data from all
+   * of them.
+   * @param asset asset address
+   * @param denomination denomination identifier: keccak256("USD")
+   * @return roundId is the round ID from the aggregator for which the data was
+   * retrieved combined with a phase to ensure that round IDs get larger as
+   * time moves forward.
+   * @return answer is the answer for the given round
+   * @return startedAt is the timestamp when the round was started.
+   * (Only some AggregatorV3Interface implementations return meaningful values)
+   * @return updatedAt is the timestamp when the round last was updated (i.e.
+   * answer was last computed)
+   * @return answeredInRound is the round ID of the round in which the answer
+   * was computed.
+   * (Only some AggregatorV3Interface implementations return meaningful values)
+   * @dev Note that answer and updatedAt may change between queries.
+   */
   function latestRoundData(
     address asset,
     bytes32 denomination
@@ -299,6 +408,31 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     return feed.latestRoundData();
   }  
 
+  /**
+   * @notice get data about a round. Consumers are encouraged to check
+   * that they're receiving fresh data by inspecting the updatedAt and
+   * answeredInRound return values.
+   * Note that different underlying implementations of AggregatorV3Interface
+   * have slightly different semantics for some of the return values. Consumers
+   * should determine what implementations they expect to receive
+   * data from and validate that they can properly handle return data from all
+   * of them.
+   * @param asset asset address
+   * @param denomination denomination identifier: keccak256("USD")
+   * @param _roundId the round ID to retrieve the round data for
+   * @return roundId is the round ID from the aggregator for which the data was
+   * retrieved combined with a phase to ensure that round IDs get larger as
+   * time moves forward.
+   * @return answer is the answer for the given round
+   * @return startedAt is the timestamp when the round was started.
+   * (Only some AggregatorV3Interface implementations return meaningful values)
+   * @return updatedAt is the timestamp when the round last was updated (i.e.
+   * answer was last computed)
+   * @return answeredInRound is the round ID of the round in which the answer
+   * was computed.
+   * (Only some AggregatorV3Interface implementations return meaningful values)
+   * @dev Note that answer and updatedAt may change between queries.
+   */
   function getRoundData(
     address asset,
     bytes32 denomination,  
@@ -458,15 +592,22 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     );
   }  
 
+  /**
+   * @dev reverts if the caller does not have access by the accessController
+   * contract to the feed or is the contract itself.
+   */
   modifier checkAccess(
     address asset,
     bytes32 denomination
   ) {
-    bytes memory callData = abi.encode(asset, denomination, msg.data); // Includes asset pair (TKN / USD) in payload to access controller
+    bytes memory callData = abi.encode(asset, denomination, msg.data); // Send feed idenfitier (TKN / USD) to access controller
     require(address(s_accessController) == address(0) || s_accessController.hasAccess(msg.sender, callData), "No access");
     _;
   }
 
+  /**
+   * @dev reverts if no proposed feed was set
+   */
   modifier hasProposal(
     address asset,
     bytes32 denomination
