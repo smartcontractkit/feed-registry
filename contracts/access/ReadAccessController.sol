@@ -31,6 +31,6 @@ contract ReadAccessController is WriteAccessController {
     override
     returns (bool)
   {
-    return super.hasAccess(account, data) || account == tx.origin; // solhint-disable avoid-tx-origin
+    return super.hasAccess(account, data) || account == address(0);
   }
 }

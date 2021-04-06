@@ -4,6 +4,8 @@ pragma solidity 0.7.6;
 
 import "./WriteAccessController.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @title PairReadAccessController
  * @notice Extends WriteAccessController. Decodes the (asset, denomination) pair values of msg.data.
@@ -32,11 +34,15 @@ contract PairReadAccessController is WriteAccessController {
     override
     returns (bool)
   {
+    console.log("PairReadAccessController.checkAccess()");
     (
       address asset,
       bytes32 denomination
     ) = abi.decode(data, (address, bytes32));
     bytes memory pairData = abi.encode(asset, denomination); // Parse only asset pair (TKN / USD)
-    return super.hasAccess(account, pairData) || account == tx.origin; // solhint-disable avoid-tx-origin
+    console.log("Result:");
+    console.log(account);
+    console.log(super.hasAccess(account, pairData));
+    return super.hasAccess(account, pairData) || account == address(0);
   }
 }
