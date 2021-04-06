@@ -39,7 +39,7 @@ describe("FeedProxy", function () {
 
   it("should initialize correctly", async function () {
     expect(await this.feedProxy.owner()).to.equal(this.signers.owner.address);
-    const currentPhase = await this.feedProxy.getCurrentPhase(ASSET_ADDRESS, DENOMINATION)
+    const currentPhase = await this.feedProxy.getCurrentPhase(ASSET_ADDRESS, DENOMINATION);
     expect(currentPhase.id).to.equal(0);
   });
 
@@ -211,7 +211,7 @@ describe("FeedProxy", function () {
     expect(timestamp).to.equal(TEST_TIMESTAMP);
   });
 
-  it("getTimestamp should revert for a non-existent feed", async function () {
+  it("getTimestamp should not revert when called with a non existent ID", async function () {
     expect(await this.feedProxy.getTimestamp(ASSET_ADDRESS, DENOMINATION, TEST_ROUND)).to.equal(0);
   });
 
