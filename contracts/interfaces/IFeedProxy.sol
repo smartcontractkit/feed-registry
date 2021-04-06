@@ -77,8 +77,7 @@ interface IFeedProxy is IAccessControlled {
       Phase memory currentPhase
     );
 
-  // V2 Aggregator interface
-  // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.7/interfaces/AggregatorInterface.sol
+  // V2 AggregatorInterface
 
   function latestAnswer(
     address asset,
@@ -132,8 +131,7 @@ interface IFeedProxy is IAccessControlled {
       uint256 timestamp
     );
 
-  // V3 Aggregator interface
-  // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.7/interfaces/AggregatorV3Interface.sol    
+  // V3 AggregatorV3Interface
 
   function decimals(
     address asset,

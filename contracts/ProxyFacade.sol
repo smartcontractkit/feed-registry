@@ -6,7 +6,10 @@ import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./vendor/Owned.sol";
 import "./interfaces/IFeedProxy.sol";
 
-// This contract sits between AggregatorProxy -> ProxyFacade -> FeedRegistry
+/**
+  * @notice facade proxy contract that conforms to the AggregatorV2V3Interface.
+  * This contract sits between AggregatorProxy -> ProxyFacade -> FeedRegistry
+  */
 contract ProxyFacade is AggregatorV2V3Interface {
   IFeedProxy internal s_feedProxy;
   address internal s_asset;

@@ -7,6 +7,9 @@ import "./interfaces/IFeedRegistry.sol";
 import "./vendor/Owned.sol";
 import "./vendor/Address.sol";
 
+/**
+  * @notice Registry contract that maps between token address / denomination pairs to proxies
+  */
 contract FeedRegistry is IFeedRegistry, Owned {
   using Address for address;
 

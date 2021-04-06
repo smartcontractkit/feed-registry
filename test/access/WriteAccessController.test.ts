@@ -114,5 +114,7 @@ describe("WriteAccessController", function () {
     ).to.be.revertedWith("Only callable by owner");
   });
 
+  // TODO: tests for enable / disable access check
+
   shouldBehaveLikeOwned();
 });

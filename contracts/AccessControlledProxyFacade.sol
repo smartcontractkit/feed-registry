@@ -7,7 +7,9 @@ import "./interfaces/AccessControllerInterface.sol";
 import "./interfaces/IFeedProxy.sol";
 import "./ProxyFacade.sol";
 
-// ProxyFacade with access controls
+/**
+  * @notice facade proxy contract that conforms to the AggregatorV2V3Interface. Implements access controls.
+  */
 contract AccessControlledProxyFacade is ProxyFacade, AccessControlled {
   constructor(
     AccessControllerInterface accessController,
