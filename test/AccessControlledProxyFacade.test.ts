@@ -7,8 +7,6 @@ import { expect } from "chai";
 import { ethers, utils } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
 import { PairReadAccessController } from "../typechain/PairReadAccessController";
-import { shouldBehaveLikeOwned } from "./vendor/Owned.behaviour";
-import { shouldBehaveLikeAccessControlled } from "./access/AccessControlled.behaviour";
 
 const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
@@ -51,7 +49,7 @@ describe("AccessControlledProxyFacade", function () {
       await deployContract(this.signers.owner, accessControllerArtifact)
     );
     await this.feedProxy.setController(this.accessController.address);
-    await this.accessController.addAccess(this.proxyFacade.address, PAIR_DATA);
+    await this.accessController.addLocalAccess(this.proxyFacade.address, PAIR_DATA);
   });
 
   it("proxyFacade should be initialized correctly", async function () {
@@ -62,7 +60,7 @@ describe("AccessControlledProxyFacade", function () {
   });
 
   it("proxy should be able to read answer through facade", async function () {
-    await this.accessController.addAccess(this.proxy.address, PAIR_DATA); // Grant proxy access to read from proxyFacade
+    await this.accessController.addLocalAccess(this.proxy.address, PAIR_DATA); // Grant proxy access to read from proxyFacade
     expect(await this.proxy.aggregator()).to.equal(this.proxyFacade.address);
     expect(await this.proxy.latestAnswer()).to.equal(TEST_ANSWER);
     // TODO: other getters

@@ -27,12 +27,12 @@ describe("PairReadAccessController", function () {
   });
 
   it("allowlisted pair should return true", async function () {
-    await this.controller.addAccess(TEST_ADDRESS, PAIR_DATA);
+    await this.controller.addLocalAccess(TEST_ADDRESS, PAIR_DATA);
     expect(await this.controller.hasAccess(TEST_ADDRESS, PAIR_DATA)).to.equal(true);
   });
 
   it("global access should grant acess to all pairs", async function () {
-    await this.controller.addAccess(TEST_ADDRESS, EMPTY_BYTES);
+    await this.controller.addGlobalAccess(TEST_ADDRESS);
     expect(await this.controller.hasAccess(TEST_ADDRESS, PAIR_DATA)).to.equal(true);
   });
 

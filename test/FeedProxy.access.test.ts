@@ -55,7 +55,7 @@ describe("FeedProxy Access controls", function () {
     await expect(this.consumer.read(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith("No access");
 
     // Should pass because access is set to true
-    await this.accessController.addAccess(this.consumer.address, PAIR_DATA);
+    await this.accessController.addLocalAccess(this.consumer.address, PAIR_DATA);
     expect(await this.accessController.hasAccess(this.consumer.address, PAIR_DATA)).to.equal(true);
     expect(await this.consumer.read(ASSET_ADDRESS, DENOMINATION)).to.equal(TEST_ANSWER);
   });
