@@ -14,7 +14,7 @@ const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
 const DENOMINATION = utils.keccak256(utils.toUtf8Bytes("USD"));
 const PAIR_DATA = ethers.utils.defaultAbiCoder.encode(["address", "bytes32"], [ASSET_ADDRESS, DENOMINATION]);
-const CONSUMER_ADDRESS = "0x0000000000000000000000000000000000000002";
+const UNALLOWED_READER = "0x0000000000000000000000000000000000000002";
 const TEST_ANSWER = utils.parseEther("999999");
 
 describe("AccessControlledProxyFacade", function () {
@@ -33,35 +33,32 @@ describe("AccessControlledProxyFacade", function () {
     await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
 
-    const accessControllerArtifact: Artifact = await hre.artifacts.readArtifact("PairReadAccessController");
-    this.accessController = <PairReadAccessController>(
-      await deployContract(this.signers.owner, accessControllerArtifact)
-    );
+    const proxyArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorProxy");
+    this.proxy = await deployContract(this.signers.owner, proxyArtifact, [ethers.constants.AddressZero]);
 
     const proxyFacadeArtifact: Artifact = await hre.artifacts.readArtifact("AccessControlledProxyFacade");
     this.proxyFacade = await deployContract(this.signers.owner, proxyFacadeArtifact, [
-      this.accessController.address,
+      this.proxy.address,
       this.feedProxy.address,
       ASSET_ADDRESS,
       DENOMINATION,
     ]);
-    this.owned = this.proxyFacade;
-    this.accessControlled = this.proxyFacade;
+    await this.proxy.proposeAggregator(this.proxyFacade.address);
+    await this.proxy.confirmAggregator(this.proxyFacade.address);
 
-    const proxyArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorProxy");
-    this.proxy = await deployContract(this.signers.owner, proxyArtifact, [this.proxyFacade.address]);
+    const accessControllerArtifact: Artifact = await hre.artifacts.readArtifact("PairReadAccessController");
+    this.accessController = <PairReadAccessController>(
+      await deployContract(this.signers.owner, accessControllerArtifact)
+    );
+    await this.feedProxy.setController(this.accessController.address);
+    await this.accessController.addAccess(this.proxyFacade.address, PAIR_DATA);
   });
 
   it("proxyFacade should be initialized correctly", async function () {
     expect(await this.proxyFacade.getFeedProxy()).to.equal(this.feedProxy.address);
-    expect(await this.proxyFacade.getController()).to.equal(this.accessController.address);
+    expect(await this.proxyFacade.getAllowedReader()).to.equal(this.proxy.address);
     expect(await this.proxyFacade.getAsset()).to.equal(ASSET_ADDRESS);
     expect(await this.proxyFacade.getDenomination()).to.equal(DENOMINATION);
-  });
-
-  it("proxyFacade should be able to read answer from registry", async function () {
-    expect(await this.proxyFacade.connect(ethers.constants.AddressZero).latestAnswer()).to.equal(TEST_ANSWER);
-    // TODO: other getters
   });
 
   it("proxy should be able to read answer through facade", async function () {
@@ -71,37 +68,13 @@ describe("AccessControlledProxyFacade", function () {
     // TODO: other getters
   });
 
-  describe("With access controls enabled", function () {
-    beforeEach(async function () {
-      await this.feedProxy.setController(this.accessController.address); // Enable access controller on feedProxy
-    });
-
-    it("proxyFacade should be able to read answer from registry if granted access", async function () {
-      await this.accessController.addAccess(this.proxyFacade.address, PAIR_DATA);
-      await this.accessController.addAccess(CONSUMER_ADDRESS, PAIR_DATA);
-      expect(await this.accessController.hasAccess(CONSUMER_ADDRESS, PAIR_DATA)).to.equal(true);
-      expect(await this.proxyFacade.connect(CONSUMER_ADDRESS).latestAnswer()).to.equal(TEST_ANSWER);
-    });
-
-    it("proxyFacade should NOT be able to read answer from registry if not granted access", async function () {
-      await this.accessController.removeAccess(this.proxyFacade.address, PAIR_DATA);
-      expect(await this.accessController.hasAccess(CONSUMER_ADDRESS, PAIR_DATA)).to.equal(false);
-      await expect(this.proxyFacade.connect(CONSUMER_ADDRESS).latestAnswer()).to.be.revertedWith("No access");
-    });
-
-    it("proxy should be able to read answer from registry if granted access", async function () {
-      await this.accessController.addAccess(this.proxyFacade.address, PAIR_DATA);
-      await this.accessController.addAccess(this.proxy.address, PAIR_DATA); // Grant proxy access to read from proxyFacade
-      expect(await this.proxy.latestAnswer()).to.equal(TEST_ANSWER);
-    });
-
-    it("proxy should NOT be able to read answer from registry if not granted access", async function () {
-      await this.accessController.removeAccess(this.proxyFacade.address, PAIR_DATA);
-      await this.accessController.removeAccess(this.proxy.address, PAIR_DATA); // Do not grany proxy access
-      await expect(this.proxy.latestAnswer()).to.be.revertedWith("No access");
-    });
+  it("proxy should be able to read answer from registry if is allowed reader", async function () {
+    expect(await this.proxyFacade.getAllowedReader()).to.equal(this.proxy.address);
+    expect(await this.proxy.latestAnswer()).to.equal(TEST_ANSWER);
   });
 
-  shouldBehaveLikeOwned();
-  shouldBehaveLikeAccessControlled();
+  it("should NOT be able to read answer from registry if not allowed reader", async function () {
+    expect(await this.proxyFacade.getAllowedReader()).to.not.equal(UNALLOWED_READER);
+    await expect(this.proxyFacade.connect(UNALLOWED_READER).latestAnswer()).to.be.revertedWith("No access");
+  });
 });

@@ -2,22 +2,33 @@
 
 pragma solidity 0.7.6;
 
-import "./access/AccessControlled.sol";
-import "./vendor/AccessControllerInterface.sol";
 import "./interfaces/IFeedProxy.sol";
 import "./ProxyFacade.sol";
 
 /**
   * @notice facade proxy contract that conforms to the AggregatorV2V3Interface. Implements access controls.
   */
-contract AccessControlledProxyFacade is ProxyFacade, AccessControlled {
+contract AccessControlledProxyFacade is ProxyFacade {
+  address private immutable s_allowedReader; // intended reader who is allowed to read (usually the proxy address)
+
   constructor(
-    AccessControllerInterface accessController,
+    address allowedReader,
     address feedProxy,
     address asset,
     bytes32 denomination
   ) ProxyFacade(feedProxy, asset, denomination) {
-    setController(accessController);
+    require(allowedReader != address(0), "Invalid allowed reader");
+    s_allowedReader = allowedReader;
+  }
+
+  function getAllowedReader()
+    external
+    view
+    returns (
+      address
+    )
+  {
+    return s_allowedReader;
   }
 
   // V2
@@ -34,8 +45,8 @@ contract AccessControlledProxyFacade is ProxyFacade, AccessControlled {
   {
     return super.latestAnswer();
   }
-  
-  function latestTimestamp() 
+
+  function latestTimestamp()
     public
     view
     override
@@ -47,7 +58,7 @@ contract AccessControlledProxyFacade is ProxyFacade, AccessControlled {
     return super.latestTimestamp();
   }
 
-  function latestRound() 
+  function latestRound()
     public
     view
     override
@@ -58,7 +69,7 @@ contract AccessControlledProxyFacade is ProxyFacade, AccessControlled {
   {
     return super.latestRound();
   }
-  
+
   function getAnswer(
     uint256 roundId
   )
@@ -72,7 +83,7 @@ contract AccessControlledProxyFacade is ProxyFacade, AccessControlled {
   {
     return super.getAnswer(roundId);
   }
-  
+
   function getTimestamp(
     uint256 roundId
   )
@@ -89,7 +100,7 @@ contract AccessControlledProxyFacade is ProxyFacade, AccessControlled {
 
   // V3
 
-  function decimals() 
+  function decimals()
     public
     view
     override
@@ -100,8 +111,8 @@ contract AccessControlledProxyFacade is ProxyFacade, AccessControlled {
   {
     return super.decimals();
   }
-  
-  function description() 
+
+  function description()
     public
     view
     override
@@ -112,8 +123,8 @@ contract AccessControlledProxyFacade is ProxyFacade, AccessControlled {
   {
     return super.description();
   }
-  
-  function version() 
+
+  function version()
     public
     view
     override
@@ -158,9 +169,7 @@ contract AccessControlledProxyFacade is ProxyFacade, AccessControlled {
   }
 
   modifier checkAccess() {
-    bytes memory callData = abi.encode(s_asset, s_denomination, msg.data); // Send feed idenfitier (TKN / USD) to access controller
-    bool hasAccess = s_accessController.hasAccess(msg.sender, callData);
-    require(address(s_accessController) == address(0) || s_accessController.hasAccess(msg.sender, callData), "No access");
+    require(msg.sender == address(0) || msg.sender == s_allowedReader, "No access");
     _;
-  }  
+  }
 }

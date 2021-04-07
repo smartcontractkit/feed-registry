@@ -14,7 +14,6 @@ contract ProxyFacade is AggregatorV2V3Interface {
   IFeedProxy internal immutable s_feedProxy;
   address internal immutable s_asset;
   bytes32 internal immutable s_denomination;
-  // TODO: s_reader // intended reader who is allowed to read (usually the proxy address)
 
   constructor(
     address feedProxy,
