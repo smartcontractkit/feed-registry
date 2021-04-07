@@ -38,7 +38,7 @@ describe("WriteAccessController", function () {
 
   it("owner can add global access", async function () {
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(false);
-    await expect(this.controller.addAccess(TEST_ADDRESS, EMPTY_BYTES))
+    await expect(this.controller.addGlobalAccess(TEST_ADDRESS))
       .to.emit(this.controller, "AccessAdded")
       .withArgs(TEST_ADDRESS, EMPTY_BYTES);
 
@@ -47,15 +47,15 @@ describe("WriteAccessController", function () {
     expect(await this.controller.hasAccess(TEST_ADDRESS, OTHER_TEST_DATA)).to.equal(true);
   });
 
-  it("non-owners cannot add access", async function () {
-    await expect(this.controller.connect(this.signers.other).addAccess(TEST_ADDRESS, EMPTY_BYTES)).to.be.revertedWith(
+  it("non-owners cannot add global access", async function () {
+    await expect(this.controller.connect(this.signers.other).addGlobalAccess(TEST_ADDRESS)).to.be.revertedWith(
       "Only callable by owner",
     );
   });
 
   it("owner can add local access", async function () {
     expect(await this.controller.hasAccess(TEST_ADDRESS, TEST_DATA)).to.equal(false);
-    await expect(this.controller.addAccess(TEST_ADDRESS, TEST_DATA))
+    await expect(this.controller.addLocalAccess(TEST_ADDRESS, TEST_DATA))
       .to.emit(this.controller, "AccessAdded")
       .withArgs(TEST_ADDRESS, TEST_DATA);
 
@@ -64,57 +64,82 @@ describe("WriteAccessController", function () {
     expect(await this.controller.hasAccess(TEST_ADDRESS, OTHER_TEST_DATA)).to.equal(false);
   });
 
+  it("non-owners cannot add local access", async function () {
+    await expect(
+      this.controller.connect(this.signers.other).addLocalAccess(TEST_ADDRESS, TEST_DATA),
+    ).to.be.revertedWith("Only callable by owner");
+  });
+
   it("owner can remove global access", async function () {
-    await this.controller.addAccess(TEST_ADDRESS, EMPTY_BYTES); // Add global access
+    await this.controller.addGlobalAccess(TEST_ADDRESS); // Add global access
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(true);
 
-    await expect(this.controller.removeAccess(TEST_ADDRESS, EMPTY_BYTES))
+    await expect(this.controller.removeGlobalAccess(TEST_ADDRESS))
       .to.emit(this.controller, "AccessRemoved")
       .withArgs(TEST_ADDRESS, EMPTY_BYTES);
 
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(false);
   });
 
+  it("non-owners cannot remove global access", async function () {
+    await this.controller.addGlobalAccess(TEST_ADDRESS); // Add global access
+    await expect(this.controller.connect(this.signers.other).removeGlobalAccess(TEST_ADDRESS)).to.be.revertedWith(
+      "Only callable by owner",
+    );
+  });
+
   it("owner can remove local access", async function () {
-    await this.controller.addAccess(TEST_ADDRESS, TEST_DATA); // Add local access
+    await this.controller.addLocalAccess(TEST_ADDRESS, TEST_DATA); // Add local access
     expect(await this.controller.hasAccess(TEST_ADDRESS, TEST_DATA)).to.equal(true);
 
-    await expect(this.controller.removeAccess(TEST_ADDRESS, TEST_DATA))
+    await expect(this.controller.removeLocalAccess(TEST_ADDRESS, TEST_DATA))
       .to.emit(this.controller, "AccessRemoved")
       .withArgs(TEST_ADDRESS, TEST_DATA);
 
     expect(await this.controller.hasAccess(TEST_ADDRESS, TEST_DATA)).to.equal(false);
   });
 
+  it("non-owners cannot remove local access", async function () {
+    await this.controller.addLocalAccess(TEST_ADDRESS, TEST_DATA); // Add local access
+    await expect(
+      this.controller.connect(this.signers.other).removeLocalAccess(TEST_ADDRESS, TEST_DATA),
+    ).to.be.revertedWith("Only callable by owner");
+  });
+
   it("removing global access does not remove local access", async function () {
-    await this.controller.addAccess(TEST_ADDRESS, EMPTY_BYTES); // Add global access
-    await this.controller.addAccess(TEST_ADDRESS, TEST_DATA); // Add local access
+    await this.controller.addGlobalAccess(TEST_ADDRESS); // Add global access
+    await this.controller.addLocalAccess(TEST_ADDRESS, TEST_DATA); // Add local access
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(true);
     expect(await this.controller.hasAccess(TEST_ADDRESS, TEST_DATA)).to.equal(true);
 
-    await this.controller.removeAccess(TEST_ADDRESS, EMPTY_BYTES);
+    await this.controller.removeGlobalAccess(TEST_ADDRESS);
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(false);
     expect(await this.controller.hasAccess(TEST_ADDRESS, TEST_DATA)).to.equal(true); // Local access remains
   });
 
   it("removing local access does not remove global access", async function () {
-    await this.controller.addAccess(TEST_ADDRESS, EMPTY_BYTES); // Add global access
-    await this.controller.addAccess(TEST_ADDRESS, TEST_DATA); // Add local access
+    await this.controller.addGlobalAccess(TEST_ADDRESS); // Add global access
+    await this.controller.addLocalAccess(TEST_ADDRESS, TEST_DATA); // Add local access
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(true);
     expect(await this.controller.hasAccess(TEST_ADDRESS, TEST_DATA)).to.equal(true);
 
-    await this.controller.removeAccess(TEST_ADDRESS, TEST_DATA);
+    await this.controller.removeLocalAccess(TEST_ADDRESS, TEST_DATA);
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(true); // Global access remains
     expect(await this.controller.hasAccess(TEST_ADDRESS, TEST_DATA)).to.equal(true);
   });
 
-  it("non-owners cannot remove access", async function () {
-    await expect(
-      this.controller.connect(this.signers.other).removeAccess(TEST_ADDRESS, EMPTY_BYTES),
-    ).to.be.revertedWith("Only callable by owner");
-  });
+  it("owner can disable and enable access check", async function () {
+    expect(await this.controller.checkEnabled()).to.equal(true);
+    expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(false);
 
-  // TODO: tests for enable / disable access check
+    await this.controller.disableAccessCheck();
+    expect(await this.controller.checkEnabled()).to.equal(false);
+    expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(true);
+
+    await this.controller.enableAccessCheck();
+    expect(await this.controller.checkEnabled()).to.equal(true);
+    expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(false);
+  });
 
   shouldBehaveLikeOwned();
 });

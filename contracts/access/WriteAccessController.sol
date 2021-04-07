@@ -12,7 +12,7 @@ import "../vendor/Owned.sol";
  * ReadAccessController for that.
  */
 contract WriteAccessController is AccessControllerInterface, Owned {
-  bool public checkEnabled;
+  bool public checkEnabled = true;
   mapping(address => bool) internal s_globalAccessList;
   mapping(address => mapping(bytes => bool)) internal s_localAccessList;
 
@@ -20,11 +20,6 @@ contract WriteAccessController is AccessControllerInterface, Owned {
   event AccessRemoved(address user, bytes data);
   event CheckAccessEnabled();
   event CheckAccessDisabled();
-
-  constructor()
-  {
-    checkEnabled = true;
-  }
 
   /**
    * @notice Returns the access of an address
@@ -44,42 +39,66 @@ contract WriteAccessController is AccessControllerInterface, Owned {
     return s_globalAccessList[user] || s_localAccessList[user][data] || !checkEnabled;
   }
 
+/**
+   * @notice Adds an address to the global access list
+   * @param user The address to add
+   */
+  function addGlobalAccess(
+    address user
+  )
+    external
+    onlyOwner()
+  {
+    if (!s_globalAccessList[user]) {
+      _addGlobalAccess(user);
+    }
+  }
+
   /**
-   * @notice Adds an address to the access list
+   * @notice Adds an address+data to the local access list
    * @param user The address to add
    * @param data The calldata to add
    */
-  function addAccess(
+  function addLocalAccess(
     address user,
     bytes memory data
   )
     external
     onlyOwner()
   {
-    if (data.length == 0 && !s_globalAccessList[user]) {
-      _addGlobalAccess(user);
-    }
-    if (data.length != 0 && !s_localAccessList[user][data]) {
+    if (!s_localAccessList[user][data]) {
       _addLocalAccess(user, data);
     }
   }
 
   /**
-   * @notice Removes an address from the access list
+   * @notice Removes an address from the global access list
+   * @param user The address to remove
+   */
+  function removeGlobalAccess(
+    address user
+  )
+    external
+    onlyOwner()
+  {
+    if (s_globalAccessList[user]) {
+      _removeGlobalAccess(user);
+    }
+  }
+
+  /**
+   * @notice Removes an address+data from the local access list
    * @param user The address to remove
    * @param data The calldata to remove
    */
-  function removeAccess(
+  function removeLocalAccess(
     address user,
     bytes memory data
   )
     external
     onlyOwner()
   {
-    if (data.length == 0 && s_globalAccessList[user]) {
-      _removeGlobalAccess(user);
-    }
-    if (data.length != 0 && s_localAccessList[user][data]) {
+    if (s_localAccessList[user][data]) {
       _removeLocalAccess(user, data);
     }
   }
@@ -114,13 +133,15 @@ contract WriteAccessController is AccessControllerInterface, Owned {
    * @dev reverts if the caller does not have access
    */
   modifier checkAccess() {
-    require(hasAccess(msg.sender, msg.data), "No access");
+    if (checkEnabled) {
+      require(hasAccess(msg.sender, msg.data), "No access");
+    }
     _;
   }
 
   function _addGlobalAccess(address user) internal {
     s_globalAccessList[user] = true;
-    emit AccessAdded(user, ""); 
+    emit AccessAdded(user, "");
   }
 
   function _removeGlobalAccess(address user) internal {
@@ -136,5 +157,5 @@ contract WriteAccessController is AccessControllerInterface, Owned {
   function _removeLocalAccess(address user, bytes memory data) internal {
     s_localAccessList[user][data] = false;
     emit AccessRemoved(user, data);
-  }  
+  }
 }
