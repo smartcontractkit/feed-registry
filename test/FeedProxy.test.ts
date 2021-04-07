@@ -44,11 +44,21 @@ describe("FeedProxy", function () {
   });
 
   // TODO: owner can propose a feed (check s_proposedFeeds)
-
-  it("owner can add a feed", async function () {
+  it("owner can propose a feed", async function () {
     await expect(this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address))
       .to.emit(this.feedProxy, "FeedProposed")
       .withArgs(ASSET_ADDRESS, DENOMINATION, ethers.constants.AddressZero, this.feed.address);
+    expect(await this.feedProxy.getProposedFeed(ASSET_ADDRESS, DENOMINATION)).to.equal(this.feed.address);
+  });
+
+  it("non-owners cannot propose a feed", async function () {
+    await expect(
+      this.feedProxy.connect(this.signers.other).proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address),
+    ).to.be.revertedWith("Only callable by owner");
+  });
+
+  it("owner can confirm a feed", async function () {
+    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await expect(this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address))
       .to.emit(this.feedProxy, "FeedConfirmed")
       .withArgs(ASSET_ADDRESS, DENOMINATION, ethers.constants.AddressZero, this.feed.address);
@@ -58,6 +68,12 @@ describe("FeedProxy", function () {
 
     const isFeedEnabled = await this.feedProxy.isFeedEnabled(feed);
     expect(isFeedEnabled);
+  });
+
+  it("non-owners cannot confirm a feed", async function () {
+    await expect(
+      this.feedProxy.connect(this.signers.other).confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address),
+    ).to.be.revertedWith("Only callable by owner");
   });
 
   it("owner cannot confirm a feed without proposing first", async function () {
@@ -72,19 +88,6 @@ describe("FeedProxy", function () {
       "Invalid proposed feed",
     );
   });
-
-  it("non-owners cannot propose a feed", async function () {
-    await expect(
-      this.feedProxy.connect(this.signers.other).proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address),
-    ).to.be.revertedWith("Only callable by owner");
-  });
-
-  it("non-owners cannot confirm a feed", async function () {
-    await expect(
-      this.feedProxy.connect(this.signers.other).confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address),
-    ).to.be.revertedWith("Only callable by owner");
-  });
-
   it("owner can remove a feed", async function () {
     // Add
     await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);

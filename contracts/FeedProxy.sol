@@ -7,6 +7,7 @@ import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./access/AccessControlled.sol";
 import "./interfaces/IFeedProxy.sol";
 import "./vendor/Address.sol";
+import "./libraries/Denominations.sol";
 
 /**
   * @notice A trusted proxy for updating where current answers are read from
@@ -20,7 +21,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
 
   uint256 constant private PHASE_OFFSET = 64;
   uint256 constant private PHASE_SIZE = 16;
-  uint256 constant private MAX_ID = 2**(PHASE_OFFSET+PHASE_SIZE) - 1;    
+  uint256 constant private MAX_ID = 2**(PHASE_OFFSET+PHASE_SIZE) - 1;
 
   mapping(AggregatorV2V3Interface => bool) private s_isFeedEnabled;
   mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) private s_proposedFeeds;
@@ -30,7 +31,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
   /**
    * @notice returns a feed's current phase
    * @param asset asset address
-   * @param denomination denomination identifier: keccak256("USD") 
+   * @param denomination denomination identifier: keccak256("USD")
    * @return currentPhase is the feed's current phase
    */
   function getCurrentPhase(
@@ -50,7 +51,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
   /**
    * @notice retrieve the feed of an asset / denomination pair in the current phase
    * @param asset asset address
-   * @param denomination denomination identifier: keccak256("USD")      
+   * @param denomination denomination identifier: keccak256("USD")
    */
   function getFeed(
     address asset,
@@ -70,7 +71,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
   /**
    * @notice retrieve the feed of an asset / denomination pair of a phase
    * @param asset asset address
-   * @param denomination denomination identifier: keccak256("USD")   
+   * @param denomination denomination identifier: keccak256("USD")
    * @param phaseId phase ID
    */
   function getPhaseFeed(
@@ -131,7 +132,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
    * @dev Reverts if the given address doesn't match what was previously
    * proposed
    * @param asset asset address
-   * @param denomination denomination identifier: keccak256("USD")   
+   * @param denomination denomination identifier: keccak256("USD")
    * @param feedAddress The new aggregator contract address
    */
   function confirmFeed(
@@ -156,7 +157,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     address asset,
     bytes32 denomination,
     address feedAddress
-  ) 
+  )
     internal
   {
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
@@ -175,14 +176,14 @@ contract FeedProxy is IFeedProxy, AccessControlled {
    * instead which includes better verification information.
    */
   function latestAnswer(
-    address asset, 
+    address asset,
     bytes32 denomination
   )
     external
     view
     override
     checkAccess(asset, denomination)
-    returns (int256 answer) 
+    returns (int256 answer)
   {
     AggregatorV2V3Interface feed = getFeed(asset, denomination);
     return feed.latestAnswer();
@@ -191,7 +192,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
   /**
    * @notice get the latest completed round where the answer was updated. This
    * @param asset asset address
-   * @param denomination denomination identifier: keccak256("USD")   
+   * @param denomination denomination identifier: keccak256("USD")
    * ID includes the proxy's phase, to make sure round IDs increase even when
    * switching to a newly deployed aggregator.
    *
@@ -201,14 +202,14 @@ contract FeedProxy is IFeedProxy, AccessControlled {
    * instead which includes better verification information.
    */
   function latestTimestamp(
-    address asset, 
+    address asset,
     bytes32 denomination
   )
     external
     view
     override
     checkAccess(asset, denomination)
-    returns (uint256 timestamp) 
+    returns (uint256 timestamp)
   {
     AggregatorV2V3Interface feed = getFeed(asset, denomination);
     return feed.latestTimestamp();
@@ -217,7 +218,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
   /**
    * @notice get the latest completed round where the answer was updated
    * @param asset asset address
-   * @param denomination denomination identifier: keccak256("USD")   
+   * @param denomination denomination identifier: keccak256("USD")
    * @dev overridden function to add the checkAccess() modifier
    *
    * @dev #[deprecated] Use latestRoundData instead. This does not error if no
@@ -235,7 +236,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     checkAccess(asset, denomination)
     returns (
       uint256 roundId
-    ) 
+    )
   {
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
     return addPhase(currentPhase.id, uint64(currentPhase.feed.latestRound()));
@@ -267,7 +268,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     )
   {
     if (roundId > MAX_ID) return 0;
-    
+
     (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(roundId);
     AggregatorV2V3Interface feed = getPhaseFeed(asset, denomination, phaseId);
     if (address(feed) == address(0)) return 0;
@@ -301,11 +302,11 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     )
   {
     if (roundId > MAX_ID) return 0;
-    
+
     (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(roundId);
     AggregatorV2V3Interface feed = getPhaseFeed(asset, denomination, phaseId);
     if (address(feed) == address(0)) return 0;
-    
+
     return feed.getTimestamp(aggregatorRoundId);
   }
 
@@ -315,7 +316,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
   function decimals(
     address asset,
     bytes32 denomination
-  ) 
+  )
     external
     view
     override
@@ -326,7 +327,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
     AggregatorV2V3Interface feed = getFeed(asset, denomination);
     return feed.decimals();
   }
-  
+
   /**
    * @notice returns the description of the aggregator the proxy points to.
    */
@@ -348,7 +349,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
   /**
    * @notice the version number representing the type of aggregator the proxy
    * points to.
-   */    
+   */
   function version(
     address asset,
     bytes32 denomination
@@ -406,7 +407,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
   {
     AggregatorV2V3Interface feed = getFeed(asset, denomination);
     return feed.latestRoundData();
-  }  
+  }
 
   /**
    * @notice get data about a round. Consumers are encouraged to check
@@ -435,7 +436,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
    */
   function getRoundData(
     address asset,
-    bytes32 denomination,  
+    bytes32 denomination,
     uint80 _roundId
   )
     external
@@ -590,7 +591,7 @@ contract FeedProxy is IFeedProxy, AccessControlled {
       updatedAt,
       addPhase(phaseId, uint64(answeredInRound))
     );
-  }  
+  }
 
   /**
    * @dev reverts if the caller does not have access by the accessController
