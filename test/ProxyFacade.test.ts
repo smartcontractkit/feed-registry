@@ -9,7 +9,7 @@ import { deployMockContract } from "ethereum-waffle";
 
 const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
-const DENOMINATION = utils.keccak256(utils.toUtf8Bytes("USD"));
+const DENOMINATION = 1;
 const TEST_ANSWER = utils.parseEther("999999");
 
 describe("ProxyFacade", function () {

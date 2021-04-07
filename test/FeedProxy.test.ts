@@ -10,7 +10,7 @@ import { shouldBehaveLikeAccessControlled } from "./access/AccessControlled.beha
 
 const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
-const DENOMINATION = utils.keccak256(utils.toUtf8Bytes("USD"));
+const DENOMINATION = 1;
 const TEST_ANSWER = utils.parseEther("999999");
 const TEST_DESCRIPTION = "TKN / USD";
 const TEST_DECIMALS = 18;

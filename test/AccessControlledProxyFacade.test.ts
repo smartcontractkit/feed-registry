@@ -10,8 +10,8 @@ import { PairReadAccessController } from "../typechain/PairReadAccessController"
 
 const { deployContract } = hre.waffle;
 const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
-const DENOMINATION = utils.keccak256(utils.toUtf8Bytes("USD"));
-const PAIR_DATA = ethers.utils.defaultAbiCoder.encode(["address", "bytes32"], [ASSET_ADDRESS, DENOMINATION]);
+const DENOMINATION = 1;
+const PAIR_DATA = ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [ASSET_ADDRESS, DENOMINATION]);
 const UNALLOWED_READER = "0x0000000000000000000000000000000000000002";
 const TEST_ANSWER = utils.parseEther("999999");
 

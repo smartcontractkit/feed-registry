@@ -25,13 +25,13 @@ contract MockConsumer {
 
   function read(
     address asset,
-    bytes32 denomination
-  ) 
-    public 
-    view 
+    uint256 denomination
+  )
+    public
+    view
     returns (
       int256
-    ) 
+    )
   {
     return s_feedProxy.latestAnswer(asset, denomination);
   }

@@ -13,33 +13,33 @@ interface IFeedProxy is IAccessControlled {
   }
 
   event FeedProposed(
-    address indexed asset, 
-    bytes32 indexed denomination,
+    address indexed asset,
+    uint256 indexed denomination,
     address currentFeed,
     address indexed proposedFeed
   );
   event FeedConfirmed(
-    address indexed asset, 
-    bytes32 indexed denomination,
+    address indexed asset,
+    uint256 indexed denomination,
     address previousFeed,
     address indexed latestFeed
   );
 
   function proposeFeed(
     address asset,
-    bytes32 denomination,
+    uint256 denomination,
     address feedAddress
   ) external;
 
   function confirmFeed(
     address asset,
-    bytes32 denomination,
+    uint256 denomination,
     address feedAddress
   ) external;
 
   function getFeed(
     address asset,
-    bytes32 denomination
+    uint256 denomination
   )
     external
     view
@@ -49,7 +49,7 @@ interface IFeedProxy is IAccessControlled {
 
   function getPhaseFeed(
     address asset,
-    bytes32 denomination,
+    uint256 denomination,
     uint16 phaseId
   )
     external
@@ -69,7 +69,7 @@ interface IFeedProxy is IAccessControlled {
 
   function getCurrentPhase(
     address asset,
-    bytes32 denomination
+    uint256 denomination
   )
     external
     view
@@ -81,7 +81,7 @@ interface IFeedProxy is IAccessControlled {
 
   function latestAnswer(
     address asset,
-    bytes32 denomination
+    uint256 denomination
   )
     external
     view
@@ -91,7 +91,7 @@ interface IFeedProxy is IAccessControlled {
 
   function latestTimestamp(
     address asset,
-    bytes32 denomination
+    uint256 denomination
   )
     external
     view
@@ -101,7 +101,7 @@ interface IFeedProxy is IAccessControlled {
 
   function latestRound(
     address asset,
-    bytes32 denomination
+    uint256 denomination
   )
     external
     view
@@ -111,7 +111,7 @@ interface IFeedProxy is IAccessControlled {
 
   function getAnswer(
     address asset,
-    bytes32 denomination,
+    uint256 denomination,
     uint256 roundId
   )
     external
@@ -122,7 +122,7 @@ interface IFeedProxy is IAccessControlled {
 
   function getTimestamp(
     address asset,
-    bytes32 denomination,
+    uint256 denomination,
     uint256 roundId
   )
     external
@@ -135,27 +135,27 @@ interface IFeedProxy is IAccessControlled {
 
   function decimals(
     address asset,
-    bytes32 denomination
-  ) 
+    uint256 denomination
+  )
     external
     view
     returns (
       uint8
     );
-  
+
   function description(
     address asset,
-    bytes32 denomination
+    uint256 denomination
   )
     external
     view
     returns (
       string memory
     );
-    
+
   function version(
     address asset,
-    bytes32 denomination
+    uint256 denomination
   )
     external
     view
@@ -165,7 +165,7 @@ interface IFeedProxy is IAccessControlled {
 
   function latestRoundData(
     address asset,
-    bytes32 denomination
+    uint256 denomination
   )
     external
     view
@@ -179,7 +179,7 @@ interface IFeedProxy is IAccessControlled {
 
   function getRoundData(
     address asset,
-    bytes32 denomination,
+    uint256 denomination,
     uint80 _roundId
   )
     external
@@ -196,7 +196,7 @@ interface IFeedProxy is IAccessControlled {
 
   function getProposedFeed(
     address asset,
-    bytes32 denomination
+    uint256 denomination
   )
     external
     view
@@ -206,7 +206,7 @@ interface IFeedProxy is IAccessControlled {
 
   function proposedGetRoundData(
     address asset,
-    bytes32 denomination,
+    uint256 denomination,
     uint80 roundId
   )
     external
@@ -221,7 +221,7 @@ interface IFeedProxy is IAccessControlled {
 
   function proposedLatestRoundData(
     address asset,
-    bytes32 denomination
+    uint256 denomination
   )
     external
     view

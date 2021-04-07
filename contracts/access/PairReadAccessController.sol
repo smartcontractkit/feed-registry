@@ -14,7 +14,7 @@ import "./WriteAccessController.sol";
  * - accounts explicitly added to an access list
  * @dev ReadAccessController is not suitable for access controlling writes
  * since it grants any externally owned account access! See
- * WriteAccessController for that. 
+ * WriteAccessController for that.
  */
 contract PairReadAccessController is WriteAccessController {
   /**
@@ -34,8 +34,8 @@ contract PairReadAccessController is WriteAccessController {
   {
     (
       address asset,
-      bytes32 denomination
-    ) = abi.decode(data, (address, bytes32));
+      uint256 denomination
+    ) = abi.decode(data, (address, uint256));
     bytes memory pairData = abi.encode(asset, denomination); // Parse only asset pair (TKN / USD)
     return super.hasAccess(account, pairData) || account == address(0);
   }

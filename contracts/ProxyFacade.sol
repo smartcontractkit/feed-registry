@@ -13,12 +13,12 @@ import "./interfaces/IFeedProxy.sol";
 contract ProxyFacade is AggregatorV2V3Interface {
   IFeedProxy internal immutable s_feedProxy;
   address internal immutable s_asset;
-  bytes32 internal immutable s_denomination;
+  uint256 internal immutable s_denomination;
 
   constructor(
     address feedProxy,
     address asset,
-    bytes32 denomination
+    uint256 denomination
   ) {
     s_feedProxy = IFeedProxy(feedProxy);
     s_asset = asset;
@@ -49,7 +49,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     public
     view
     returns (
-      bytes32
+      uint256
     )
   {
     return s_denomination;
