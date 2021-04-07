@@ -10,7 +10,7 @@
 
 ## Background
 
-Some DeFi protocols are building their own Feed Registries ([Yearn](https://github.com/yearn/audit/blob/4b07283c80fc005e899afa8b5fb2bb949fe11f28/contracts/ySwap/ChainLinkFeedsRegistry.sol), [Aave](https://github.com/aave/protocol-v2/blob/2708551bcf3afb28ee9798ccf7f3027ea0ecec10/contracts/misc/AaveOracle.sol#L25), [Synthetix](https://github.com/Synthetixio/synthetix/blob/c803c3b51d026bb4552a0e1a9bcc55914502a8d4/contracts/ExchangeRates.sol#L32)) that maps assets (token address) to Chainlink proxies. Any DeFi protocol that has collateralization (where they need to calculate the value of deposited asets) likely needs to do something similar.
+Some DeFi protocols are building their own Feed Registries ([Yearn](https://github.com/yearn/audit/blob/4b07283c80fc005e899afa8b5fb2bb949fe11f28/contracts/ySwap/ChainLinkFeedsRegistry.sol), [Aave](https://github.com/aave/protocol-v2/blob/2708551bcf3afb28ee9798ccf7f3027ea0ecec10/contracts/misc/AaveOracle.sol#L25), [Synthetix](https://github.com/Synthetixio/synthetix/blob/c803c3b51d026bb4552a0e1a9bcc55914502a8d4/contracts/ExchangeRates.sol#L32)) that maps assets (token address) to Chainlink aggregators. Any DeFi protocol that has collateralization (where they need to calculate the value of deposited assets) likely needs to do something similar.
 
 To speed up integration and ensure that protocols use the correct feeds, Chainlink can provide a canonical on-chain registry of assets to feeds.
 
