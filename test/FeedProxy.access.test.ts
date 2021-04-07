@@ -4,17 +4,13 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { FeedProxy } from "../typechain/FeedProxy";
 import { Signers } from "../types";
 import { expect } from "chai";
-import { ethers, utils } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
 import { PairReadAccessController } from "../typechain/PairReadAccessController";
 import { MockConsumer } from "../typechain/MockConsumer";
 import { shouldBehaveLikeAccessControlled } from "./access/AccessControlled.behaviour";
+import { ASSET_ADDRESS, DENOMINATION, TEST_ANSWER, PAIR_DATA } from "./utils/constants";
 
 const { deployContract } = hre.waffle;
-const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
-const DENOMINATION = 1;
-const PAIR_DATA = ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [ASSET_ADDRESS, DENOMINATION]);
-const TEST_ANSWER = utils.parseEther("999999");
 
 describe("FeedProxy Access controls", function () {
   beforeEach(async function () {

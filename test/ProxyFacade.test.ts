@@ -4,13 +4,10 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { FeedProxy } from "../typechain/FeedProxy";
 import { Signers } from "../types";
 import { expect } from "chai";
-import { utils } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
+import { TEST_ANSWER, ASSET_ADDRESS, DENOMINATION } from "./utils/constants";
 
 const { deployContract } = hre.waffle;
-const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
-const DENOMINATION = 1;
-const TEST_ANSWER = utils.parseEther("999999");
 
 describe("ProxyFacade", function () {
   beforeEach(async function () {

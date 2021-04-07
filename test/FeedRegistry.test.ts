@@ -4,13 +4,12 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { FeedRegistry } from "../typechain/FeedRegistry";
 import { Signers } from "../types";
 import { expect } from "chai";
-import { ethers, utils } from "ethers";
+import { ethers } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
 import { shouldBehaveLikeOwned } from "./vendor/Owned.behaviour";
+import { ASSET_ADDRESS, DENOMINATION } from "./utils/constants";
 
 const { deployContract } = hre.waffle;
-const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
-const DENOMINATION = utils.keccak256(utils.toUtf8Bytes("USD"));
 
 describe("FeedRegistry", function () {
   beforeEach(async function () {

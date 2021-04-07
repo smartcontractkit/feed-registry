@@ -4,21 +4,23 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { FeedProxy } from "../typechain/FeedProxy";
 import { Signers } from "../types";
 import { expect } from "chai";
-import { BigNumber, ethers, utils } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
 import { shouldBehaveLikeAccessControlled } from "./access/AccessControlled.behaviour";
+import {
+  ASSET_ADDRESS,
+  DENOMINATION,
+  TEST_ADDRESS,
+  TEST_DECIMALS,
+  TEST_DESCRIPTION,
+  TEST_VERSION,
+  TEST_ANSWER,
+  TEST_TIMESTAMP,
+  TEST_ROUND,
+  TEST_ROUND_DATA,
+} from "./utils/constants";
 
 const { deployContract } = hre.waffle;
-const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
-const DENOMINATION = 1;
-const TEST_ANSWER = utils.parseEther("999999");
-const TEST_DESCRIPTION = "TKN / USD";
-const TEST_DECIMALS = 18;
-const TEST_VERSION = 4;
-const TEST_TIMESTAMP = BigNumber.from("123456789");
-const TEST_ROUND = BigNumber.from("1");
-const TEST_ROUND_DATA = [TEST_ROUND, TEST_ANSWER, TEST_TIMESTAMP, TEST_TIMESTAMP, TEST_ROUND];
-const TEST_ADDRESS = "0x0000000000000000000000000000000000000002";
 
 const PHASE_BASE = BigNumber.from(2).pow(64);
 

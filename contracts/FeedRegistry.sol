@@ -13,7 +13,7 @@ import "./vendor/Address.sol";
 contract FeedRegistry is IFeedRegistry, Owned {
   using Address for address;
 
-  mapping(address => mapping(bytes32 => AggregatorV2V3Interface)) private s_feeds;
+  mapping(address => mapping(uint256 => AggregatorV2V3Interface)) private s_feeds;
   mapping(AggregatorV2V3Interface => bool) private s_isEnabled;
 
   /**
@@ -24,9 +24,9 @@ contract FeedRegistry is IFeedRegistry, Owned {
    */
   function addFeeds(
     address[] calldata assets,
-    bytes32[] calldata denominations,
+    uint256[] calldata denominations,
     address[] calldata feeds
-  ) 
+  )
     external
     override
     onlyOwner()
@@ -45,7 +45,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
    */
   function removeFeeds(
     address[] calldata assets,
-    bytes32[] calldata denominations
+    uint256[] calldata denominations
   )
     external
     override
@@ -62,7 +62,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
    */
   function getFeed(
     address asset,
-    bytes32 denomination
+    uint256 denomination
   )
     public
     view
@@ -92,7 +92,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
 
   function _addFeed(
     address asset,
-    bytes32 denomination,
+    uint256 denomination,
     address feedAddress
   )
     internal
@@ -108,7 +108,7 @@ contract FeedRegistry is IFeedRegistry, Owned {
 
   function _removeFeed(
     address asset,
-    bytes32 denomination
+    uint256 denomination
   )
     internal
   {

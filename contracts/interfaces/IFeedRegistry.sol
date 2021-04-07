@@ -6,25 +6,25 @@ import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 
 interface IFeedRegistry {
   event FeedSet(
-    address indexed asset, 
-    bytes32 indexed denomination, 
+    address indexed asset,
+    uint256 indexed denomination,
     address indexed feed
   );
 
   function addFeeds(
     address[] calldata assets,
-    bytes32[] calldata denominations,
+    uint256[] calldata denominations,
     address[] calldata feeds
   ) external;
 
   function removeFeeds(
     address[] calldata assets,
-    bytes32[] calldata denominations
+    uint256[] calldata denominations
   ) external;
 
   function getFeed(
     address asset,
-    bytes32 denomination
+    uint256 denomination
   )
     external
     view

@@ -4,16 +4,12 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { FeedProxy } from "../typechain/FeedProxy";
 import { Signers } from "../types";
 import { expect } from "chai";
-import { ethers, utils } from "ethers";
+import { ethers } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
 import { PairReadAccessController } from "../typechain/PairReadAccessController";
+import { ASSET_ADDRESS, DENOMINATION, PAIR_DATA, OTHER_TEST_ADDRESS, TEST_ANSWER } from "./utils/constants";
 
 const { deployContract } = hre.waffle;
-const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
-const DENOMINATION = 1;
-const PAIR_DATA = ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [ASSET_ADDRESS, DENOMINATION]);
-const UNALLOWED_READER = "0x0000000000000000000000000000000000000002";
-const TEST_ANSWER = utils.parseEther("999999");
 
 describe("AccessControlledProxyFacade", function () {
   beforeEach(async function () {
@@ -72,7 +68,7 @@ describe("AccessControlledProxyFacade", function () {
   });
 
   it("should NOT be able to read answer from registry if not allowed reader", async function () {
-    expect(await this.proxyFacade.getAllowedReader()).to.not.equal(UNALLOWED_READER);
-    await expect(this.proxyFacade.connect(UNALLOWED_READER).latestAnswer()).to.be.revertedWith("No access");
+    expect(await this.proxyFacade.getAllowedReader()).to.not.equal(OTHER_TEST_ADDRESS);
+    await expect(this.proxyFacade.connect(OTHER_TEST_ADDRESS).latestAnswer()).to.be.revertedWith("No access");
   });
 });
