@@ -11,9 +11,10 @@ import "./interfaces/IFeedProxy.sol";
   * This contract sits between AggregatorProxy -> ProxyFacade -> FeedRegistry
   */
 contract ProxyFacade is AggregatorV2V3Interface {
-  IFeedProxy internal s_feedProxy;
-  address internal s_asset;
-  bytes32 internal s_denomination;
+  IFeedProxy internal immutable s_feedProxy;
+  address internal immutable s_asset;
+  bytes32 internal immutable s_denomination;
+  // TODO: s_reader // intended reader who is allowed to read (usually the proxy address)
 
   constructor(
     address feedProxy,
@@ -69,8 +70,8 @@ contract ProxyFacade is AggregatorV2V3Interface {
   {
     return s_feedProxy.latestAnswer(s_asset, s_denomination);
   }
-  
-  function latestTimestamp() 
+
+  function latestTimestamp()
     public
     view
     virtual
@@ -82,7 +83,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
     return s_feedProxy.latestTimestamp(s_asset, s_denomination);
   }
 
-  function latestRound() 
+  function latestRound()
     public
     view
     virtual
@@ -93,7 +94,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
   {
     return s_feedProxy.latestRound(s_asset, s_denomination);
   }
-  
+
   function getAnswer(
     uint256 roundId
   )
@@ -107,7 +108,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
   {
     return s_feedProxy.getAnswer(s_asset, s_denomination, roundId);
   }
-  
+
   function getTimestamp(
     uint256 roundId
   )
@@ -124,7 +125,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
 
   // V3
 
-  function decimals() 
+  function decimals()
     public
     view
     virtual
@@ -135,8 +136,8 @@ contract ProxyFacade is AggregatorV2V3Interface {
   {
     return s_feedProxy.decimals(s_asset, s_denomination);
   }
-  
-  function description() 
+
+  function description()
     public
     view
     virtual
@@ -147,8 +148,8 @@ contract ProxyFacade is AggregatorV2V3Interface {
   {
     return s_feedProxy.description(s_asset, s_denomination);
   }
-  
-  function version() 
+
+  function version()
     public
     view
     virtual
