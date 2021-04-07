@@ -3,15 +3,10 @@ import { Artifact } from "hardhat/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { Signers } from "../../types";
 import { expect } from "chai";
-import { ethers } from "ethers";
 import { PairReadAccessController } from "../../typechain/PairReadAccessController";
+import { INVALID_PAIR_DATA, PAIR_DATA, TEST_ADDRESS } from "../utils/constants";
 
 const { deployContract } = hre.waffle;
-const TEST_ADDRESS = "0x0000000000000000000000000000000000000002";
-const ASSET_ADDRESS = "0x0000000000000000000000000000000000000001";
-const DENOMINATION = 1;
-const PAIR_DATA = ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [ASSET_ADDRESS, DENOMINATION]);
-const INVALID_PAIR_DATA = ethers.utils.defaultAbiCoder.encode(["address", "int256"], [ASSET_ADDRESS, "123"]);
 
 describe("PairReadAccessController", function () {
   beforeEach(async function () {

@@ -1,6 +1,5 @@
 import { expect } from "chai";
-
-const TEST_ADDRESS = "0x0000000000000000000000000000000000000009";
+import { TEST_ADDRESS } from "../utils/constants";
 
 export function shouldBehaveLikeAccessControlled(): void {
   describe("shouldBehaveLikeAccessControlled", function () {
