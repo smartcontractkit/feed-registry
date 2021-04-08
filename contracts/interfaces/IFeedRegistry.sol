@@ -23,6 +23,7 @@ interface IFeedRegistry is IAccessControlled {
     uint256 indexed denomination,
     address previousFeed,
     address indexed latestFeed
+    // TODO: should we include round details here for easier consumption?
   );
 
   function proposeFeed(
