@@ -1,7 +1,7 @@
 import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { FeedProxy } from "../typechain/FeedProxy";
+import { FeedRegistry } from "../typechain/FeedRegistry";
 import { Signers } from "../types";
 import { expect } from "chai";
 import { ethers } from "ethers";
@@ -18,14 +18,14 @@ describe("AccessControlledProxyFacade", function () {
     this.signers.owner = signers[0];
     this.signers.other = signers[1];
 
-    const feedProxyArtifact: Artifact = await hre.artifacts.readArtifact("FeedProxy");
-    this.feedProxy = <FeedProxy>await deployContract(this.signers.owner, feedProxyArtifact, []);
+    const FeedRegistryArtifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
+    this.FeedRegistry = <FeedRegistry>await deployContract(this.signers.owner, FeedRegistryArtifact, []);
 
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
     await this.feed.mock.latestAnswer.returns(TEST_ANSWER);
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
 
     const proxyArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorProxy");
     this.proxy = await deployContract(this.signers.owner, proxyArtifact, [ethers.constants.AddressZero]);
@@ -33,7 +33,7 @@ describe("AccessControlledProxyFacade", function () {
     const proxyFacadeArtifact: Artifact = await hre.artifacts.readArtifact("AccessControlledProxyFacade");
     this.proxyFacade = await deployContract(this.signers.owner, proxyFacadeArtifact, [
       this.proxy.address,
-      this.feedProxy.address,
+      this.FeedRegistry.address,
       ASSET_ADDRESS,
       DENOMINATION,
     ]);
@@ -44,12 +44,12 @@ describe("AccessControlledProxyFacade", function () {
     this.accessController = <PairReadAccessController>(
       await deployContract(this.signers.owner, accessControllerArtifact)
     );
-    await this.feedProxy.setController(this.accessController.address);
+    await this.FeedRegistry.setController(this.accessController.address);
     await this.accessController.addLocalAccess(this.proxyFacade.address, PAIR_DATA);
   });
 
   it("proxyFacade should be initialized correctly", async function () {
-    expect(await this.proxyFacade.getFeedProxy()).to.equal(this.feedProxy.address);
+    expect(await this.proxyFacade.getFeedRegistry()).to.equal(this.FeedRegistry.address);
     expect(await this.proxyFacade.getAllowedReader()).to.equal(this.proxy.address);
     expect(await this.proxyFacade.getAsset()).to.equal(ASSET_ADDRESS);
     expect(await this.proxyFacade.getDenomination()).to.equal(DENOMINATION);

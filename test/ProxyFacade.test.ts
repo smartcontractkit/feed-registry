@@ -1,7 +1,7 @@
 import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { FeedProxy } from "../typechain/FeedProxy";
+import { FeedRegistry } from "../typechain/FeedRegistry";
 import { Signers } from "../types";
 import { expect } from "chai";
 import { deployMockContract } from "ethereum-waffle";
@@ -16,18 +16,18 @@ describe("ProxyFacade", function () {
     this.signers.owner = signers[0];
     this.signers.other = signers[1];
 
-    const feedProxyArtifact: Artifact = await hre.artifacts.readArtifact("FeedProxy");
-    this.feedProxy = <FeedProxy>await deployContract(this.signers.owner, feedProxyArtifact, []);
+    const FeedRegistryArtifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
+    this.FeedRegistry = <FeedRegistry>await deployContract(this.signers.owner, FeedRegistryArtifact, []);
 
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
     await this.feed.mock.latestAnswer.returns(TEST_ANSWER);
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
 
     const proxyFacadeArtifact: Artifact = await hre.artifacts.readArtifact("ProxyFacade");
     this.proxyFacade = await deployContract(this.signers.owner, proxyFacadeArtifact, [
-      this.feedProxy.address,
+      this.FeedRegistry.address,
       ASSET_ADDRESS,
       DENOMINATION,
     ]);
@@ -38,7 +38,7 @@ describe("ProxyFacade", function () {
   });
 
   it("proxyFacade should be initialized correctly", async function () {
-    expect(await this.proxyFacade.getFeedProxy()).to.equal(this.feedProxy.address);
+    expect(await this.proxyFacade.getFeedRegistry()).to.equal(this.FeedRegistry.address);
     expect(await this.proxyFacade.getAsset()).to.equal(ASSET_ADDRESS);
     expect(await this.proxyFacade.getDenomination()).to.equal(DENOMINATION);
     expect(await this.proxyFacade.latestAnswer()).to.equal(TEST_ANSWER);

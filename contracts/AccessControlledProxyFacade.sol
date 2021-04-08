@@ -2,7 +2,7 @@
 
 pragma solidity 0.7.6;
 
-import "./interfaces/IFeedProxy.sol";
+import "./interfaces/IFeedRegistry.sol";
 import "./ProxyFacade.sol";
 
 /**
@@ -13,10 +13,10 @@ contract AccessControlledProxyFacade is ProxyFacade {
 
   constructor(
     address allowedReader,
-    address feedProxy,
+    address FeedRegistry,
     address asset,
     uint256 denomination
-  ) ProxyFacade(feedProxy, asset, denomination) {
+  ) ProxyFacade(FeedRegistry, asset, denomination) {
     require(allowedReader != address(0), "Invalid allowed reader");
     s_allowedReader = allowedReader;
   }

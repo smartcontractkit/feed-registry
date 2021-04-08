@@ -2,25 +2,25 @@
 
 pragma solidity 0.7.6;
 
-import "../interfaces/IFeedProxy.sol";
+import "../interfaces/IFeedRegistry.sol";
 
 contract MockConsumer {
-  IFeedProxy private s_feedProxy;
+  IFeedRegistry private s_FeedRegistry;
 
   constructor(
-    IFeedProxy feedProxy
+    IFeedRegistry FeedRegistry
   ) {
-    s_feedProxy = feedProxy;
+    s_FeedRegistry = FeedRegistry;
   }
 
-  function getFeedProxy()
+  function getFeedRegistry()
     public
     view
     returns (
-      IFeedProxy
+      IFeedRegistry
     )
   {
-    return s_feedProxy;
+    return s_FeedRegistry;
   }
 
   function read(
@@ -33,6 +33,6 @@ contract MockConsumer {
       int256
     )
   {
-    return s_feedProxy.latestAnswer(asset, denomination);
+    return s_FeedRegistry.latestAnswer(asset, denomination);
   }
 }

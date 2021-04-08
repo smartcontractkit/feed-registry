@@ -4,35 +4,35 @@ pragma solidity 0.7.6;
 
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./vendor/Owned.sol";
-import "./interfaces/IFeedProxy.sol";
+import "./interfaces/IFeedRegistry.sol";
 
 /**
   * @notice facade proxy contract that conforms to the AggregatorV2V3Interface.
   * This contract sits between AggregatorProxy -> ProxyFacade -> FeedRegistry
   */
 contract ProxyFacade is AggregatorV2V3Interface {
-  IFeedProxy internal immutable s_feedProxy;
+  IFeedRegistry internal immutable s_FeedRegistry;
   address internal immutable s_asset;
   uint256 internal immutable s_denomination;
 
   constructor(
-    address feedProxy,
+    address FeedRegistry,
     address asset,
     uint256 denomination
   ) {
-    s_feedProxy = IFeedProxy(feedProxy);
+    s_FeedRegistry = IFeedRegistry(FeedRegistry);
     s_asset = asset;
     s_denomination = denomination;
   }
 
-  function getFeedProxy()
+  function getFeedRegistry()
     public
     view
     returns (
-      IFeedProxy
+      IFeedRegistry
     )
   {
-    return s_feedProxy;
+    return s_FeedRegistry;
   }
 
   function getAsset()
@@ -67,7 +67,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
       int256
     )
   {
-    return s_feedProxy.latestAnswer(s_asset, s_denomination);
+    return s_FeedRegistry.latestAnswer(s_asset, s_denomination);
   }
 
   function latestTimestamp()
@@ -79,7 +79,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
       uint256
     )
   {
-    return s_feedProxy.latestTimestamp(s_asset, s_denomination);
+    return s_FeedRegistry.latestTimestamp(s_asset, s_denomination);
   }
 
   function latestRound()
@@ -91,7 +91,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
       uint256
     )
   {
-    return s_feedProxy.latestRound(s_asset, s_denomination);
+    return s_FeedRegistry.latestRound(s_asset, s_denomination);
   }
 
   function getAnswer(
@@ -105,7 +105,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
       int256
     )
   {
-    return s_feedProxy.getAnswer(s_asset, s_denomination, roundId);
+    return s_FeedRegistry.getAnswer(s_asset, s_denomination, roundId);
   }
 
   function getTimestamp(
@@ -119,7 +119,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
       uint256
     )
   {
-    return s_feedProxy.getTimestamp(s_asset, s_denomination, roundId);
+    return s_FeedRegistry.getTimestamp(s_asset, s_denomination, roundId);
   }
 
   // V3
@@ -133,7 +133,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
       uint8
     )
   {
-    return s_feedProxy.decimals(s_asset, s_denomination);
+    return s_FeedRegistry.decimals(s_asset, s_denomination);
   }
 
   function description()
@@ -145,7 +145,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
       string memory
     )
   {
-    return s_feedProxy.description(s_asset, s_denomination);
+    return s_FeedRegistry.description(s_asset, s_denomination);
   }
 
   function version()
@@ -157,7 +157,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
       uint256
     )
   {
-    return s_feedProxy.version(s_asset, s_denomination);
+    return s_FeedRegistry.version(s_asset, s_denomination);
   }
 
   function getRoundData(uint80 _roundId)
@@ -173,7 +173,7 @@ contract ProxyFacade is AggregatorV2V3Interface {
       uint80 answeredInRound
     )
   {
-    return s_feedProxy.getRoundData(s_asset, s_denomination, _roundId);
+    return s_FeedRegistry.getRoundData(s_asset, s_denomination, _roundId);
   }
 
   function latestRoundData()
@@ -189,6 +189,6 @@ contract ProxyFacade is AggregatorV2V3Interface {
       uint80 answeredInRound
     )
   {
-    return s_feedProxy.latestRoundData(s_asset, s_denomination);
+    return s_FeedRegistry.latestRoundData(s_asset, s_denomination);
   }
 }

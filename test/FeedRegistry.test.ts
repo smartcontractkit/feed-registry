@@ -1,7 +1,7 @@
 import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { FeedProxy } from "../typechain/FeedProxy";
+import { FeedRegistry } from "../typechain/FeedRegistry";
 import { Signers } from "../types";
 import { expect } from "chai";
 import { BigNumber, ethers } from "ethers";
@@ -24,230 +24,230 @@ const { deployContract } = hre.waffle;
 
 const PHASE_BASE = BigNumber.from(2).pow(64);
 
-describe("FeedProxy", function () {
+describe("FeedRegistry", function () {
   beforeEach(async function () {
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await hre.ethers.getSigners();
     this.signers.owner = signers[0];
     this.signers.other = signers[1];
 
-    const feedProxyArtifact: Artifact = await hre.artifacts.readArtifact("FeedProxy");
-    this.feedProxy = <FeedProxy>await deployContract(this.signers.owner, feedProxyArtifact, []);
-    this.accessControlled = this.feedProxy;
+    const FeedRegistryArtifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
+    this.FeedRegistry = <FeedRegistry>await deployContract(this.signers.owner, FeedRegistryArtifact, []);
+    this.accessControlled = this.FeedRegistry;
 
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
   });
 
   it("should initialize correctly", async function () {
-    expect(await this.feedProxy.owner()).to.equal(this.signers.owner.address);
-    const currentPhase = await this.feedProxy.getCurrentPhase(ASSET_ADDRESS, DENOMINATION);
+    expect(await this.FeedRegistry.owner()).to.equal(this.signers.owner.address);
+    const currentPhase = await this.FeedRegistry.getCurrentPhase(ASSET_ADDRESS, DENOMINATION);
     expect(currentPhase.id).to.equal(0);
   });
 
   // TODO: owner can propose a feed (check s_proposedFeeds)
   it("owner can propose a feed", async function () {
-    await expect(this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address))
-      .to.emit(this.feedProxy, "FeedProposed")
+    await expect(this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address))
+      .to.emit(this.FeedRegistry, "FeedProposed")
       .withArgs(ASSET_ADDRESS, DENOMINATION, ethers.constants.AddressZero, this.feed.address);
-    expect(await this.feedProxy.getProposedFeed(ASSET_ADDRESS, DENOMINATION)).to.equal(this.feed.address);
+    expect(await this.FeedRegistry.getProposedFeed(ASSET_ADDRESS, DENOMINATION)).to.equal(this.feed.address);
   });
 
   it("non-owners cannot propose a feed", async function () {
     await expect(
-      this.feedProxy.connect(this.signers.other).proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address),
+      this.FeedRegistry.connect(this.signers.other).proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address),
     ).to.be.revertedWith("Only callable by owner");
   });
 
   it("owner can confirm a feed", async function () {
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await expect(this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address))
-      .to.emit(this.feedProxy, "FeedConfirmed")
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await expect(this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address))
+      .to.emit(this.FeedRegistry, "FeedConfirmed")
       .withArgs(ASSET_ADDRESS, DENOMINATION, ethers.constants.AddressZero, this.feed.address);
 
-    const feed = await this.feedProxy.getFeed(ASSET_ADDRESS, DENOMINATION);
+    const feed = await this.FeedRegistry.getFeed(ASSET_ADDRESS, DENOMINATION);
     expect(feed).to.equal(this.feed.address);
 
-    const isFeedEnabled = await this.feedProxy.isFeedEnabled(feed);
+    const isFeedEnabled = await this.FeedRegistry.isFeedEnabled(feed);
     expect(isFeedEnabled);
   });
 
   it("non-owners cannot confirm a feed", async function () {
     await expect(
-      this.feedProxy.connect(this.signers.other).confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address),
+      this.FeedRegistry.connect(this.signers.other).confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address),
     ).to.be.revertedWith("Only callable by owner");
   });
 
   it("owner cannot confirm a feed without proposing first", async function () {
-    await expect(this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address)).to.be.revertedWith(
+    await expect(this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address)).to.be.revertedWith(
       "Invalid proposed feed",
     );
   });
 
   it("owner cannot confirm a different feed than what is proposed", async function () {
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await expect(this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, TEST_ADDRESS)).to.be.revertedWith(
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await expect(this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, TEST_ADDRESS)).to.be.revertedWith(
       "Invalid proposed feed",
     );
   });
   it("owner can remove a feed", async function () {
     // Add
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
 
     // Remove
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, ethers.constants.AddressZero);
-    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, ethers.constants.AddressZero);
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, ethers.constants.AddressZero);
+    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, ethers.constants.AddressZero);
 
-    const feed = await this.feedProxy.getFeed(ASSET_ADDRESS, DENOMINATION);
+    const feed = await this.FeedRegistry.getFeed(ASSET_ADDRESS, DENOMINATION);
     expect(feed).to.equal(ethers.constants.AddressZero);
 
-    const isFeedEnabled = await this.feedProxy.isFeedEnabled(this.feed.address);
+    const isFeedEnabled = await this.FeedRegistry.isFeedEnabled(this.feed.address);
     expect(isFeedEnabled).to.equal(false);
   });
 
   it("decimals returns the latest answer of a feed", async function () {
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feed.mock.decimals.returns(TEST_DECIMALS); // Mock feed response
 
-    const decimals = await this.feedProxy.decimals(ASSET_ADDRESS, DENOMINATION);
+    const decimals = await this.FeedRegistry.decimals(ASSET_ADDRESS, DENOMINATION);
     expect(decimals).to.equal(TEST_DECIMALS);
   });
 
   it("decimals should revert for a non-existent feed", async function () {
-    await expect(this.feedProxy.decimals(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+    await expect(this.FeedRegistry.decimals(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
       "function call to a non-contract account",
     );
   });
 
   it("description returns the latest answer of a feed", async function () {
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feed.mock.description.returns(TEST_DESCRIPTION); // Mock feed response
 
-    const description = await this.feedProxy.description(ASSET_ADDRESS, DENOMINATION);
+    const description = await this.FeedRegistry.description(ASSET_ADDRESS, DENOMINATION);
     expect(description).to.equal(TEST_DESCRIPTION);
   });
 
   it("description should revert for a non-existent feed", async function () {
-    await expect(this.feedProxy.description(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+    await expect(this.FeedRegistry.description(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
       "function call to a non-contract account",
     );
   });
 
   it("version returns the latest answer of a feed", async function () {
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feed.mock.version.returns(TEST_VERSION); // Mock feed response
 
-    const version = await this.feedProxy.version(ASSET_ADDRESS, DENOMINATION);
+    const version = await this.FeedRegistry.version(ASSET_ADDRESS, DENOMINATION);
     expect(version).to.equal(TEST_VERSION);
   });
 
   it("version should revert for a non-existent feed", async function () {
-    await expect(this.feedProxy.version(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+    await expect(this.FeedRegistry.version(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
       "function call to a non-contract account",
     );
   });
 
   it("latestAnswer returns the latest answer of a feed", async function () {
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
 
-    const answer = await this.feedProxy.latestAnswer(ASSET_ADDRESS, DENOMINATION);
+    const answer = await this.FeedRegistry.latestAnswer(ASSET_ADDRESS, DENOMINATION);
     expect(answer).to.equal(TEST_ANSWER);
   });
 
   it("latestAnswer should revert for a non-existent feed", async function () {
-    await expect(this.feedProxy.latestAnswer(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+    await expect(this.FeedRegistry.latestAnswer(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
       "function call to a non-contract account",
     );
   });
 
   it("latestTimestamp returns the latest answer of a feed", async function () {
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feed.mock.latestTimestamp.returns(TEST_TIMESTAMP); // Mock feed response
 
-    const latestTimestamp = await this.feedProxy.latestTimestamp(ASSET_ADDRESS, DENOMINATION);
+    const latestTimestamp = await this.FeedRegistry.latestTimestamp(ASSET_ADDRESS, DENOMINATION);
     expect(latestTimestamp).to.equal(TEST_TIMESTAMP);
   });
 
   it("latestTimestamp should revert for a non-existent feed", async function () {
-    await expect(this.feedProxy.latestTimestamp(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+    await expect(this.FeedRegistry.latestTimestamp(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
       "function call to a non-contract account",
     );
   });
 
   it("latestRound returns the latest round of a feed", async function () {
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feed.mock.latestRound.returns(TEST_ROUND); // Mock feed response
 
-    const latestRound = await this.feedProxy.latestRound(ASSET_ADDRESS, DENOMINATION);
+    const latestRound = await this.FeedRegistry.latestRound(ASSET_ADDRESS, DENOMINATION);
     expect(latestRound).to.equal(PHASE_BASE.add(TEST_ROUND));
   });
 
   it("latestRound should revert for a non-existent feed", async function () {
-    await expect(this.feedProxy.latestRound(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+    await expect(this.FeedRegistry.latestRound(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
       "function call to a non-contract account",
     );
   });
 
   it("getAnswer returns the answer of a round", async function () {
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feed.mock.getAnswer.withArgs(TEST_ROUND).returns(TEST_ANSWER); // Mock feed response
 
-    const answer = await this.feedProxy.getAnswer(ASSET_ADDRESS, DENOMINATION, PHASE_BASE.add(TEST_ROUND));
+    const answer = await this.FeedRegistry.getAnswer(ASSET_ADDRESS, DENOMINATION, PHASE_BASE.add(TEST_ROUND));
     expect(answer).to.equal(TEST_ANSWER);
   });
 
   it("getAnswer does not revert when called with a non existent round ID", async function () {
-    expect(await this.feedProxy.getAnswer(ASSET_ADDRESS, DENOMINATION, TEST_ROUND)).to.equal(0);
+    expect(await this.FeedRegistry.getAnswer(ASSET_ADDRESS, DENOMINATION, TEST_ROUND)).to.equal(0);
   });
 
   it("getTimestamp returns the timestamp of a round", async function () {
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feed.mock.getTimestamp.withArgs(TEST_ROUND).returns(TEST_TIMESTAMP); // Mock feed response
 
-    const timestamp = await this.feedProxy.getTimestamp(ASSET_ADDRESS, DENOMINATION, PHASE_BASE.add(TEST_ROUND));
+    const timestamp = await this.FeedRegistry.getTimestamp(ASSET_ADDRESS, DENOMINATION, PHASE_BASE.add(TEST_ROUND));
     expect(timestamp).to.equal(TEST_TIMESTAMP);
   });
 
   it("getTimestamp should not revert when called with a non existent ID", async function () {
-    expect(await this.feedProxy.getTimestamp(ASSET_ADDRESS, DENOMINATION, TEST_ROUND)).to.equal(0);
+    expect(await this.FeedRegistry.getTimestamp(ASSET_ADDRESS, DENOMINATION, TEST_ROUND)).to.equal(0);
   });
 
   it("latestRoundData returns the latest round data of a feed", async function () {
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feed.mock.latestRoundData.returns(...TEST_ROUND_DATA); // Mock feed response
 
-    const roundData = await this.feedProxy.latestRoundData(ASSET_ADDRESS, DENOMINATION);
+    const roundData = await this.FeedRegistry.latestRoundData(ASSET_ADDRESS, DENOMINATION);
     expect(roundData).to.eql(TEST_ROUND_DATA);
   });
 
   it("latestRoundData should revert for a non-existent feed", async function () {
-    await expect(this.feedProxy.latestRoundData(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
+    await expect(this.FeedRegistry.latestRoundData(ASSET_ADDRESS, DENOMINATION)).to.be.revertedWith(
       "function call to a non-contract account",
     );
   });
 
   it("getRoundData returns the latest round data of a feed", async function () {
-    await this.feedProxy.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.feedProxy.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
     await this.feed.mock.getRoundData.withArgs(TEST_ROUND).returns(...TEST_ROUND_DATA); // Mock feed response
 
-    const roundData = await this.feedProxy.getRoundData(ASSET_ADDRESS, DENOMINATION, TEST_ROUND);
+    const roundData = await this.FeedRegistry.getRoundData(ASSET_ADDRESS, DENOMINATION, TEST_ROUND);
     expect(roundData).to.eql(TEST_ROUND_DATA);
   });
 
   it("getRoundData should revert for a non-existent feed", async function () {
-    await expect(this.feedProxy.getRoundData(ASSET_ADDRESS, DENOMINATION, TEST_ROUND)).to.be.revertedWith(
+    await expect(this.FeedRegistry.getRoundData(ASSET_ADDRESS, DENOMINATION, TEST_ROUND)).to.be.revertedWith(
       "function call to a non-contract account",
     );
   });
