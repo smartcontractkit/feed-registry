@@ -6,7 +6,6 @@ pragma abicoder v2; // solhint-disable compiler-version
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./access/AccessControlled.sol";
 import "./interfaces/IFeedProxy.sol";
-import "./vendor/Address.sol";
 import "./libraries/Denominations.sol";
 
 /**
@@ -17,8 +16,6 @@ import "./libraries/Denominations.sol";
   * aggregated answers and round information
   */
 contract FeedProxy is IFeedProxy, AccessControlled {
-  using Address for address;
-
   uint256 constant private PHASE_OFFSET = 64;
   uint256 constant private PHASE_SIZE = 16;
   uint256 constant private MAX_ID = 2**(PHASE_OFFSET+PHASE_SIZE) - 1;
