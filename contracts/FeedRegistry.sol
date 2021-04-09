@@ -9,11 +9,10 @@ import "./interfaces/IFeedRegistry.sol";
 import "./libraries/Denominations.sol";
 
 /**
-  * @notice A trusted proxy for updating where current answers are read from
+  * @notice An on-chain registry of assets to aggregators.
   * @notice This contract provides a consistent address for consumers but delegates where it reads from to the owner, who is
-  * trusted to update it. This proxy contract works for multiple feeds, not just a single feed.
-  * @notice Only access enabled addresses are allowed to access getters for
-  * aggregated answers and round information
+  * trusted to update it. This registry contract works for multiple feeds, not just a single feed.
+  * @notice Only access enabled addresses are allowed to access getters for answers and round data
   */
 contract FeedRegistry is IFeedRegistry, AccessControlled {
   uint256 constant private PHASE_OFFSET = 64;
