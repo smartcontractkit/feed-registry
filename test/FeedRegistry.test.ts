@@ -45,7 +45,6 @@ describe("FeedRegistry", function () {
     expect(currentPhase.id).to.equal(0);
   });
 
-  // TODO: owner can propose a feed (check s_proposedFeeds)
   it("owner can propose a feed", async function () {
     await expect(this.registry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address))
       .to.emit(this.registry, "FeedProposed")

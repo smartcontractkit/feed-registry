@@ -35,9 +35,7 @@ describe("FeedRegistry Access controls", function () {
     );
 
     const consumerArtifact: Artifact = await hre.artifacts.readArtifact("MockConsumer");
-    this.consumer = <MockConsumer>(
-      await deployContract(this.signers.owner, consumerArtifact, [this.registry.address])
-    );
+    this.consumer = <MockConsumer>await deployContract(this.signers.owner, consumerArtifact, [this.registry.address]);
     expect(await this.consumer.getFeedRegistry()).to.equal(this.registry.address);
   });
 

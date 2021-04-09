@@ -1,6 +1,7 @@
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-typechain";
-import 'hardhat-deploy';
+import "hardhat-deploy";
+import "hardhat-gas-reporter";
 import "solidity-coverage";
 
 import "./tasks/accounts";
@@ -88,6 +89,9 @@ const config: HardhatUserConfig = {
   typechain: {
     outDir: "typechain",
     target: "ethers-v5",
+  },
+  gasReporter: {
+    enabled: process.env.DISABLE_GAS_REPORT ? false : true,
   },
 };
 
