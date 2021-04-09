@@ -17,17 +17,17 @@ describe("ProxyFacade", function () {
     this.signers.other = signers[1];
 
     const FeedRegistryArtifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
-    this.FeedRegistry = <FeedRegistry>await deployContract(this.signers.owner, FeedRegistryArtifact, []);
+    this.registry = <FeedRegistry>await deployContract(this.signers.owner, FeedRegistryArtifact, []);
 
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
     await this.feed.mock.latestAnswer.returns(TEST_ANSWER);
-    await this.FeedRegistry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.FeedRegistry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.registry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.registry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
 
     const proxyFacadeArtifact: Artifact = await hre.artifacts.readArtifact("ProxyFacade");
     this.proxyFacade = await deployContract(this.signers.owner, proxyFacadeArtifact, [
-      this.FeedRegistry.address,
+      this.registry.address,
       ASSET_ADDRESS,
       DENOMINATION,
     ]);
@@ -38,7 +38,7 @@ describe("ProxyFacade", function () {
   });
 
   it("proxyFacade should be initialized correctly", async function () {
-    expect(await this.proxyFacade.getFeedRegistry()).to.equal(this.FeedRegistry.address);
+    expect(await this.proxyFacade.getFeedRegistry()).to.equal(this.registry.address);
     expect(await this.proxyFacade.getAsset()).to.equal(ASSET_ADDRESS);
     expect(await this.proxyFacade.getDenomination()).to.equal(DENOMINATION);
     expect(await this.proxyFacade.latestAnswer()).to.equal(TEST_ANSWER);
