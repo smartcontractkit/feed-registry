@@ -1,21 +1,15 @@
 import hre from "hardhat";
 import { Artifact } from "hardhat/types";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { Signers } from "../../types";
 import { expect } from "chai";
 import { WriteAccessController } from "../../typechain/WriteAccessController";
 import { shouldBehaveLikeOwned } from "../vendor/Owned.behaviour";
 import { TEST_ADDRESS, EMPTY_BYTES, PAIR_DATA, OTHER_PAIR_DATA } from "../utils/constants";
+import { contract } from "../utils/context";
 
 const { deployContract } = hre.waffle;
 
-describe("WriteAccessController", function () {
+contract("WriteAccessController", function () {
   beforeEach(async function () {
-    this.signers = {} as Signers;
-    const signers: SignerWithAddress[] = await hre.ethers.getSigners();
-    this.signers.owner = signers[0];
-    this.signers.other = signers[1];
-
     const accessControllerArtifact: Artifact = await hre.artifacts.readArtifact("WriteAccessController");
     this.controller = <WriteAccessController>await deployContract(this.signers.owner, accessControllerArtifact, []);
     this.owned = this.controller;

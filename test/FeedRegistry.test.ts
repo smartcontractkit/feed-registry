@@ -19,18 +19,14 @@ import {
   TEST_ROUND,
   TEST_ROUND_DATA,
 } from "./utils/constants";
+import { contract } from "./utils/context";
 
 const { deployContract } = hre.waffle;
 
 const PHASE_BASE = BigNumber.from(2).pow(64);
 
-describe("FeedRegistry", function () {
+contract("FeedRegistry", function () {
   beforeEach(async function () {
-    this.signers = {} as Signers;
-    const signers: SignerWithAddress[] = await hre.ethers.getSigners();
-    this.signers.owner = signers[0];
-    this.signers.other = signers[1];
-
     const FeedRegistryArtifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
     this.registry = <FeedRegistry>await deployContract(this.signers.owner, FeedRegistryArtifact, []);
     this.accessControlled = this.registry;

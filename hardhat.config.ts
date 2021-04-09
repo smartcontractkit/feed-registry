@@ -1,4 +1,3 @@
-dotenvConfig({ path: resolve(__dirname, "./.env") });
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-typechain";
 import "hardhat-deploy";
@@ -10,6 +9,7 @@ import "./tasks/clean";
 import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
 import { HardhatUserConfig } from "hardhat/types";
+dotenvConfig({ path: resolve(__dirname, "./.env") });
 
 // Ensure that we have all the environment variables we need.
 let mnemonic: string;

@@ -1,24 +1,18 @@
 import hre from "hardhat";
 import { Artifact } from "hardhat/types";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { FeedRegistry } from "../typechain/FeedRegistry";
-import { Signers } from "../types";
 import { expect } from "chai";
 import { deployMockContract } from "ethereum-waffle";
 import { PairReadAccessController } from "../typechain/PairReadAccessController";
 import { MockConsumer } from "../typechain/MockConsumer";
 import { shouldBehaveLikeAccessControlled } from "./access/AccessControlled.behaviour";
 import { ASSET_ADDRESS, DENOMINATION, TEST_ANSWER, PAIR_DATA } from "./utils/constants";
+import { contract } from "./utils/context";
 
 const { deployContract } = hre.waffle;
 
-describe("FeedRegistry Access controls", function () {
+contract("FeedRegistry Access controls", function () {
   beforeEach(async function () {
-    this.signers = {} as Signers;
-    const signers: SignerWithAddress[] = await hre.ethers.getSigners();
-    this.signers.owner = signers[0];
-    this.signers.other = signers[1];
-
     const FeedRegistryArtifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
     this.registry = <FeedRegistry>await deployContract(this.signers.owner, FeedRegistryArtifact, []);
     this.accessControlled = this.registry;
