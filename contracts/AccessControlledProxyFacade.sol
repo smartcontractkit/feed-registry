@@ -15,7 +15,7 @@ contract AccessControlledProxyFacade is ProxyFacade {
     address allowedReader,
     address FeedRegistry,
     address asset,
-    uint256 denomination
+    address denomination
   ) ProxyFacade(FeedRegistry, asset, denomination) {
     require(allowedReader != address(0), "Invalid allowed reader");
     s_allowedReader = allowedReader;

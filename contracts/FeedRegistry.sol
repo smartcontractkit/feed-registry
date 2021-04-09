@@ -20,19 +20,19 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   uint256 constant private MAX_ID = 2**(PHASE_OFFSET+PHASE_SIZE) - 1;
 
   mapping(AggregatorV2V3Interface => bool) private s_isFeedEnabled;
-  mapping(address => mapping(uint256 => AggregatorV2V3Interface)) private s_proposedFeeds;
-  mapping(address => mapping(uint256 => mapping(uint16 => AggregatorV2V3Interface))) private s_phaseFeeds;
-  mapping(address => mapping(uint256 => Phase)) private s_currentPhase;
+  mapping(address => mapping(address => AggregatorV2V3Interface)) private s_proposedFeeds;
+  mapping(address => mapping(address => mapping(uint16 => AggregatorV2V3Interface))) private s_phaseFeeds;
+  mapping(address => mapping(address => Phase)) private s_currentPhase;
 
   /**
    * @notice returns a feed's current phase
    * @param asset asset address
-   * @param denomination denomination identifier
+   * @param denomination denomination address
    * @return currentPhase is the feed's current phase
    */
   function getCurrentPhase(
     address asset,
-    uint256 denomination
+    address denomination
   )
     public
     view
@@ -47,11 +47,11 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   /**
    * @notice retrieve the feed of an asset / denomination pair in the current phase
    * @param asset asset address
-   * @param denomination denomination identifier
+   * @param denomination denomination address
    */
   function getFeed(
     address asset,
-    uint256 denomination
+    address denomination
   )
     public
     view
@@ -67,12 +67,12 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   /**
    * @notice retrieve the feed of an asset / denomination pair of a phase
    * @param asset asset address
-   * @param denomination denomination identifier
+   * @param denomination denomination address
    * @param phaseId phase ID
    */
   function getPhaseFeed(
     address asset,
-    uint256 denomination,
+    address denomination,
     uint16 phaseId
   )
     public
@@ -105,12 +105,12 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   /**
    * @notice Allows the owner to propose a new address for the aggregator
    * @param asset asset address
-   * @param denomination denomination identifier
+   * @param denomination denomination address
    * @param feedAddress The new aggregator contract address
    */
   function proposeFeed(
     address asset,
-    uint256 denomination,
+    address denomination,
     address feedAddress
   )
     external
@@ -128,12 +128,12 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    * @dev Reverts if the given address doesn't match what was previously
    * proposed
    * @param asset asset address
-   * @param denomination denomination identifier
+   * @param denomination denomination address
    * @param feedAddress The new aggregator contract address
    */
   function confirmFeed(
     address asset,
-    uint256 denomination,
+    address denomination,
     address feedAddress
   )
     external
@@ -151,7 +151,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
 
   function _setFeed(
     address asset,
-    uint256 denomination,
+    address denomination,
     address feedAddress
   )
     internal
@@ -165,7 +165,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   /**
    * @notice Reads the current answer for an asset / denomination pair's aggregator.
    * @param asset asset address
-   * @param denomination denomination identifier
+   * @param denomination denomination address
    * @dev #[deprecated] Use latestRoundData instead. This does not error if no
    * answer has been reached, it will simply return 0. Either wait to point to
    * an already answered Aggregator or use the recommended latestRoundData
@@ -173,7 +173,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    */
   function latestAnswer(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -188,7 +188,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   /**
    * @notice get the latest completed round where the answer was updated. This
    * @param asset asset address
-   * @param denomination denomination identifier
+   * @param denomination denomination address
    * ID includes the proxy's phase, to make sure round IDs increase even when
    * switching to a newly deployed aggregator.
    *
@@ -199,7 +199,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    */
   function latestTimestamp(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -214,7 +214,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   /**
    * @notice get the latest completed round where the answer was updated
    * @param asset asset address
-   * @param denomination denomination identifier
+   * @param denomination denomination address
    * @dev overridden function to add the checkAccess() modifier
    *
    * @dev #[deprecated] Use latestRoundData instead. This does not error if no
@@ -224,7 +224,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    */
   function latestRound(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -241,7 +241,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   /**
    * @notice get past rounds answers
    * @param asset asset address
-   * @param denomination denomination identifier
+   * @param denomination denomination address
    * @param roundId the answer number to retrieve the answer for
    * @dev overridden function to add the checkAccess() modifier
    *
@@ -252,7 +252,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    */
   function getAnswer(
     address asset,
-    uint256 denomination,
+    address denomination,
     uint256 roundId
   )
     external
@@ -275,7 +275,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   /**
    * @notice get block timestamp when an answer was last updated
    * @param asset asset address
-   * @param denomination denomination identifier
+   * @param denomination denomination address
    * @param roundId the answer number to retrieve the updated timestamp for
    * @dev overridden function to add the checkAccess() modifier
    *
@@ -286,7 +286,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    */
   function getTimestamp(
     address asset,
-    uint256 denomination,
+    address denomination,
     uint256 roundId
   )
     external
@@ -311,7 +311,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    */
   function decimals(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -329,7 +329,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    */
   function description(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -348,7 +348,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    */
   function version(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -371,7 +371,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    * data from and validate that they can properly handle return data from all
    * of them.
    * @param asset asset address
-   * @param denomination denomination identifier
+   * @param denomination denomination address
    * @return roundId is the round ID from the aggregator for which the data was
    * retrieved combined with a phase to ensure that round IDs get larger as
    * time moves forward.
@@ -387,7 +387,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    */
   function latestRoundData(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -415,7 +415,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    * data from and validate that they can properly handle return data from all
    * of them.
    * @param asset asset address
-   * @param denomination denomination identifier
+   * @param denomination denomination address
    * @param _roundId the round ID to retrieve the round data for
    * @return roundId is the round ID from the aggregator for which the data was
    * retrieved combined with a phase to ensure that round IDs get larger as
@@ -432,7 +432,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    */
   function getRoundData(
     address asset,
-    uint256 denomination,
+    address denomination,
     uint80 _roundId
   )
     external
@@ -453,7 +453,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
 
   function getProposedFeed(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -468,7 +468,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   /**
    * @notice Used if an aggregator contract has been proposed.
    * @param asset asset address
-   * @param denomination denomination identifier
+   * @param denomination denomination address
    * @param roundId the round ID to retrieve the round data for
    * @return id is the round ID for which data was retrieved
    * @return answer is the answer for the given round
@@ -481,7 +481,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   */
   function proposedGetRoundData(
     address asset,
-    uint256 denomination,
+    address denomination,
     uint80 roundId
   )
     external
@@ -503,7 +503,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   /**
    * @notice Used if an aggregator contract has been proposed.
    * @param asset asset address
-   * @param denomination denomination identifier
+   * @param denomination denomination address
    * @return id is the round ID for which data was retrieved
    * @return answer is the answer for the given round
    * @return startedAt is the timestamp when the round was started.
@@ -515,7 +515,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   */
   function proposedLatestRoundData(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -595,9 +595,9 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    */
   modifier checkAccess(
     address asset,
-    uint256 denomination
+    address denomination
   ) {
-    bytes memory callData = abi.encode(asset, denomination, msg.data); // Send feed idenfitier (TKN / USD) to access controller
+    bytes memory callData = abi.encode(asset, denomination, msg.data);
     require(address(s_accessController) == address(0) || s_accessController.hasAccess(msg.sender, callData), "No access");
     _;
   }
@@ -607,7 +607,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    */
   modifier hasProposal(
     address asset,
-    uint256 denomination
+    address denomination
   ) {
     require(address(s_proposedFeeds[asset][denomination]) != address(0), "No proposed feed present");
     _;

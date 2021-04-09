@@ -5,7 +5,7 @@ import { expect } from "chai";
 import { ethers } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
 import { PairReadAccessController } from "../typechain/PairReadAccessController";
-import { ASSET_ADDRESS, DENOMINATION, PAIR_DATA, OTHER_TEST_ADDRESS, TEST_ANSWER } from "./utils/constants";
+import { ASSET, DENOMINATION, PAIR_DATA, OTHER_TEST_ADDRESS, TEST_ANSWER } from "./utils/constants";
 import { contract } from "./utils/context";
 
 const { deployContract } = hre.waffle;
@@ -18,8 +18,8 @@ contract("AccessControlledProxyFacade", function () {
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
     await this.feed.mock.latestAnswer.returns(TEST_ANSWER);
-    await this.registry.proposeFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
-    await this.registry.confirmFeed(ASSET_ADDRESS, DENOMINATION, this.feed.address);
+    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+    await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
 
     const proxyArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorProxy");
     this.proxy = await deployContract(this.signers.owner, proxyArtifact, [ethers.constants.AddressZero]);
@@ -28,7 +28,7 @@ contract("AccessControlledProxyFacade", function () {
     this.proxyFacade = await deployContract(this.signers.owner, proxyFacadeArtifact, [
       this.proxy.address,
       this.registry.address,
-      ASSET_ADDRESS,
+      ASSET,
       DENOMINATION,
     ]);
     await this.proxy.proposeAggregator(this.proxyFacade.address);
@@ -45,7 +45,7 @@ contract("AccessControlledProxyFacade", function () {
   it("proxyFacade should be initialized correctly", async function () {
     expect(await this.proxyFacade.getFeedRegistry()).to.equal(this.registry.address);
     expect(await this.proxyFacade.getAllowedReader()).to.equal(this.proxy.address);
-    expect(await this.proxyFacade.getAsset()).to.equal(ASSET_ADDRESS);
+    expect(await this.proxyFacade.getAsset()).to.equal(ASSET);
     expect(await this.proxyFacade.getDenomination()).to.equal(DENOMINATION);
   });
 

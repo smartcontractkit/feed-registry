@@ -37,7 +37,7 @@ const config: HardhatUserConfig = {
       chainId: 31337,
     },
     kovan: {
-      url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      url: `https://kovan.infura.io/v3/${infuraApiKey}`,
       accounts,
       chainId: 42,
     },

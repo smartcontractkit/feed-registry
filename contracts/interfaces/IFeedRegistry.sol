@@ -14,13 +14,13 @@ interface IFeedRegistry is IAccessControlled {
 
   event FeedProposed(
     address indexed asset,
-    uint256 indexed denomination,
+    address indexed denomination,
     address currentFeed,
     address indexed proposedFeed
   );
   event FeedConfirmed(
     address indexed asset,
-    uint256 indexed denomination,
+    address indexed denomination,
     address previousFeed,
     address indexed latestFeed
     // TODO: should we include round details here for easier consumption?
@@ -28,19 +28,19 @@ interface IFeedRegistry is IAccessControlled {
 
   function proposeFeed(
     address asset,
-    uint256 denomination,
+    address denomination,
     address feedAddress
   ) external;
 
   function confirmFeed(
     address asset,
-    uint256 denomination,
+    address denomination,
     address feedAddress
   ) external;
 
   function getFeed(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -50,7 +50,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function getPhaseFeed(
     address asset,
-    uint256 denomination,
+    address denomination,
     uint16 phaseId
   )
     external
@@ -70,7 +70,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function getCurrentPhase(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -82,7 +82,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function latestAnswer(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -92,7 +92,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function latestTimestamp(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -102,7 +102,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function latestRound(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -112,7 +112,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function getAnswer(
     address asset,
-    uint256 denomination,
+    address denomination,
     uint256 roundId
   )
     external
@@ -123,7 +123,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function getTimestamp(
     address asset,
-    uint256 denomination,
+    address denomination,
     uint256 roundId
   )
     external
@@ -136,7 +136,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function decimals(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -146,7 +146,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function description(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -156,7 +156,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function version(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -166,7 +166,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function latestRoundData(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -180,7 +180,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function getRoundData(
     address asset,
-    uint256 denomination,
+    address denomination,
     uint80 _roundId
   )
     external
@@ -197,7 +197,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function getProposedFeed(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view
@@ -207,7 +207,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function proposedGetRoundData(
     address asset,
-    uint256 denomination,
+    address denomination,
     uint80 roundId
   )
     external
@@ -222,7 +222,7 @@ interface IFeedRegistry is IAccessControlled {
 
   function proposedLatestRoundData(
     address asset,
-    uint256 denomination
+    address denomination
   )
     external
     view

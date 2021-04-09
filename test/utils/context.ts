@@ -7,7 +7,6 @@ export function contract(description: string, hooks: () => void): void {
   describe(description, function () {
     before(async function () {
       this.signers = {} as Signers;
-
       const signers: SignerWithAddress[] = await ethers.getSigners();
       this.signers.owner = signers[0];
       this.signers.other = signers[1];

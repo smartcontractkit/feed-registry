@@ -25,7 +25,7 @@ contract MockConsumer {
 
   function read(
     address asset,
-    uint256 denomination
+    address denomination
   )
     public
     view

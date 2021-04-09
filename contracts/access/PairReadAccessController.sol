@@ -34,8 +34,8 @@ contract PairReadAccessController is WriteAccessController {
   {
     (
       address asset,
-      uint256 denomination
-    ) = abi.decode(data, (address, uint256));
+      address denomination
+    ) = abi.decode(data, (address, address));
     bytes memory pairData = abi.encode(asset, denomination); // Parse only asset pair (TKN / USD)
     return super.hasAccess(account, pairData) || account == address(0);
   }
