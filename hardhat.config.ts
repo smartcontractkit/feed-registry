@@ -71,6 +71,9 @@ const config: HardhatUserConfig = {
       },
     },
   },
+  ovm: {
+    solcVersion: "0.7.6",
+  },
   typechain: {
     outDir: "typechain",
     target: "ethers-v5",
