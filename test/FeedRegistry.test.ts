@@ -2,7 +2,7 @@ import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { FeedRegistry } from "../typechain/FeedRegistry";
 import { expect } from "chai";
-import { BigNumber, ethers } from "ethers";
+import { ethers } from "ethers";
 import { shouldBehaveLikeAccessControlled } from "./access/AccessControlled.behaviour";
 import {
   ASSET,
@@ -15,13 +15,12 @@ import {
   TEST_TIMESTAMP,
   TEST_ROUND,
   TEST_ROUND_DATA,
+  PHASE_BASE,
 } from "./utils/constants";
 import { contract } from "./utils/context";
 import { deployMockAggregator } from "./utils/mocks";
 
 const { deployContract } = hre.waffle;
-
-const PHASE_BASE = BigNumber.from(2).pow(64);
 
 contract("FeedRegistry", function () {
   beforeEach(async function () {
@@ -64,6 +63,12 @@ contract("FeedRegistry", function () {
 
     const isFeedEnabled = await this.registry.isFeedEnabled(feed);
     expect(isFeedEnabled);
+
+    const newPhase = await this.registry.getCurrentPhase(ASSET, DENOMINATION);
+    expect(newPhase.id).to.equal(currentPhase.id + 1);
+    expect(newPhase.aggregator).to.equal(this.feed.address);
+    expect(newPhase.startingRoundId).to.equal(await this.feed.latestRound());
+    expect(newPhase.previousPhaseEndingRoundId).to.equal(0);
   });
 
   it("non-owners cannot confirm a feed", async function () {
@@ -245,13 +250,6 @@ contract("FeedRegistry", function () {
       "function call to a non-contract account",
     );
   });
-
-  // TODO: test phase logic
-
-  // should be able to access the latest round of previous and current feed in Phase
-
-  // TODO: should be able to pass in proxyRoundId instead of phase id?
-  // Implement a get
 
   shouldBehaveLikeAccessControlled();
 });

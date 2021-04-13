@@ -11,7 +11,7 @@ interface IFeedRegistry is IAccessControlled {
     uint16 id;
     AggregatorV2V3Interface aggregator;
     uint80 startingRoundId; // TODO: the latest round id of `aggregator`
-    uint80 previousPhaseRoundId; // TODO: the latest round of the previous aggregator
+    uint80 previousPhaseEndingRoundId; // TODO: the latest round of the previous aggregator
   }
 
   event FeedProposed(
