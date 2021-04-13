@@ -11,7 +11,7 @@ import "./libraries/Denominations.sol";
 /**
   * @notice An on-chain registry of assets to aggregators.
   * @notice This contract provides a consistent address for consumers but delegates where it reads from to the owner, who is
-  * trusted to update it. This registry contract works for multiple feeds, not just a single feed.
+  * trusted to update it. This registry contract works for multiple feeds, not just a single aggregator.
   * @notice Only access enabled addresses are allowed to access getters for answers and round data
   */
 contract FeedRegistry is IFeedRegistry, AccessControlled {
@@ -45,7 +45,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   }
 
   /**
-   * @notice retrieve the feed of an asset / denomination pair in the current phase
+   * @notice retrieve the aggregator of an asset / denomination pair in the current phase
    * @param asset asset address
    * @param denomination denomination address
    */
@@ -57,15 +57,15 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     view
     override
     returns (
-      AggregatorV2V3Interface feed
+      AggregatorV2V3Interface aggregator
     )
   {
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    return currentPhase.feed;
+    return currentPhase.aggregator;
   }
 
   /**
-   * @notice retrieve the feed of an asset / denomination pair of a phase
+   * @notice retrieve the aggregator of an asset / denomination pair of a phase
    * @param asset asset address
    * @param denomination denomination address
    * @param phaseId phase ID
@@ -79,18 +79,18 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     view
     override
     returns (
-      AggregatorV2V3Interface feed
+      AggregatorV2V3Interface aggregator
     )
   {
     return s_phaseAggregators[asset][denomination][phaseId];
   }
 
   /**
-   * @notice returns true if a feed is enabled for any pair
-   * @param feed feed address
+   * @notice returns true if a aggregator is enabled for any pair
+   * @param aggregator aggregator address
    */
   function isFeedEnabled(
-    AggregatorV2V3Interface feed
+    AggregatorV2V3Interface aggregator
   )
     public
     view
@@ -99,7 +99,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       bool
     )
   {
-    return s_isAggregatorEnabled[feed];
+    return s_isAggregatorEnabled[aggregator];
   }
 
   /**
@@ -119,7 +119,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   {
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
     s_proposedAggregators[asset][denomination] = AggregatorV2V3Interface(aggregator);
-    emit FeedProposed(asset, denomination, address(currentPhase.feed), aggregator);
+    emit FeedProposed(asset, denomination, address(currentPhase.aggregator), aggregator);
   }
 
   /**
@@ -140,7 +140,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     override
     onlyOwner()
   {
-    require(aggregator == address(s_proposedAggregators[asset][denomination]), "Invalid proposed feed");
+    require(aggregator == address(s_proposedAggregators[asset][denomination]), "Invalid proposed aggregator");
     AggregatorV2V3Interface previousAggregator = getFeed(asset, denomination);
     delete s_proposedAggregators[asset][denomination];
     uint16 nextPhaseId = _setFeed(asset, denomination, aggregator);
@@ -185,8 +185,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     checkAccess(asset, denomination)
     returns (int256 answer)
   {
-    AggregatorV2V3Interface feed = getFeed(asset, denomination);
-    return feed.latestAnswer();
+    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
+    return aggregator.latestAnswer();
   }
 
   /**
@@ -211,8 +211,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     checkAccess(asset, denomination)
     returns (uint256 timestamp)
   {
-    AggregatorV2V3Interface feed = getFeed(asset, denomination);
-    return feed.latestTimestamp();
+    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
+    return aggregator.latestTimestamp();
   }
 
   /**
@@ -239,7 +239,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     )
   {
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    return addPhase(currentPhase.id, uint64(currentPhase.feed.latestRound()));
+    return addPhase(currentPhase.id, uint64(currentPhase.aggregator.latestRound()));
   }
 
   /**
@@ -270,10 +270,10 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     if (roundId > MAX_ID) return 0;
 
     (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(roundId);
-    AggregatorV2V3Interface feed = getPhaseFeed(asset, denomination, phaseId);
-    if (address(feed) == address(0)) return 0;
+    AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
+    if (address(aggregator) == address(0)) return 0;
 
-    return feed.getAnswer(aggregatorRoundId);
+    return aggregator.getAnswer(aggregatorRoundId);
   }
 
   /**
@@ -304,10 +304,10 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     if (roundId > MAX_ID) return 0;
 
     (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(roundId);
-    AggregatorV2V3Interface feed = getPhaseFeed(asset, denomination, phaseId);
-    if (address(feed) == address(0)) return 0;
+    AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
+    if (address(aggregator) == address(0)) return 0;
 
-    return feed.getTimestamp(aggregatorRoundId);
+    return aggregator.getTimestamp(aggregatorRoundId);
   }
 
   /**
@@ -324,8 +324,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       uint8
     )
   {
-    AggregatorV2V3Interface feed = getFeed(asset, denomination);
-    return feed.decimals();
+    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
+    return aggregator.decimals();
   }
 
   /**
@@ -342,8 +342,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       string memory
     )
   {
-    AggregatorV2V3Interface feed = getFeed(asset, denomination);
-    return feed.description();
+    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
+    return aggregator.description();
   }
 
   /**
@@ -361,8 +361,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       uint256
     )
   {
-    AggregatorV2V3Interface feed = getFeed(asset, denomination);
-    return feed.version();
+    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
+    return aggregator.version();
   }
 
   /**
@@ -405,8 +405,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       uint80 answeredInRound
     )
   {
-    AggregatorV2V3Interface feed = getFeed(asset, denomination);
-    return feed.latestRoundData();
+    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
+    return aggregator.latestRoundData();
   }
 
   /**
@@ -451,8 +451,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       uint80 answeredInRound
     )
   {
-    AggregatorV2V3Interface feed = getFeed(asset, denomination);
-    return feed.getRoundData(_roundId);
+    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
+    return aggregator.getRoundData(_roundId);
   }
 
   function getProposedFeed(
@@ -595,7 +595,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
 
   /**
    * @dev reverts if the caller does not have access by the accessController
-   * contract to the feed or is the contract itself.
+   * contract to the aggregator or is the contract itself.
    */
   modifier checkAccess(
     address asset,
@@ -607,13 +607,13 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   }
 
   /**
-   * @dev reverts if no proposed feed was set
+   * @dev reverts if no proposed aggregator was set
    */
   modifier hasProposal(
     address asset,
     address denomination
   ) {
-    require(address(s_proposedAggregators[asset][denomination]) != address(0), "No proposed feed present");
+    require(address(s_proposedAggregators[asset][denomination]) != address(0), "No proposed aggregator present");
     _;
   }
 }

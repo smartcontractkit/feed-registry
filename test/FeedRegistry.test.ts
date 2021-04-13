@@ -75,14 +75,14 @@ contract("FeedRegistry", function () {
 
   it("owner cannot confirm a feed without proposing first", async function () {
     await expect(this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address)).to.be.revertedWith(
-      "Invalid proposed feed",
+      "Invalid proposed aggregator",
     );
   });
 
   it("owner cannot confirm a different feed than what is proposed", async function () {
     await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
     await expect(this.registry.confirmFeed(ASSET, DENOMINATION, TEST_ADDRESS)).to.be.revertedWith(
-      "Invalid proposed feed",
+      "Invalid proposed aggregator",
     );
   });
   it("owner can remove a feed", async function () {

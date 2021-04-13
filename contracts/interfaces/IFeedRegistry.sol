@@ -9,9 +9,9 @@ import "./IAccessControlled.sol";
 interface IFeedRegistry is IAccessControlled {
   struct Phase {
     uint16 id;
-    AggregatorV2V3Interface feed;
-    // uint80 startingRoundId; // TODO: the latest round id of `feed`
-    // uint80 previousPhaseRoundId; // TODO: the latest round of the previous feed
+    AggregatorV2V3Interface aggregator;
+    // uint80 startingRoundId; // TODO: the latest round id of `aggregator`
+    // uint80 previousPhaseRoundId; // TODO: the latest round of the previous aggregator
   }
 
   event FeedProposed(
@@ -47,7 +47,7 @@ interface IFeedRegistry is IAccessControlled {
     external
     view
     returns (
-      AggregatorV2V3Interface feed
+      AggregatorV2V3Interface aggregator
     );
 
   function getPhaseFeed(
@@ -58,11 +58,11 @@ interface IFeedRegistry is IAccessControlled {
     external
     view
     returns (
-      AggregatorV2V3Interface feed
+      AggregatorV2V3Interface aggregator
     );
 
   function isFeedEnabled(
-    AggregatorV2V3Interface feed
+    AggregatorV2V3Interface aggregator
   )
     external
     view
@@ -195,7 +195,7 @@ interface IFeedRegistry is IAccessControlled {
       uint80 answeredInRound
     );
 
-  // Proposed feed
+  // Proposed aggregator
 
   function getProposedFeed(
     address asset,
