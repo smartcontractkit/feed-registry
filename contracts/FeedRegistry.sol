@@ -161,12 +161,24 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     AggregatorV2V3Interface currentAggregator = getFeed(asset, denomination);
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
     uint16 nextPhaseId = currentPhase.id + 1;
-    uint80 startingRoundId = 0; // TODO: get uint80 latest round, handle zero address
-    uint80 previousPhaseRoundId = 0; // TODO: get uint80 latest round, handle zero address
+    uint80 startingRoundId = _getLatestRoundId(newAggregator);
+    uint80 previousPhaseRoundId = _getLatestRoundId(previousAggregator);
     delete s_proposedAggregators[asset][denomination];
     s_currentPhase[asset][denomination] = Phase(nextPhaseId, AggregatorV2V3Interface(newAggregator), startingRoundId, previousPhaseRoundId);
     s_phaseAggregators[asset][denomination][nextPhaseId] = AggregatorV2V3Interface(newAggregator);
     return (nextPhaseId, address(currentAggregator));
+  }
+
+  function _getLatestRoundId(
+    address aggregatorAddress
+  )
+    internal
+    returns
+  (
+    uint80 roundId
+  ) {
+    if (aggregatorAddress == address(0)) return uint80(0);
+    (roundId,,,,) = AggregatorV2V3Interface(aggregatorAddress).latestRoundData();
   }
 
   /**
