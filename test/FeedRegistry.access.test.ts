@@ -2,12 +2,12 @@ import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { FeedRegistry } from "../typechain/FeedRegistry";
 import { expect } from "chai";
-import { deployMockContract } from "ethereum-waffle";
 import { PairReadAccessController } from "../typechain/PairReadAccessController";
 import { MockConsumer } from "../typechain/MockConsumer";
 import { shouldBehaveLikeAccessControlled } from "./access/AccessControlled.behaviour";
-import { ASSET, DENOMINATION, TEST_ANSWER, PAIR_DATA } from "./utils/constants";
+import { ASSET, DENOMINATION, TEST_ANSWER, PAIR_DATA, TEST_ROUND_DATA } from "./utils/constants";
 import { contract } from "./utils/context";
+import { deployMockAggregator } from "./utils/mocks";
 
 const { deployContract } = hre.waffle;
 
@@ -17,11 +17,9 @@ contract("FeedRegistry Access controls", function () {
     this.registry = <FeedRegistry>await deployContract(this.signers.owner, FeedRegistryArtifact, []);
     this.accessControlled = this.registry;
 
-    const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
-    this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
+    this.feed = await deployMockAggregator(this.signers.owner);
     await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
     await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
 
     const accessControllerArtifact: Artifact = await hre.artifacts.readArtifact("PairReadAccessController");
     this.accessController = <PairReadAccessController>(

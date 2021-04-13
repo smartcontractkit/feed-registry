@@ -3,10 +3,10 @@ import { Artifact } from "hardhat/types";
 import { FeedRegistry } from "../typechain/FeedRegistry";
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { deployMockContract } from "ethereum-waffle";
 import { PairReadAccessController } from "../typechain/PairReadAccessController";
 import { ASSET, DENOMINATION, PAIR_DATA, OTHER_TEST_ADDRESS, TEST_ANSWER } from "./utils/constants";
 import { contract } from "./utils/context";
+import { deployMockAggregator } from "./utils/mocks";
 
 const { deployContract } = hre.waffle;
 
@@ -15,9 +15,7 @@ contract("AccessControlledProxyFacade", function () {
     const FeedRegistryArtifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
     this.registry = <FeedRegistry>await deployContract(this.signers.owner, FeedRegistryArtifact, []);
 
-    const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
-    this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
-    await this.feed.mock.latestAnswer.returns(TEST_ANSWER);
+    this.feed = await deployMockAggregator(this.signers.owner);
     await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
     await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
 

@@ -3,7 +3,6 @@ import { Artifact } from "hardhat/types";
 import { FeedRegistry } from "../typechain/FeedRegistry";
 import { expect } from "chai";
 import { BigNumber, ethers } from "ethers";
-import { deployMockContract } from "ethereum-waffle";
 import { shouldBehaveLikeAccessControlled } from "./access/AccessControlled.behaviour";
 import {
   ASSET,
@@ -18,6 +17,7 @@ import {
   TEST_ROUND_DATA,
 } from "./utils/constants";
 import { contract } from "./utils/context";
+import { deployMockAggregator } from "./utils/mocks";
 
 const { deployContract } = hre.waffle;
 
@@ -29,8 +29,7 @@ contract("FeedRegistry", function () {
     this.registry = <FeedRegistry>await deployContract(this.signers.owner, FeedRegistryArtifact, []);
     this.accessControlled = this.registry;
 
-    const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
-    this.feed = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
+    this.feed = await deployMockAggregator(this.signers.owner);
   });
 
   it("should initialize correctly", async function () {
