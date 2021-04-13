@@ -19,9 +19,9 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   uint256 constant private PHASE_SIZE = 16;
   uint256 constant private MAX_ID = 2**(PHASE_OFFSET+PHASE_SIZE) - 1;
 
-  mapping(AggregatorV2V3Interface => bool) private s_isFeedEnabled;
-  mapping(address => mapping(address => AggregatorV2V3Interface)) private s_proposedFeeds;
-  mapping(address => mapping(address => mapping(uint16 => AggregatorV2V3Interface))) private s_phaseFeeds;
+  mapping(AggregatorV2V3Interface => bool) private s_isAggregatorEnabled;
+  mapping(address => mapping(address => AggregatorV2V3Interface)) private s_proposedAggregators;
+  mapping(address => mapping(address => mapping(uint16 => AggregatorV2V3Interface))) private s_phaseAggregators;
   mapping(address => mapping(address => Phase)) private s_currentPhase;
 
   /**
@@ -82,7 +82,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       AggregatorV2V3Interface feed
     )
   {
-    return s_phaseFeeds[asset][denomination][phaseId];
+    return s_phaseAggregators[asset][denomination][phaseId];
   }
 
   /**
@@ -99,27 +99,27 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       bool
     )
   {
-    return s_isFeedEnabled[feed];
+    return s_isAggregatorEnabled[feed];
   }
 
   /**
    * @notice Allows the owner to propose a new address for the aggregator
    * @param asset asset address
    * @param denomination denomination address
-   * @param feedAddress The new aggregator contract address
+   * @param aggregator The new aggregator contract address
    */
   function proposeFeed(
     address asset,
     address denomination,
-    address feedAddress
+    address aggregator
   )
     external
     override
     onlyOwner()
   {
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    s_proposedFeeds[asset][denomination] = AggregatorV2V3Interface(feedAddress);
-    emit FeedProposed(asset, denomination, address(currentPhase.feed), feedAddress);
+    s_proposedAggregators[asset][denomination] = AggregatorV2V3Interface(aggregator);
+    emit FeedProposed(asset, denomination, address(currentPhase.feed), aggregator);
   }
 
   /**
@@ -129,30 +129,30 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    * proposed
    * @param asset asset address
    * @param denomination denomination address
-   * @param feedAddress The new aggregator contract address
+   * @param aggregator The new aggregator contract address
    */
   function confirmFeed(
     address asset,
     address denomination,
-    address feedAddress
+    address aggregator
   )
     external
     override
     onlyOwner()
   {
-    require(feedAddress == address(s_proposedFeeds[asset][denomination]), "Invalid proposed feed");
-    AggregatorV2V3Interface previousFeed = getFeed(asset, denomination);
-    delete s_proposedFeeds[asset][denomination];
-    uint16 nextPhaseId = _setFeed(asset, denomination, feedAddress);
-    s_isFeedEnabled[AggregatorV2V3Interface(feedAddress)] = true;
-    s_isFeedEnabled[previousFeed] = false;
-    emit FeedConfirmed(asset, denomination, address(previousFeed), feedAddress, nextPhaseId);
+    require(aggregator == address(s_proposedAggregators[asset][denomination]), "Invalid proposed feed");
+    AggregatorV2V3Interface previousAggregator = getFeed(asset, denomination);
+    delete s_proposedAggregators[asset][denomination];
+    uint16 nextPhaseId = _setFeed(asset, denomination, aggregator);
+    s_isAggregatorEnabled[AggregatorV2V3Interface(aggregator)] = true;
+    s_isAggregatorEnabled[previousAggregator] = false;
+    emit FeedConfirmed(asset, denomination, address(previousAggregator), aggregator, nextPhaseId);
   }
 
   function _setFeed(
     address asset,
     address denomination,
-    address feedAddress
+    address aggregator
   )
     internal
     returns (
@@ -161,8 +161,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   {
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
     uint16 nextPhaseId = currentPhase.id + 1;
-    s_currentPhase[asset][denomination] = Phase(nextPhaseId, AggregatorV2V3Interface(feedAddress));
-    s_phaseFeeds[asset][denomination][nextPhaseId] = AggregatorV2V3Interface(feedAddress);
+    s_currentPhase[asset][denomination] = Phase(nextPhaseId, AggregatorV2V3Interface(aggregator));
+    s_phaseAggregators[asset][denomination][nextPhaseId] = AggregatorV2V3Interface(aggregator);
     return nextPhaseId;
   }
 
@@ -463,10 +463,10 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     view
     override
     returns (
-      AggregatorV2V3Interface proposedFeed
+      AggregatorV2V3Interface proposedAggregator
     )
   {
-    return s_proposedFeeds[asset][denomination];
+    return s_proposedAggregators[asset][denomination];
   }
 
   /**
@@ -501,7 +501,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       uint80 answeredInRound
     )
   {
-    return s_proposedFeeds[asset][denomination].getRoundData(roundId);
+    return s_proposedAggregators[asset][denomination].getRoundData(roundId);
   }
 
   /**
@@ -534,7 +534,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       uint80 answeredInRound
     )
   {
-    return s_proposedFeeds[asset][denomination].latestRoundData();
+    return s_proposedAggregators[asset][denomination].latestRoundData();
   }
 
   function addPhase(
@@ -613,7 +613,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     address asset,
     address denomination
   ) {
-    require(address(s_proposedFeeds[asset][denomination]) != address(0), "No proposed feed present");
+    require(address(s_proposedAggregators[asset][denomination]) != address(0), "No proposed feed present");
     _;
   }
 }

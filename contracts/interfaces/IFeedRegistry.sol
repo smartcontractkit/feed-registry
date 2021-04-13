@@ -17,27 +17,27 @@ interface IFeedRegistry is IAccessControlled {
   event FeedProposed(
     address indexed asset,
     address indexed denomination,
-    address currentFeed,
-    address indexed proposedFeed
+    address currentAggregator,
+    address indexed proposedAggregator
   );
   event FeedConfirmed(
     address indexed asset,
     address indexed denomination,
-    address previousFeed,
-    address indexed latestFeed,
+    address previousAggregator,
+    address indexed latestAggregator,
     uint16 nextPhaseId // Track new phase id
   );
 
   function proposeFeed(
     address asset,
     address denomination,
-    address feedAddress
+    address aggregator
   ) external;
 
   function confirmFeed(
     address asset,
     address denomination,
-    address feedAddress
+    address aggregator
   ) external;
 
   function getFeed(
@@ -204,7 +204,7 @@ interface IFeedRegistry is IAccessControlled {
     external
     view
     returns (
-      AggregatorV2V3Interface proposedFeed
+      AggregatorV2V3Interface proposedAggregator
     );
 
   function proposedGetRoundData(
