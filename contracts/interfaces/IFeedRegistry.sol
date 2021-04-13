@@ -10,6 +10,8 @@ interface IFeedRegistry is IAccessControlled {
   struct Phase {
     uint16 id;
     AggregatorV2V3Interface feed;
+    // uint80 startingRoundId; // TODO: the latest round id of `feed`
+    // uint80 previousPhaseRoundId; // TODO: the latest round of the previous feed
   }
 
   event FeedProposed(
@@ -22,8 +24,8 @@ interface IFeedRegistry is IAccessControlled {
     address indexed asset,
     address indexed denomination,
     address previousFeed,
-    address indexed latestFeed
-    // TODO: should we include round details here for easier consumption?
+    address indexed latestFeed,
+    uint16 nextPhaseId // Track new phase id
   );
 
   function proposeFeed(

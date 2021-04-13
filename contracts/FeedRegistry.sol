@@ -143,10 +143,10 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     require(feedAddress == address(s_proposedFeeds[asset][denomination]), "Invalid proposed feed");
     AggregatorV2V3Interface previousFeed = getFeed(asset, denomination);
     delete s_proposedFeeds[asset][denomination];
-    _setFeed(asset, denomination, feedAddress);
+    uint16 nextPhaseId = _setFeed(asset, denomination, feedAddress);
     s_isFeedEnabled[AggregatorV2V3Interface(feedAddress)] = true;
     s_isFeedEnabled[previousFeed] = false;
-    emit FeedConfirmed(asset, denomination, address(previousFeed), feedAddress);
+    emit FeedConfirmed(asset, denomination, address(previousFeed), feedAddress, nextPhaseId);
   }
 
   function _setFeed(
@@ -155,11 +155,15 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     address feedAddress
   )
     internal
+    returns (
+      uint16 nextPhaseId
+    )
   {
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
     uint16 nextPhaseId = currentPhase.id + 1;
     s_currentPhase[asset][denomination] = Phase(nextPhaseId, AggregatorV2V3Interface(feedAddress));
     s_phaseFeeds[asset][denomination][nextPhaseId] = AggregatorV2V3Interface(feedAddress);
+    return nextPhaseId;
   }
 
   /**

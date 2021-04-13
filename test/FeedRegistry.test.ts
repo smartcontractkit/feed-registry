@@ -54,9 +54,11 @@ contract("FeedRegistry", function () {
 
   it("owner can confirm a feed", async function () {
     await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+
+    const currentPhase = await this.registry.getCurrentPhase(ASSET, DENOMINATION);
     await expect(this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address))
       .to.emit(this.registry, "FeedConfirmed")
-      .withArgs(ASSET, DENOMINATION, ethers.constants.AddressZero, this.feed.address);
+      .withArgs(ASSET, DENOMINATION, ethers.constants.AddressZero, this.feed.address, currentPhase.id + 1);
 
     const feed = await this.registry.getFeed(ASSET, DENOMINATION);
     expect(feed).to.equal(this.feed.address);
