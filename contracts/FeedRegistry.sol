@@ -19,7 +19,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   uint256 constant private PHASE_SIZE = 16;
   uint256 constant private MAX_ID = 2**(PHASE_OFFSET+PHASE_SIZE) - 1;
 
-  mapping(AggregatorV2V3Interface => bool) private s_isAggregatorEnabled;
+  mapping(address => bool) private s_isAggregatorEnabled;
   mapping(address => mapping(address => AggregatorV2V3Interface)) private s_proposedAggregators;
   mapping(address => mapping(address => mapping(uint16 => AggregatorV2V3Interface))) private s_phaseAggregators;
   mapping(address => mapping(address => Phase)) private s_currentPhase;
@@ -65,7 +65,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   }
 
   /**
-   * @notice retrieve the aggregator of an asset / denomination pair of a phase
+   * @notice retrieve the aggregator of an asset / denomination pair at a specific phase
    * @param asset asset address
    * @param denomination denomination address
    * @param phaseId phase ID
@@ -90,7 +90,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    * @param aggregator aggregator address
    */
   function isFeedEnabled(
-    AggregatorV2V3Interface aggregator
+    address aggregator
   )
     public
     view
@@ -141,29 +141,32 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     onlyOwner()
   {
     require(aggregator == address(s_proposedAggregators[asset][denomination]), "Invalid proposed aggregator");
-    AggregatorV2V3Interface previousAggregator = getFeed(asset, denomination);
-    delete s_proposedAggregators[asset][denomination];
-    uint16 nextPhaseId = _setFeed(asset, denomination, aggregator);
-    s_isAggregatorEnabled[AggregatorV2V3Interface(aggregator)] = true;
+    (uint16 nextPhaseId, address previousAggregator) = _setFeed(asset, denomination, aggregator);
+    s_isAggregatorEnabled[aggregator] = true;
     s_isAggregatorEnabled[previousAggregator] = false;
-    emit FeedConfirmed(asset, denomination, address(previousAggregator), aggregator, nextPhaseId);
+    emit FeedConfirmed(asset, denomination, previousAggregator, aggregator, nextPhaseId);
   }
 
   function _setFeed(
     address asset,
     address denomination,
-    address aggregator
+    address newAggregator
   )
     internal
     returns (
-      uint16 nextPhaseId
+      uint16 nextPhaseId,
+      address previousAggregator
     )
   {
+    AggregatorV2V3Interface currentAggregator = getFeed(asset, denomination);
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
     uint16 nextPhaseId = currentPhase.id + 1;
-    s_currentPhase[asset][denomination] = Phase(nextPhaseId, AggregatorV2V3Interface(aggregator));
-    s_phaseAggregators[asset][denomination][nextPhaseId] = AggregatorV2V3Interface(aggregator);
-    return nextPhaseId;
+    uint80 startingRoundId = 0; // TODO: get uint80 latest round, handle zero address
+    uint80 previousPhaseRoundId = 0; // TODO: get uint80 latest round, handle zero address
+    delete s_proposedAggregators[asset][denomination];
+    s_currentPhase[asset][denomination] = Phase(nextPhaseId, AggregatorV2V3Interface(newAggregator), startingRoundId, previousPhaseRoundId);
+    s_phaseAggregators[asset][denomination][nextPhaseId] = AggregatorV2V3Interface(newAggregator);
+    return (nextPhaseId, address(currentAggregator));
   }
 
   /**

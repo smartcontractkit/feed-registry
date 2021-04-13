@@ -247,5 +247,12 @@ contract("FeedRegistry", function () {
     );
   });
 
+  // TODO: test phase logic
+
+  // should be able to access the latest round of previous and current feed in Phase
+
+  // TODO: should be able to pass in proxyRoundId instead of phase id?
+  // Implement a get
+
   shouldBehaveLikeAccessControlled();
 });

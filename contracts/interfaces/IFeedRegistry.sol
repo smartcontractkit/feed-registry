@@ -10,8 +10,8 @@ interface IFeedRegistry is IAccessControlled {
   struct Phase {
     uint16 id;
     AggregatorV2V3Interface aggregator;
-    // uint80 startingRoundId; // TODO: the latest round id of `aggregator`
-    // uint80 previousPhaseRoundId; // TODO: the latest round of the previous aggregator
+    uint80 startingRoundId; // TODO: the latest round id of `aggregator`
+    uint80 previousPhaseRoundId; // TODO: the latest round of the previous aggregator
   }
 
   event FeedProposed(
@@ -62,7 +62,7 @@ interface IFeedRegistry is IAccessControlled {
     );
 
   function isFeedEnabled(
-    AggregatorV2V3Interface aggregator
+    address aggregator
   )
     external
     view
