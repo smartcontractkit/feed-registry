@@ -70,7 +70,7 @@ contract("FeedRegistry Phases", function () {
 
     // Set to zero address
     const bEndingRound = BigNumber.from("156");
-    await feedB.mock.latestRound.returns(bStartingRound); // Mock feed response
+    await feedB.mock.latestRound.returns(bEndingRound); // Simulate passing of time
     await this.registry.proposeFeed(ASSET, DENOMINATION, ethers.constants.AddressZero);
     await this.registry.confirmFeed(ASSET, DENOMINATION, ethers.constants.AddressZero);
 
@@ -79,9 +79,14 @@ contract("FeedRegistry Phases", function () {
     expect(Phase3.aggregator).to.equal(ethers.constants.AddressZero);
     expect(Phase3.startingRoundId).to.equal(0);
     expect(Phase3.previousPhaseEndingRoundId).to.equal(bEndingRound); // feedB was previous phase aggregator
-    expect(await this.registry.latestRound(ASSET, DENOMINATION)).to.equal(PHASE_BASE.mul(3).add(0)); // round 0 for zero address
+    await expect(this.registry.latestRound(ASSET, DENOMINATION)).to.be.revertedWith(
+      "function call to a non-contract account",
+    );
 
     // TODO: check historical data is available
+
+    const Phase1Data = await this.registry.getPhase(ASSET, DENOMINATION, 1);
+    console.log(Phase1Data);
 
     // TODO: Helpers to more easily access phase id + round id
   });
