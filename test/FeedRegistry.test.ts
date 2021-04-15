@@ -68,7 +68,7 @@ contract("FeedRegistry", function () {
     expect(newPhase.id).to.equal(currentPhase.id + 1);
     expect(newPhase.aggregator).to.equal(this.feed.address);
     expect(newPhase.startingRoundId).to.equal(await this.feed.latestRound());
-    expect(newPhase.previousPhaseEndingRoundId).to.equal(0);
+    expect(newPhase.endingRoundId).to.equal(0);
   });
 
   it("non-owners cannot confirm a feed", async function () {
