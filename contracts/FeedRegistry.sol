@@ -45,7 +45,13 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     return s_phases[asset][denomination][currentPhaseId];
   }
 
-  // TODO: helper to get phase round id range
+  /**
+   * @notice returns specified phase by id
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param phaseId phase id
+   * @return phase
+   */
   function getPhase(
     address asset,
     address denomination,
@@ -53,12 +59,41 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   )
     public
     view
-    // override TODO: add to interface
+    // override TODO: add to IFeedRegistry interface
     returns (
       Phase memory phase
     )
   {
     return s_phases[asset][denomination][phaseId];
+  }
+
+  // TODO: helper to get phase round id range
+  /**
+   * @notice returns the range of proxy rounds of a phase
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param phaseId phase id
+   * @return startingProxyRoundId
+   * @return endingProxyRoundId
+   */
+  function getProxyRoundIds(
+    address asset,
+    address denomination,
+    uint16 phaseId
+  )
+    public
+    view
+    // override TODO: add to IFeedRegistry interface
+    returns (
+      uint80 startingProxyRoundId,
+      uint80 endingProxyRoundId
+    )
+  {
+    Phase memory phase = s_phases[asset][denomination][phaseId];
+    return (
+      addPhase(phaseId, uint64(phase.startingRoundId)),
+      addPhase(phaseId, uint64(phase.endingRoundId))
+    );
   }
 
   /**
@@ -182,7 +217,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     uint80 previousPhaseEndingRoundId = _getLatestRoundId(address(currentAggregator));
     delete s_proposedAggregators[asset][denomination];
     s_currentPhaseId[asset][denomination] = nextPhaseId;
-    s_phases[asset][denomination][nextPhaseId] = Phase(nextPhaseId, AggregatorV2V3Interface(newAggregator), startingRoundId, previousPhaseEndingRoundId);
+    s_phases[asset][denomination][currentPhase.id].endingRoundId = previousPhaseEndingRoundId;
+    s_phases[asset][denomination][nextPhaseId] = Phase(nextPhaseId, AggregatorV2V3Interface(newAggregator), startingRoundId, 0);
     return (nextPhaseId, address(currentAggregator));
   }
 
