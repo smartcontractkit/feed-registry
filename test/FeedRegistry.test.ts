@@ -16,6 +16,8 @@ import {
   TEST_ROUND,
   TEST_ROUND_DATA,
   PHASE_BASE,
+  TEST_PROXY_ROUND,
+  TEST_PROXY_ROUND_DATA,
 } from "./utils/constants";
 import { contract } from "./utils/context";
 import { deployMockAggregator } from "./utils/mocks";
@@ -227,7 +229,7 @@ contract("FeedRegistry", function () {
     await this.feed.mock.latestRoundData.returns(...TEST_ROUND_DATA); // Mock feed response
 
     const roundData = await this.registry.latestRoundData(ASSET, DENOMINATION);
-    expect(roundData).to.eql(TEST_ROUND_DATA);
+    expect(roundData).to.eql(TEST_PROXY_ROUND_DATA);
   });
 
   it("latestRoundData should revert for a non-existent feed", async function () {
@@ -241,8 +243,8 @@ contract("FeedRegistry", function () {
     await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
     await this.feed.mock.getRoundData.withArgs(TEST_ROUND).returns(...TEST_ROUND_DATA); // Mock feed response
 
-    const roundData = await this.registry.getRoundData(ASSET, DENOMINATION, TEST_ROUND);
-    expect(roundData).to.eql(TEST_ROUND_DATA);
+    const roundData = await this.registry.getRoundData(ASSET, DENOMINATION, TEST_PROXY_ROUND);
+    expect(roundData).to.eql(TEST_PROXY_ROUND_DATA);
   });
 
   it("getRoundData should revert for a non-existent feed", async function () {
