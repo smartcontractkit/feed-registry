@@ -68,12 +68,12 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   }
 
   /**
-   * @notice returns the range of proxy rounds of a phase
+   * @notice returns the range of proxy round ids of a phase
    * @param asset asset address
    * @param denomination denomination address
    * @param phaseId phase id
-   * @return startingProxyRoundId
-   * @return endingProxyRoundId
+   * @return startingRoundId
+   * @return endingRoundId
    */
   function getRoundIds(
     address asset,
@@ -84,14 +84,14 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     view
     override
     returns (
-      uint80 startingProxyRoundId,
-      uint80 endingProxyRoundId
+      uint80 startingRoundId,
+      uint80 endingRoundId
     )
   {
     Phase memory phase = s_phases[asset][denomination][phaseId];
     return (
-      addPhase(phaseId, uint64(phase.startingRoundId)),
-      addPhase(phaseId, uint64(phase.endingRoundId))
+      addPhase(phaseId, uint64(phase.startingAggregatorRoundId)),
+      addPhase(phaseId, uint64(phase.endingAggregatorRoundId))
     );
   }
 
@@ -115,7 +115,12 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     return currentPhase.aggregator;
   }
 
-  // Helper to get Feed by Proxy Round Id
+  /**
+   * @notice retrieve the aggregator of an asset / denomination pair at a specific round id
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param roundId the proxy round id
+   */
   function getRoundFeed(
     address asset,
     address denomination,
@@ -123,24 +128,24 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   )
     public
     view
-    // override
+    override
     returns (
       AggregatorV2V3Interface aggregator
     )
   {
-    // Handle case where round id is in current phase
+    // Handle case where the round is in current phase
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    (uint80 startingProxyRoundId,) = _getRoundIds(currentPhase);
+    (uint80 startingRoundId,) = _getRoundIds(currentPhase);
     uint80 latestRoundId = _getLatestRoundId(currentPhase.aggregator);
     uint80 latestProxyRoundId = addPhase(currentPhase.id, uint64(latestRoundId));
-    if (roundId > startingProxyRoundId && roundId < latestProxyRoundId) return currentPhase.aggregator;
+    if (roundId > startingRoundId && roundId < latestProxyRoundId) return currentPhase.aggregator;
 
-    // Handle case where round id is in past phases
+    // Handle case where the round is in past phases
     for (uint16 phaseId = currentPhase.id - 1; phaseId == 1; phaseId--) {
       Phase memory phase = s_phases[asset][denomination][phaseId];
       if (address(phase.aggregator) == address(0)) continue;
-      (uint80 startingProxyRoundId, uint80 endingProxyRoundId) = _getRoundIds(phase);
-      if (roundId > startingProxyRoundId && roundId < endingProxyRoundId) return phase.aggregator;
+      (uint80 startingRoundId, uint80 endingRoundId) = _getRoundIds(phase);
+      if (roundId > startingRoundId && roundId < endingRoundId) return phase.aggregator;
     }
     return AggregatorV2V3Interface(address(0));
   }
@@ -688,7 +693,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     s_currentPhaseId[asset][denomination] = nextPhaseId;
 
     uint80 previousPhaseEndingRoundId = _getLatestRoundId(currentAggregator);
-    s_phases[asset][denomination][currentPhase.id].endingRoundId = previousPhaseEndingRoundId;
+    s_phases[asset][denomination][currentPhase.id].endingAggregatorRoundId = previousPhaseEndingRoundId;
     uint80 startingRoundId = _getLatestRoundId(AggregatorV2V3Interface(newAggregator));
     s_phases[asset][denomination][nextPhaseId] = Phase(nextPhaseId, AggregatorV2V3Interface(newAggregator), startingRoundId, 0);
 
@@ -708,19 +713,23 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     return uint80(aggregator.latestRound());
   }
 
+  /**
+   * @dev reverts if the caller does not have access by the accessController
+   * contract to the aggregator or is the contract itself.
+   */
   function _getRoundIds(
     Phase memory phase
   )
     internal
     view
     returns (
-      uint80 startingProxyRoundId,
-      uint80 endingProxyRoundId
+      uint80 startingRoundId,
+      uint80 endingRoundId
     )
   {
     return (
-      addPhase(phase.id, uint64(phase.startingRoundId)),
-      addPhase(phase.id, uint64(phase.endingRoundId))
+      addPhase(phase.id, uint64(phase.startingAggregatorRoundId)),
+      addPhase(phase.id, uint64(phase.endingAggregatorRoundId))
     );
   }
 
