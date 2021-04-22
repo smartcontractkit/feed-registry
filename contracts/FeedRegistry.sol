@@ -91,10 +91,9 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     )
   {
     Phase memory phase = s_phases[asset][denomination][phaseId];
-    return (
-      addPhase(phaseId, uint64(phase.startingAggregatorRoundId)),
-      addPhase(phaseId, uint64(phase.endingAggregatorRoundId))
-    );
+    Phase memory currentPhase = getCurrentPhase(asset, denomination);
+    if (phase.id == currentPhase.id) return _getCurrentRoundIds(currentPhase);
+    return _getRoundIds(phase);
   }
 
   /**
@@ -137,10 +136,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   {
     // Handle case where the round is in current phase
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    (uint80 startingRoundId,) = _getRoundIds(currentPhase);
-    uint80 latestRoundId = _getLatestRoundId(currentPhase.aggregator);
-    uint80 latestProxyRoundId = addPhase(currentPhase.id, uint64(latestRoundId));
-    if (roundId >= startingRoundId && roundId <= latestProxyRoundId) return currentPhase.aggregator;
+    (uint80 startingRoundId, uint80 latestRoundId) = _getCurrentRoundIds(currentPhase);
+    if (roundId >= startingRoundId && roundId <= latestRoundId) return currentPhase.aggregator;
 
     // Handle case where the round is in past phases
     for (uint16 phaseId = currentPhase.id - 1; phaseId > 0; phaseId--) {
@@ -715,10 +712,6 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     return uint80(aggregator.latestRound());
   }
 
-  /**
-   * @dev reverts if the caller does not have access by the accessController
-   * contract to the aggregator or is the contract itself.
-   */
   function _getRoundIds(
     Phase memory phase
   )
@@ -732,6 +725,23 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     return (
       addPhase(phase.id, uint64(phase.startingAggregatorRoundId)),
       addPhase(phase.id, uint64(phase.endingAggregatorRoundId))
+    );
+  }
+
+  function _getCurrentRoundIds(
+    Phase memory currentPhase
+  )
+    internal
+    view
+    returns (
+      uint80 startingRoundId,
+      uint80 latestRoundId
+    )
+  {
+    uint80 latestAggregatorRoundId = _getLatestRoundId(currentPhase.aggregator);
+    return (
+      addPhase(currentPhase.id, uint64(currentPhase.startingAggregatorRoundId)),
+      addPhase(currentPhase.id, uint64(latestAggregatorRoundId))
     );
   }
 
