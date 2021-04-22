@@ -50,17 +50,6 @@ interface IFeedRegistry is IAccessControlled {
       AggregatorV2V3Interface aggregator
     );
 
-  function getRoundFeed(
-    address asset,
-    address denomination,
-    uint80 roundId
-  )
-    external
-    view
-    returns (
-      AggregatorV2V3Interface aggregator
-    );
-
   function getPhaseFeed(
     address asset,
     address denomination,
@@ -100,6 +89,19 @@ interface IFeedRegistry is IAccessControlled {
     view
     returns (
       Phase memory phase
+    );
+
+  // Round helpers
+
+  function getRoundFeed(
+    address asset,
+    address denomination,
+    uint80 roundId
+  )
+    external
+    view
+    returns (
+      AggregatorV2V3Interface aggregator
     );
 
   function getRoundIds(

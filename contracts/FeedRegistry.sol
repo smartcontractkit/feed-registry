@@ -27,6 +27,109 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   mapping(address => mapping(address => mapping(uint16 => Phase))) private s_phases; // Current and past phases
 
   /**
+   * @notice Allows the owner to propose a new address for the aggregator
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param aggregator The new aggregator contract address
+   */
+  function proposeFeed(
+    address asset,
+    address denomination,
+    address aggregator
+  )
+    external
+    override
+    onlyOwner()
+  {
+    Phase memory currentPhase = getCurrentPhase(asset, denomination);
+    s_proposedAggregators[asset][denomination] = AggregatorV2V3Interface(aggregator);
+    emit FeedProposed(asset, denomination, address(currentPhase.aggregator), aggregator);
+  }
+
+  /**
+   * @notice Allows the owner to confirm and change the address
+   * to the proposed aggregator
+   * @dev Reverts if the given address doesn't match what was previously
+   * proposed
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param aggregator The new aggregator contract address
+   */
+  function confirmFeed(
+    address asset,
+    address denomination,
+    address aggregator
+  )
+    external
+    override
+    onlyOwner()
+  {
+    require(aggregator == address(s_proposedAggregators[asset][denomination]), "Invalid proposed aggregator");
+    (uint16 nextPhaseId, address previousAggregator) = _setFeed(asset, denomination, aggregator);
+    s_isAggregatorEnabled[aggregator] = true;
+    s_isAggregatorEnabled[previousAggregator] = false;
+    emit FeedConfirmed(asset, denomination, previousAggregator, aggregator, nextPhaseId);
+  }
+
+  /**
+   * @notice retrieve the aggregator of an asset / denomination pair in the current phase
+   * @param asset asset address
+   * @param denomination denomination address
+   */
+  function getFeed(
+    address asset,
+    address denomination
+  )
+    public
+    view
+    override
+    returns (
+      AggregatorV2V3Interface aggregator
+    )
+  {
+    Phase memory currentPhase = getCurrentPhase(asset, denomination);
+    return currentPhase.aggregator;
+  }
+
+  /**
+   * @notice retrieve the aggregator of an asset / denomination pair at a specific phase
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param phaseId phase ID
+   */
+  function getPhaseFeed(
+    address asset,
+    address denomination,
+    uint16 phaseId
+  )
+    public
+    view
+    override
+    returns (
+      AggregatorV2V3Interface aggregator
+    )
+  {
+    return AggregatorV2V3Interface(s_phases[asset][denomination][phaseId].aggregator);
+  }
+
+  /**
+   * @notice returns true if a aggregator is enabled for any pair
+   * @param aggregator aggregator address
+   */
+  function isFeedEnabled(
+    address aggregator
+  )
+    public
+    view
+    override
+    returns (
+      bool
+    )
+  {
+    return s_isAggregatorEnabled[aggregator];
+  }
+
+  /**
    * @notice returns a feed's current phase
    * @param asset asset address
    * @param denomination denomination address
@@ -70,53 +173,6 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   }
 
   /**
-   * @notice returns the range of proxy round ids of a phase
-   * @param asset asset address
-   * @param denomination denomination address
-   * @param phaseId phase id
-   * @return startingRoundId
-   * @return endingRoundId
-   */
-  function getRoundIds(
-    address asset,
-    address denomination,
-    uint16 phaseId
-  )
-    public
-    view
-    override
-    returns (
-      uint80 startingRoundId,
-      uint80 endingRoundId
-    )
-  {
-    Phase memory phase = s_phases[asset][denomination][phaseId];
-    Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    if (phase.id == currentPhase.id) return _getCurrentRoundIds(currentPhase);
-    return _getRoundIds(phase);
-  }
-
-  /**
-   * @notice retrieve the aggregator of an asset / denomination pair in the current phase
-   * @param asset asset address
-   * @param denomination denomination address
-   */
-  function getFeed(
-    address asset,
-    address denomination
-  )
-    public
-    view
-    override
-    returns (
-      AggregatorV2V3Interface aggregator
-    )
-  {
-    Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    return currentPhase.aggregator;
-  }
-
-  /**
    * @notice retrieve the aggregator of an asset / denomination pair at a specific round id
    * @param asset asset address
    * @param denomination denomination address
@@ -145,17 +201,20 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       if (address(phase.aggregator) == address(0)) continue;
       (uint80 startingRoundId, uint80 endingRoundId) = _getRoundIds(phase);
       if (roundId >= startingRoundId && roundId <= endingRoundId) return phase.aggregator;
+      // if (roundId > endingRoundId) break;
     }
     return AggregatorV2V3Interface(address(0));
   }
 
   /**
-   * @notice retrieve the aggregator of an asset / denomination pair at a specific phase
+   * @notice returns the range of proxy round ids of a phase
    * @param asset asset address
    * @param denomination denomination address
-   * @param phaseId phase ID
+   * @param phaseId phase id
+   * @return startingRoundId
+   * @return endingRoundId
    */
-  function getPhaseFeed(
+  function getRoundIds(
     address asset,
     address denomination,
     uint16 phaseId
@@ -164,72 +223,14 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     view
     override
     returns (
-      AggregatorV2V3Interface aggregator
+      uint80 startingRoundId,
+      uint80 endingRoundId
     )
   {
-    return AggregatorV2V3Interface(s_phases[asset][denomination][phaseId].aggregator);
-  }
-
-  /**
-   * @notice returns true if a aggregator is enabled for any pair
-   * @param aggregator aggregator address
-   */
-  function isFeedEnabled(
-    address aggregator
-  )
-    public
-    view
-    override
-    returns (
-      bool
-    )
-  {
-    return s_isAggregatorEnabled[aggregator];
-  }
-
-  /**
-   * @notice Allows the owner to propose a new address for the aggregator
-   * @param asset asset address
-   * @param denomination denomination address
-   * @param aggregator The new aggregator contract address
-   */
-  function proposeFeed(
-    address asset,
-    address denomination,
-    address aggregator
-  )
-    external
-    override
-    onlyOwner()
-  {
+    Phase memory phase = s_phases[asset][denomination][phaseId];
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    s_proposedAggregators[asset][denomination] = AggregatorV2V3Interface(aggregator);
-    emit FeedProposed(asset, denomination, address(currentPhase.aggregator), aggregator);
-  }
-
-  /**
-   * @notice Allows the owner to confirm and change the address
-   * to the proposed aggregator
-   * @dev Reverts if the given address doesn't match what was previously
-   * proposed
-   * @param asset asset address
-   * @param denomination denomination address
-   * @param aggregator The new aggregator contract address
-   */
-  function confirmFeed(
-    address asset,
-    address denomination,
-    address aggregator
-  )
-    external
-    override
-    onlyOwner()
-  {
-    require(aggregator == address(s_proposedAggregators[asset][denomination]), "Invalid proposed aggregator");
-    (uint16 nextPhaseId, address previousAggregator) = _setFeed(asset, denomination, aggregator);
-    s_isAggregatorEnabled[aggregator] = true;
-    s_isAggregatorEnabled[previousAggregator] = false;
-    emit FeedConfirmed(asset, denomination, previousAggregator, aggregator, nextPhaseId);
+    if (phase.id == currentPhase.id) return _getCurrentRoundIds(currentPhase);
+    return _getRoundIds(phase);
   }
 
   /**
