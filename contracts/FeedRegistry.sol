@@ -201,7 +201,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       if (address(phase.aggregator) == address(0)) continue;
       (uint80 startingRoundId, uint80 endingRoundId) = _getRoundIds(phase);
       if (roundId >= startingRoundId && roundId <= endingRoundId) return phase.aggregator;
-      // if (roundId > endingRoundId) break;
+      if (roundId > endingRoundId) break;
     }
     return AggregatorV2V3Interface(address(0));
   }
