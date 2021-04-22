@@ -80,6 +80,29 @@ interface IFeedRegistry is IAccessControlled {
       Phase memory currentPhase
     );
 
+  function getPhase(
+    address asset,
+    address denomination,
+    uint16 phaseId
+  )
+    external
+    view
+    returns (
+      Phase memory phase
+    );
+
+  function getProxyRoundIds(
+    address asset,
+    address denomination,
+    uint16 phaseId
+  )
+    external
+    view
+    returns (
+      uint80 startingProxyRoundId,
+      uint80 endingProxyRoundId
+    );
+
   // V2 AggregatorInterface
 
   function latestAnswer(

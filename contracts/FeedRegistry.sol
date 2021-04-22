@@ -59,7 +59,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   )
     public
     view
-    // override TODO: add to IFeedRegistry interface
+    override
     returns (
       Phase memory phase
     )
@@ -67,7 +67,6 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     return s_phases[asset][denomination][phaseId];
   }
 
-  // TODO: helper to get phase round id range
   /**
    * @notice returns the range of proxy rounds of a phase
    * @param asset asset address
@@ -83,7 +82,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   )
     public
     view
-    // override TODO: add to IFeedRegistry interface
+    override
     returns (
       uint80 startingProxyRoundId,
       uint80 endingProxyRoundId
