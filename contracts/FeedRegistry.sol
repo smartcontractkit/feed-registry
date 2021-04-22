@@ -8,6 +8,8 @@ import "./access/AccessControlled.sol";
 import "./interfaces/IFeedRegistry.sol";
 import "./libraries/Denominations.sol";
 
+import "hardhat/console.sol";
+
 /**
   * @notice An on-chain registry of assets to aggregators.
   * @notice This contract provides a consistent address for consumers but delegates where it reads from to the owner, who is
@@ -138,14 +140,14 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     (uint80 startingRoundId,) = _getRoundIds(currentPhase);
     uint80 latestRoundId = _getLatestRoundId(currentPhase.aggregator);
     uint80 latestProxyRoundId = addPhase(currentPhase.id, uint64(latestRoundId));
-    if (roundId > startingRoundId && roundId < latestProxyRoundId) return currentPhase.aggregator;
+    if (roundId >= startingRoundId && roundId <= latestProxyRoundId) return currentPhase.aggregator;
 
     // Handle case where the round is in past phases
-    for (uint16 phaseId = currentPhase.id - 1; phaseId == 1; phaseId--) {
+    for (uint16 phaseId = currentPhase.id - 1; phaseId > 0; phaseId--) {
       Phase memory phase = s_phases[asset][denomination][phaseId];
       if (address(phase.aggregator) == address(0)) continue;
       (uint80 startingRoundId, uint80 endingRoundId) = _getRoundIds(phase);
-      if (roundId > startingRoundId && roundId < endingRoundId) return phase.aggregator;
+      if (roundId >= startingRoundId && roundId <= endingRoundId) return phase.aggregator;
     }
     return AggregatorV2V3Interface(address(0));
   }

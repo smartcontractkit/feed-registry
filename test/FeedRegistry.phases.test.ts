@@ -27,7 +27,7 @@ contract("FeedRegistry Phases", function () {
     this.registry = <FeedRegistry>await deployContract(this.signers.owner, FeedRegistryArtifact, []);
   });
 
-  it("should initialize current phase", async function () {
+  it("should initialize phase 0", async function () {
     const currentPhase = await this.registry.getCurrentPhase(ASSET, DENOMINATION);
     expect(currentPhase.id).to.equal(0);
     expect(currentPhase.aggregator).to.equal(ethers.constants.AddressZero);
@@ -36,6 +36,9 @@ contract("FeedRegistry Phases", function () {
   });
 
   // Tests phase logic when switching aggregators
+  // Phase 1: Feed A is enabled from rounds 1 - 10
+  // Phase 2: Feed B is enabled from rounds 123 - 156
+  // Phase 3: Feed is set to zero address
   it("start and end round ids for previous & new aggregators should be captured in Phases", async function () {
     // Phase 1: Feed A is enabled from rounds 1 - 10
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
@@ -77,14 +80,15 @@ contract("FeedRegistry Phases", function () {
     // Phase 3: Feed is set to zero address
     const bEndingRound = BigNumber.from("156");
     await feedB.mock.latestRound.returns(bEndingRound); // Simulate passing of time
-    await this.registry.proposeFeed(ASSET, DENOMINATION, ethers.constants.AddressZero);
-    await this.registry.confirmFeed(ASSET, DENOMINATION, ethers.constants.AddressZero);
+    const feedCAddress = ethers.constants.AddressZero;
+    await this.registry.proposeFeed(ASSET, DENOMINATION, feedCAddress);
+    await this.registry.confirmFeed(ASSET, DENOMINATION, feedCAddress);
     const endedPhase2 = await this.registry.getPhase(ASSET, DENOMINATION, PHASE_TWO);
     expect(endedPhase2.endingAggregatorRoundId).to.equal(bEndingRound); // feedB was previous phase aggregator
 
     const Phase3 = await this.registry.getCurrentPhase(ASSET, DENOMINATION);
     expect(Phase3.id).to.equal(PHASE_THREE);
-    expect(Phase3.aggregator).to.equal(ethers.constants.AddressZero);
+    expect(Phase3.aggregator).to.equal(feedCAddress);
     expect(Phase3.startingAggregatorRoundId).to.equal(0);
     expect(Phase3.endingAggregatorRoundId).to.equal(0);
     await expect(this.registry.latestRound(ASSET, DENOMINATION)).to.be.revertedWith(
@@ -118,5 +122,22 @@ contract("FeedRegistry Phases", function () {
     const Phase3RoundRange = await this.registry.getRoundIds(ASSET, DENOMINATION, PHASE_THREE);
     expect(Phase3RoundRange.startingRoundId).to.equal(PHASE_BASE.mul(PHASE_THREE).add(0));
     expect(Phase3RoundRange.endingRoundId).to.equal(PHASE_BASE.mul(PHASE_THREE).add(0));
+
+    expect(
+      await this.registry.getRoundFeed(ASSET, DENOMINATION, PHASE_BASE.mul(PHASE_ONE).add(aStartingRound)),
+    ).to.equal(feedA.address);
+    expect(
+      await this.registry.getRoundFeed(ASSET, DENOMINATION, PHASE_BASE.mul(PHASE_ONE).add(aEndingRound.sub(1))),
+    ).to.equal(feedA.address);
+    expect(
+      await this.registry.getRoundFeed(ASSET, DENOMINATION, PHASE_BASE.mul(PHASE_TWO).add(bStartingRound).add(1)),
+    ).to.equal(feedB.address);
+    expect(
+      await this.registry.getRoundFeed(ASSET, DENOMINATION, PHASE_BASE.mul(PHASE_THREE).add(bEndingRound).add(1)),
+    ).to.equal(feedCAddress);
+
+    // TODO: test with invalid round
   });
+
+  // TODO: test round helpers with active feed in current phase (latestRound())
 });
