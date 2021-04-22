@@ -107,5 +107,7 @@ contract("FeedRegistry Phases", function () {
     expect(Phase3Data.endingRoundId).to.equal(0);
 
     // TODO: Helpers to more easily access phase id + round id ranges
+
+    // TODO: do we even need getProxyRoundIds() ?
   });
 });

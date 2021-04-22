@@ -91,7 +91,7 @@ interface IFeedRegistry is IAccessControlled {
       Phase memory phase
     );
 
-  function getProxyRoundIds(
+  function getRoundIds(
     address asset,
     address denomination,
     uint16 phaseId
@@ -99,8 +99,8 @@ interface IFeedRegistry is IAccessControlled {
     external
     view
     returns (
-      uint80 startingProxyRoundId,
-      uint80 endingProxyRoundId
+      uint80 startingRoundId,
+      uint80 endingRoundId
     );
 
   // V2 AggregatorInterface
