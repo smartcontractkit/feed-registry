@@ -124,7 +124,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   function getPhaseFeed(
     address asset,
     address denomination,
-    uint16 phaseId
+    uint16 phaseId // TODO: supply proxyRoundId instead?
   )
     public
     view
@@ -327,7 +327,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   function getAnswer(
     address asset,
     address denomination,
-    uint256 roundId
+    uint256 roundId // TODO: this is proxy round id
   )
     external
     view
@@ -475,8 +475,15 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       uint80 answeredInRound
     )
   {
-    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
-    return aggregator.latestRoundData();
+    Phase memory currentPhase = getCurrentPhase(asset, denomination);
+    (
+      roundId,
+      answer,
+      startedAt,
+      updatedAt,
+      answeredInRound
+    ) = currentPhase.aggregator.latestRoundData();
+    return addPhaseIds(roundId, answer, startedAt, updatedAt, answeredInRound, currentPhase.id);
   }
 
   /**
@@ -521,8 +528,16 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       uint80 answeredInRound
     )
   {
-    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
-    return aggregator.getRoundData(_roundId);
+    (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(_roundId);
+    AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
+    (
+      roundId,
+      answer,
+      startedAt,
+      updatedAt,
+      answeredInRound
+    ) = aggregator.getRoundData(aggregatorRoundId);
+    return addPhaseIds(roundId, answer, startedAt, updatedAt, answeredInRound, phaseId);
   }
 
   function getProposedFeed(
