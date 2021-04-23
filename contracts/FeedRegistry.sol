@@ -190,20 +190,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       AggregatorV2V3Interface aggregator
     )
   {
-    // Handle case where the round is in current phase
-    Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    (uint80 startingRoundId, uint80 latestRoundId) = _getCurrentRoundIds(currentPhase);
-    if (roundId >= startingRoundId && roundId <= latestRoundId) return currentPhase.aggregator;
-
-    // Handle case where the round is in past phases
-    for (uint16 phaseId = currentPhase.id - 1; phaseId > 0; phaseId--) {
-      Phase memory phase = s_phases[asset][denomination][phaseId];
-      if (address(phase.aggregator) == address(0)) continue;
-      (uint80 startingRoundId, uint80 endingRoundId) = _getRoundIds(phase);
-      if (roundId >= startingRoundId && roundId <= endingRoundId) return phase.aggregator;
-      if (roundId > endingRoundId) break;
-    }
-    return AggregatorV2V3Interface(address(0));
+    return _getPhase(asset, denomination, roundId).aggregator;
   }
 
   function getAdjacentRounds(
@@ -220,21 +207,6 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   {
     Phase memory phase = _getPhase(asset, denomination, roundId);
     return (_getPreviousRoundId(phase, roundId), _getNextRoundId(phase, roundId));
-  }
-
-  function _getPhase(
-    address asset,
-    address denomination,
-    uint80 roundId
-  )
-    internal
-    view
-    returns (
-      Phase memory phase
-    )
-  {
-    // TODO
-    return 1;
   }
 
   // TODO: move down
@@ -804,6 +776,33 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       addPhase(currentPhase.id, uint64(currentPhase.startingAggregatorRoundId)),
       addPhase(currentPhase.id, uint64(latestAggregatorRoundId))
     );
+  }
+
+  function _getPhase(
+    address asset,
+    address denomination,
+    uint80 roundId
+  )
+    internal
+    view
+    returns (
+      Phase memory phase
+    )
+  {
+    // Handle case where the round is in current phase
+    Phase memory currentPhase = getCurrentPhase(asset, denomination);
+    (uint80 startingRoundId, uint80 latestRoundId) = _getCurrentRoundIds(currentPhase);
+    if (roundId >= startingRoundId && roundId <= latestRoundId) return currentPhase;
+
+    // Handle case where the round is in past phases
+    for (uint16 phaseId = currentPhase.id - 1; phaseId > 0; phaseId--) {
+      Phase memory phase = s_phases[asset][denomination][phaseId];
+      if (address(phase.aggregator) == address(0)) continue;
+      (uint80 startingRoundId, uint80 endingRoundId) = _getRoundIds(phase);
+      if (roundId >= startingRoundId && roundId <= endingRoundId) return phase;
+      if (roundId > endingRoundId) break;
+    }
+    return s_phases[asset][denomination][0];
   }
 
   /**
