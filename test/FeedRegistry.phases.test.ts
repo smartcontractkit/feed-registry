@@ -175,4 +175,6 @@ contract("FeedRegistry Phases", function () {
       ethers.constants.AddressZero,
     );
   });
+
+  // getAdjacentRounds()
 });
