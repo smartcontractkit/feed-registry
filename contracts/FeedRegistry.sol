@@ -206,6 +206,66 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     return AggregatorV2V3Interface(address(0));
   }
 
+  function getAdjacentRounds(
+    address asset,
+    address denomination,
+    uint80 roundId
+  ) external
+    view
+    override
+    returns (
+      uint80 previousRoundId,
+      uint80 nextRoundId
+    )
+  {
+    Phase memory phase = _getPhase(asset, denomination, roundId);
+    return (_getPreviousRoundId(phase, roundId), _getNextRoundId(phase, roundId));
+  }
+
+  function _getPhase(
+    address asset,
+    address denomination,
+    uint80 roundId
+  )
+    internal
+    view
+    returns (
+      Phase memory phase
+    )
+  {
+    // TODO
+    return 1;
+  }
+
+  // TODO: move down
+  function _getPreviousRoundId(
+    Phase memory phase,
+    uint80 roundId
+  )
+    internal
+    view
+    returns (
+      uint80
+    )
+  {
+    // TODO
+    return 1;
+  }
+
+  function _getNextRoundId(
+    Phase memory phase,
+    uint80 roundId
+  )
+    internal
+    view
+    returns (
+      uint80
+    )
+  {
+    // TODO
+    return 1;
+  }
+
   /**
    * @notice returns the range of proxy round ids of a phase
    * @param asset asset address
