@@ -25,7 +25,7 @@ interface IFeedRegistry is IAccessControlled {
     address indexed denomination,
     address previousAggregator,
     address indexed latestAggregator,
-    uint16 nextPhaseId // Track new phase id
+    uint16 nextPhaseId
   );
 
   function proposeFeed(
@@ -104,7 +104,7 @@ interface IFeedRegistry is IAccessControlled {
       AggregatorV2V3Interface aggregator
     );
 
-  function getRoundIds(
+  function getRoundRange(
     address asset,
     address denomination,
     uint16 phaseId
@@ -116,7 +116,7 @@ interface IFeedRegistry is IAccessControlled {
       uint80 endingRoundId
     );
 
-  function getPreviousRound(
+  function getPreviousRoundId(
     address asset,
     address denomination,
     uint80 roundId
@@ -126,7 +126,7 @@ interface IFeedRegistry is IAccessControlled {
       uint80 previousRoundId
     );
 
-  function getNextRound(
+  function getNextRoundId(
     address asset,
     address denomination,
     uint80 roundId

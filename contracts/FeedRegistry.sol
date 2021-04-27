@@ -193,7 +193,15 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     return _getPhaseByRound(asset, denomination, roundId).aggregator;
   }
 
-  function getPreviousRound(
+  /**
+   * @notice return the previous round id of a given round
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param roundId the round id number to retrieve the updated timestamp for
+   * @dev Note that this is not the aggregator round id, but the proxy round id
+   * To get full ranges of round ids of different phases, use getRoundRange()
+   */
+  function getPreviousRoundId(
     address asset,
     address denomination,
     uint80 roundId
@@ -208,7 +216,15 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     return _getPreviousRoundId(asset, denomination, phase.id, roundId);
   }
 
-  function getNextRound(
+  /**
+   * @notice return the next round id of a given round
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param roundId the round id number to retrieve the updated timestamp for
+   * @dev Note that this is not the aggregator round id, but the proxy round id
+   * To get full ranges of round ids of different phases, use getRoundRange()
+   */
+  function getNextRoundId(
     address asset,
     address denomination,
     uint80 roundId
@@ -231,7 +247,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    * @return startingRoundId
    * @return endingRoundId
    */
-  function getRoundIds(
+  function getRoundRange(
     address asset,
     address denomination,
     uint16 phaseId
@@ -352,11 +368,9 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     )
   {
     if (roundId > MAX_ID) return 0;
-
     (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(roundId);
     AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
     if (address(aggregator) == address(0)) return 0;
-
     return aggregator.getAnswer(aggregatorRoundId);
   }
 
@@ -386,11 +400,9 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     )
   {
     if (roundId > MAX_ID) return 0;
-
     (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(roundId);
     AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
     if (address(aggregator) == address(0)) return 0;
-
     return aggregator.getTimestamp(aggregatorRoundId);
   }
 
