@@ -176,5 +176,5 @@ contract("FeedRegistry Phases", function () {
     );
   });
 
-  // getAdjacentRounds()
+  // TODO: test getAdjacentRounds()
 });

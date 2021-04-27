@@ -193,7 +193,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     return _getPhaseByRound(asset, denomination, roundId).aggregator;
   }
 
-  function getAdjacentRounds( // TODO: split to getPreviousRound() and getNextRound() ?
+  function getPreviousRound(
     address asset,
     address denomination,
     uint80 roundId
@@ -201,54 +201,26 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     view
     override
     returns (
-      uint80 previousRoundId,
+      uint80 previousRoundId
+    )
+  {
+    Phase memory phase = _getPhaseByRound(asset, denomination, roundId);
+    return _getPreviousRoundId(asset, denomination, phase.id, roundId);
+  }
+
+  function getNextRound(
+    address asset,
+    address denomination,
+    uint80 roundId
+  ) external
+    view
+    override
+    returns (
       uint80 nextRoundId
     )
   {
     Phase memory phase = _getPhaseByRound(asset, denomination, roundId);
-    return (_getPreviousRoundId(asset, denomination, phase.id, roundId), _getNextRoundId(asset, denomination, phase.id, roundId));
-  }
-
-  // TODO: move down
-  function _getPreviousRoundId(
-    address asset,
-    address denomination,
-    uint16 phaseId,
-    uint80 roundId
-  )
-    internal
-    view
-    returns (
-      uint80
-    )
-  {
-    for (uint16 pid = phaseId; pid > 0; pid--) {
-      Phase memory phase = _getPhase(asset, denomination, pid);
-      (uint80 startingRoundId, uint80 endingRoundId) = _getRoundIds(phase);
-      // TODO: skip if phase.aggregator is zero address
-      if (address(phase.aggregator) == address(0))
-      if (roundId > startingRoundId && roundId < endingRoundId) return roundId--;
-      // if (roundId < startingRoundId)
-      // if (roundId > endingRoundId)
-    }
-
-    return 0; // TODO: what value should represent 'not found' ?
-  }
-
-  function _getNextRoundId(
-    address asset,
-    address denomination,
-    uint16 phaseId,
-    uint80 roundId
-  )
-    internal
-    view
-    returns (
-      uint80
-    )
-  {
-    // TODO
-    return 1;
+    return _getNextRoundId(asset, denomination, phase.id, roundId);
   }
 
   /**
@@ -274,8 +246,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   {
     Phase memory phase = s_phases[asset][denomination][phaseId];
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    if (phase.id == currentPhase.id) return _getLatestRoundIds(currentPhase);
-    return _getRoundIds(phase);
+    if (phase.id == currentPhase.id) return _getLatestRoundRange(currentPhase);
+    return _getRoundRange(phase);
   }
 
   /**
@@ -758,7 +730,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     return uint80(aggregator.latestRound());
   }
 
-  function _getRoundIds(
+  function _getRoundRange(
     Phase memory phase
   )
     internal
@@ -774,7 +746,54 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     );
   }
 
-  function _getLatestRoundIds(
+  function _getPreviousRoundId(
+    address asset,
+    address denomination,
+    uint16 phaseId,
+    uint80 roundId
+  )
+    internal
+    view
+    returns (
+      uint80
+    )
+  {
+    for (uint16 pid = phaseId; pid > 0; pid--) {
+      Phase memory phase = _getPhase(asset, denomination, pid);
+      (uint80 startingRoundId, uint80 endingRoundId) = _getRoundRange(phase);
+      if (address(phase.aggregator) == address(0)) continue;
+      if (roundId > startingRoundId && roundId <= endingRoundId) return roundId--;
+      if (roundId <= startingRoundId) continue;
+      if (roundId > endingRoundId) break;
+    }
+    return 0; // Round not found
+  }
+
+  function _getNextRoundId(
+    address asset,
+    address denomination,
+    uint16 phaseId,
+    uint80 roundId
+  )
+    internal
+    view
+    returns (
+      uint80
+    )
+  {
+    Phase memory currentPhase = getCurrentPhase(asset, denomination);
+    for (uint16 pid = phaseId; pid < currentPhase.id; pid++) {
+      Phase memory phase = _getPhase(asset, denomination, pid);
+      (uint80 startingRoundId, uint80 latestRoundId) = _getLatestRoundRange(phase);
+      if (address(phase.aggregator) == address(0)) continue;
+      if (roundId >= startingRoundId && roundId < latestRoundId) return roundId++;
+      if (roundId < startingRoundId) continue;
+      if (roundId >= latestRoundId) break;
+    }
+    return 0; // Round not found
+  }
+
+  function _getLatestRoundRange(
     Phase memory currentPhase
   )
     internal
@@ -854,14 +873,14 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   {
     // Handle case where the round is in current phase
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    (uint80 startingRoundId, uint80 latestRoundId) = _getLatestRoundIds(currentPhase);
+    (uint80 startingRoundId, uint80 latestRoundId) = _getLatestRoundRange(currentPhase);
     if (roundId >= startingRoundId && roundId <= latestRoundId) return currentPhase;
 
     // Handle case where the round is in past phases
     for (uint16 phaseId = currentPhase.id - 1; phaseId > 0; phaseId--) {
       Phase memory phase = s_phases[asset][denomination][phaseId];
       if (address(phase.aggregator) == address(0)) continue;
-      (uint80 startingRoundId, uint80 endingRoundId) = _getRoundIds(phase);
+      (uint80 startingRoundId, uint80 endingRoundId) = _getRoundRange(phase);
       if (roundId >= startingRoundId && roundId <= endingRoundId) return phase;
       if (roundId > endingRoundId) break;
     }

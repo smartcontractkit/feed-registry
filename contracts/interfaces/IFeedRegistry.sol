@@ -104,17 +104,6 @@ interface IFeedRegistry is IAccessControlled {
       AggregatorV2V3Interface aggregator
     );
 
-  function getAdjacentRounds(
-    address asset,
-    address denomination,
-    uint80 roundId
-  ) external
-    view
-    returns (
-      uint80 previousRoundId,
-      uint80 nextRoundId
-    );
-
   function getRoundIds(
     address asset,
     address denomination,
@@ -125,6 +114,26 @@ interface IFeedRegistry is IAccessControlled {
     returns (
       uint80 startingRoundId,
       uint80 endingRoundId
+    );
+
+  function getPreviousRound(
+    address asset,
+    address denomination,
+    uint80 roundId
+  ) external
+    view
+    returns (
+      uint80 previousRoundId
+    );
+
+  function getNextRound(
+    address asset,
+    address denomination,
+    uint80 roundId
+  ) external
+    view
+    returns (
+      uint80 nextRoundId
     );
 
   // V2 AggregatorInterface
