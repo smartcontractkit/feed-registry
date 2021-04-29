@@ -12,11 +12,14 @@ const { deployContract } = hre.waffle;
 const PHASE_ONE = 1;
 const PHASE_TWO = 2;
 const PHASE_THREE = 3;
+const PHASE_FOUR = 4;
 const ZERO = BigNumber.from("0");
 const A_STARTING_ROUND = BigNumber.from("1");
 const A_ENDING_ROUND = BigNumber.from("10");
 const B_STARTING_ROUND = BigNumber.from("123");
 const B_ENDING_ROUND = BigNumber.from("156");
+const D_STARTING_ROUND = BigNumber.from("40");
+const D_LATEST_ROUND = BigNumber.from("51");
 const getRoundId = (phase: number, roundId: BigNumber) => PHASE_BASE.mul(phase).add(roundId);
 
 contract("FeedRegistry rounds", function () {
@@ -27,6 +30,7 @@ contract("FeedRegistry rounds", function () {
     // Phase 1: Feed A is enabled from rounds 1 - 10
     // Phase 2: Feed B is enabled from rounds 123 - 156
     // Phase 3: Feed is set to zero address
+    // Phase 4: Feed D is enabled from rounds 40 - 51 (latest)
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     this.feedA = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
     await this.feedA.mock.latestRound.returns(A_STARTING_ROUND); // Mock feed response
@@ -44,6 +48,12 @@ contract("FeedRegistry rounds", function () {
     const feedCAddress = ethers.constants.AddressZero;
     await this.registry.proposeFeed(ASSET, DENOMINATION, feedCAddress);
     await this.registry.confirmFeed(ASSET, DENOMINATION, feedCAddress);
+
+    this.feedD = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
+    await this.feedD.mock.latestRound.returns(D_STARTING_ROUND); // Mock feed response
+    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feedD.address);
+    await this.registry.confirmFeed(ASSET, DENOMINATION, this.feedD.address);
+    await this.feedD.mock.latestRound.returns(D_LATEST_ROUND);
   });
 
   it("getRoundRange() should return the round range for a phase", async function () {
@@ -75,21 +85,30 @@ contract("FeedRegistry rounds", function () {
     expect(await this.registry.getPreviousRoundId(ASSET, DENOMINATION, round1)).to.equal(ZERO);
   });
 
+  it("getPreviousRoundId() should work even with zero phases in between", async function () {});
+
   it("getNextRoundId() should return next round id", async function () {
     const round10 = getRoundId(PHASE_ONE, A_ENDING_ROUND);
     const round123 = getRoundId(PHASE_TWO, B_STARTING_ROUND);
-    const zeroRound = getRoundId(PHASE_THREE, ZERO);
 
     // Case where next round is within a single phase's round range
     expect(await this.registry.getNextRoundId(ASSET, DENOMINATION, round10.sub(1))).to.equal(round10);
 
     // Case where next round is in the next phase
-    // round10: 18446744073709551626
     expect(await this.registry.getNextRoundId(ASSET, DENOMINATION, round10)).to.equal(round123);
+  });
+
+  it("getNextRoundId() should work for rounds in the current phase", async function () {
+    // Case where round id is beyond the current feed's latest round
+    const latestRound = getRoundId(PHASE_FOUR, D_LATEST_ROUND);
+    expect(await this.registry.getNextRoundId(ASSET, DENOMINATION, latestRound.sub(1))).to.equal(latestRound);
 
     // Case where there is no next round
-    expect(await this.registry.getNextRoundId(ASSET, DENOMINATION, zeroRound)).to.equal(ZERO);
+    expect(await this.registry.getNextRoundId(ASSET, DENOMINATION, latestRound)).to.equal(ZERO);
 
-    // TODO: case where round id is beyond the current feed's latest round
+    // getNextRoundId() should work with zero phases in between
+    const phase2Round156 = getRoundId(PHASE_TWO, B_ENDING_ROUND);
+    const phase4Round40 = getRoundId(PHASE_FOUR, D_STARTING_ROUND);
+    expect(await this.registry.getNextRoundId(ASSET, DENOMINATION, phase2Round156)).to.equal(phase4Round40);
   });
 });
