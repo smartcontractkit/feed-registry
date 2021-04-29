@@ -85,7 +85,11 @@ contract("FeedRegistry rounds", function () {
     expect(await this.registry.getPreviousRoundId(ASSET, DENOMINATION, round1)).to.equal(ZERO);
   });
 
-  it("getPreviousRoundId() should work even with zero phases in between", async function () {});
+  it("getPreviousRoundId() should work even with zero phases in between", async function () {
+    const phase2Round156 = getRoundId(PHASE_TWO, B_ENDING_ROUND);
+    const phase4Round40 = getRoundId(PHASE_FOUR, D_STARTING_ROUND);
+    expect(await this.registry.getPreviousRoundId(ASSET, DENOMINATION, phase4Round40)).to.equal(phase2Round156);
+  });
 
   it("getNextRoundId() should return next round id", async function () {
     const round10 = getRoundId(PHASE_ONE, A_ENDING_ROUND);
