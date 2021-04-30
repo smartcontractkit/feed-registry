@@ -17,14 +17,14 @@ interface IFeedRegistry is IAccessControlled {
   event FeedProposed(
     address indexed asset,
     address indexed denomination,
-    address currentAggregator,
-    address indexed proposedAggregator
+    address indexed proposedAggregator,
+    address currentAggregator
   );
   event FeedConfirmed(
     address indexed asset,
     address indexed denomination,
-    address previousAggregator,
     address indexed latestAggregator,
+    address previousAggregator,
     uint16 nextPhaseId
   );
 

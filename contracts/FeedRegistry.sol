@@ -41,7 +41,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   {
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
     s_proposedAggregators[asset][denomination] = AggregatorV2V3Interface(aggregator);
-    emit FeedProposed(asset, denomination, address(currentPhase.aggregator), aggregator);
+    emit FeedProposed(asset, denomination, aggregator, address(currentPhase.aggregator));
   }
 
   /**
@@ -66,7 +66,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     (uint16 nextPhaseId, address previousAggregator) = _setFeed(asset, denomination, aggregator);
     s_isAggregatorEnabled[aggregator] = true;
     s_isAggregatorEnabled[previousAggregator] = false;
-    emit FeedConfirmed(asset, denomination, previousAggregator, aggregator, nextPhaseId);
+    emit FeedConfirmed(asset, denomination, aggregator, previousAggregator, nextPhaseId);
   }
 
   /**

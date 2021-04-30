@@ -43,7 +43,7 @@ contract("FeedRegistry", function () {
   it("owner can propose a feed", async function () {
     await expect(this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address))
       .to.emit(this.registry, "FeedProposed")
-      .withArgs(ASSET, DENOMINATION, ethers.constants.AddressZero, this.feed.address);
+      .withArgs(ASSET, DENOMINATION, this.feed.address, ethers.constants.AddressZero);
     expect(await this.registry.getProposedFeed(ASSET, DENOMINATION)).to.equal(this.feed.address);
   });
 
@@ -59,7 +59,7 @@ contract("FeedRegistry", function () {
     const currentPhase = await this.registry.getCurrentPhase(ASSET, DENOMINATION);
     await expect(this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address))
       .to.emit(this.registry, "FeedConfirmed")
-      .withArgs(ASSET, DENOMINATION, ethers.constants.AddressZero, this.feed.address, currentPhase.id + 1);
+      .withArgs(ASSET, DENOMINATION, this.feed.address, ethers.constants.AddressZero, currentPhase.id + 1);
 
     const feed = await this.registry.getFeed(ASSET, DENOMINATION);
     expect(feed).to.equal(this.feed.address);
