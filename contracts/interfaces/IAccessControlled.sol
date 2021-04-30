@@ -14,7 +14,7 @@ interface IAccessControlled {
   )
     external;
 
-  function getController() 
+  function getController()
     external
     view
     returns (
