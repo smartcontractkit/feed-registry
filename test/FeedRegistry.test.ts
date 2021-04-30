@@ -31,6 +31,7 @@ contract("FeedRegistry", function () {
     this.accessControlled = this.registry;
 
     this.feed = await deployMockAggregator(this.signers.owner);
+    this.otherFeed = await deployMockAggregator(this.signers.owner);
   });
 
   it("should initialize correctly", async function () {
@@ -107,7 +108,7 @@ contract("FeedRegistry", function () {
     expect(isFeedEnabled).to.equal(false);
   });
 
-  it("decimals returns the latest answer of a feed", async function () {
+  it("decimals returns the decimals of a feed", async function () {
     await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
     await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
     await this.feed.mock.decimals.returns(TEST_DECIMALS); // Mock feed response
@@ -122,7 +123,7 @@ contract("FeedRegistry", function () {
     );
   });
 
-  it("description returns the latest answer of a feed", async function () {
+  it("description returns the description of a feed", async function () {
     await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
     await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
     await this.feed.mock.description.returns(TEST_DESCRIPTION); // Mock feed response
@@ -137,7 +138,7 @@ contract("FeedRegistry", function () {
     );
   });
 
-  it("version returns the latest answer of a feed", async function () {
+  it("version returns the version of a feed", async function () {
     await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
     await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
     await this.feed.mock.version.returns(TEST_VERSION); // Mock feed response
@@ -161,13 +162,15 @@ contract("FeedRegistry", function () {
     expect(answer).to.equal(TEST_ANSWER);
   });
 
+  // TODO: latestAnswer should work after a phase change
+
   it("latestAnswer should revert for a non-existent feed", async function () {
     await expect(this.registry.latestAnswer(ASSET, DENOMINATION)).to.be.revertedWith(
       "function call to a non-contract account",
     );
   });
 
-  it("latestTimestamp returns the latest answer of a feed", async function () {
+  it("latestTimestamp returns the latest timestamp of a feed", async function () {
     await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
     await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
     await this.feed.mock.latestTimestamp.returns(TEST_TIMESTAMP); // Mock feed response
@@ -205,6 +208,8 @@ contract("FeedRegistry", function () {
     const answer = await this.registry.getAnswer(ASSET, DENOMINATION, PHASE_BASE.add(TEST_ROUND));
     expect(answer).to.equal(TEST_ANSWER);
   });
+
+  // TODO: getAnswer should work after a phase change
 
   it("getAnswer does not revert when called with a non existent round ID", async function () {
     expect(await this.registry.getAnswer(ASSET, DENOMINATION, TEST_ROUND)).to.equal(0);
@@ -252,6 +257,8 @@ contract("FeedRegistry", function () {
       "function call to a non-contract account",
     );
   });
+
+  // TODO: more test cases from https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/test/v0.7/AggregatorProxy.test.ts
 
   shouldBehaveLikeAccessControlled();
 });

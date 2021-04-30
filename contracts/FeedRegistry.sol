@@ -272,8 +272,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    * @notice Reads the current answer for an asset / denomination pair's aggregator.
    * @param asset asset address
    * @param denomination denomination address
-   * @dev #[deprecated] Use latestRoundData instead. This does not error if no
-   * answer has been reached, it will simply return 0. Either wait to point to
+   * @notice We advise to use latestRoundData() instead because it returns more in-depth information.
+   * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
    * an already answered Aggregator or use the recommended latestRoundData
    * instead which includes better verification information.
    */
@@ -298,8 +298,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    * ID includes the proxy's phase, to make sure round IDs increase even when
    * switching to a newly deployed aggregator.
    *
-   * @dev #[deprecated] Use latestRoundData instead. This does not error if no
-   * answer has been reached, it will simply return 0. Either wait to point to
+   * @notice We advise to use latestRoundData() instead because it returns more in-depth information.
+   * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
    * an already answered Aggregator or use the recommended latestRoundData
    * instead which includes better verification information.
    */
@@ -323,7 +323,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    * @param denomination denomination address
    * @dev overridden function to add the checkAccess() modifier
    *
-   * @dev #[deprecated] Use latestRoundData instead. This does not error if no
+   * @notice We advise to use latestRoundData() instead because it returns more in-depth information.
+   * @dev Use latestRoundData instead. This does not error if no
    * answer has been reached, it will simply return 0. Either wait to point to
    * an already answered Aggregator or use the recommended latestRoundData
    * instead which includes better verification information.
@@ -351,8 +352,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    * @param roundId the proxy round id number to retrieve the answer for
    * @dev overridden function to add the checkAccess() modifier
    *
-   * @dev #[deprecated] Use getRoundData instead. This does not error if no
-   * answer has been reached, it will simply return 0. Either wait to point to
+   * @notice We advise to use getRoundData() instead because it returns more in-depth information.
+   * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
    * an already answered Aggregator or use the recommended getRoundData
    * instead which includes better verification information.
    */
@@ -383,8 +384,8 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    * @param roundId the proxy round id number to retrieve the updated timestamp for
    * @dev overridden function to add the checkAccess() modifier
    *
-   * @dev #[deprecated] Use getRoundData instead. This does not error if no
-   * answer has been reached, it will simply return 0. Either wait to point to
+   * @notice We advise to use getRoundData() instead because it returns more in-depth information.
+   * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
    * an already answered Aggregator or use the recommended getRoundData
    * instead which includes better verification information.
    */
