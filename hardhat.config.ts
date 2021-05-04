@@ -79,6 +79,8 @@ const config: HardhatUserConfig = {
     target: "ethers-v5",
   },
   gasReporter: {
+    currency: "USD",
+    gasPrice: 50,
     enabled: process.env.DISABLE_GAS_REPORT ? false : true,
   },
 };
