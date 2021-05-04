@@ -2,7 +2,7 @@ import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { FeedRegistry } from "../typechain/FeedRegistry";
 import { expect } from "chai";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { shouldBehaveLikeAccessControlled } from "./access/AccessControlled.behaviour";
 import {
   ASSET,
@@ -244,21 +244,39 @@ contract("FeedRegistry", function () {
     });
   });
 
-  it("getAnswer returns the answer of a round", async function () {
-    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.feed.mock.getAnswer.withArgs(TEST_ROUND).returns(TEST_ANSWER); // Mock feed response
+  describe("#getAnswer", async function () {
+    it("getAnswer returns the answer of a round", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.getAnswer.withArgs(TEST_ROUND).returns(TEST_ANSWER); // Mock feed response
 
-    const answer = await this.registry.getAnswer(ASSET, DENOMINATION, PHASE_BASE.add(TEST_ROUND));
-    expect(answer).to.equal(TEST_ANSWER);
+      const answer = await this.registry.getAnswer(ASSET, DENOMINATION, PHASE_BASE.add(TEST_ROUND));
+      expect(answer).to.equal(TEST_ANSWER);
+    });
+
+    // TODO
+    // it("getAnswer should work after a phase change", async function () {
+    //   await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+    //   await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+    //   await this.registry.proposeFeed(ASSET, DENOMINATION, this.otherFeed.address);
+    //   await this.registry.confirmFeed(ASSET, DENOMINATION, this.otherFeed.address);
+
+    //   const answer = await this.registry.latestTimestamp(ASSET, DENOMINATION);
+    //   expect(answer).to.equal(OTHER_TIMESTAMP);
+    // });
+
+    it("getAnswer does not revert when called with a non existent round ID", async function () {
+      expect(await this.registry.getAnswer(ASSET, DENOMINATION, TEST_ROUND)).to.equal(0);
+    });
+
+    it("getAnswer returns 0 when round ID is too large", async function () {
+      expect(
+        await this.registry.getAnswer(ASSET, DENOMINATION, BigNumber.from(2).pow(255).add(PHASE_BASE).add(1)),
+      ).to.equal(0);
+    });
   });
 
-  // TODO: getAnswer should work after a phase change
-
-  it("getAnswer does not revert when called with a non existent round ID", async function () {
-    expect(await this.registry.getAnswer(ASSET, DENOMINATION, TEST_ROUND)).to.equal(0);
-  });
-
+  // TODO: port getTimestamp and more test cases
   it("getTimestamp returns the timestamp of a round", async function () {
     await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
     await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
