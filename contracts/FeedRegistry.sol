@@ -33,7 +33,9 @@ contract FeedRegistry is IFeedRegistry, AccessControlled, TypeAndVersionInterfac
     override
     pure
     virtual
-    returns (string memory)
+    returns (
+      string memory
+    )
   {
     return "FeedRegistry 1.0.0";
   }
@@ -299,7 +301,9 @@ contract FeedRegistry is IFeedRegistry, AccessControlled, TypeAndVersionInterfac
     view
     override
     checkAccess(asset, denomination)
-    returns (int256 answer)
+    returns (
+      int256 answer
+    )
   {
     AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
     return aggregator.latestAnswer();
@@ -325,7 +329,9 @@ contract FeedRegistry is IFeedRegistry, AccessControlled, TypeAndVersionInterfac
     view
     override
     checkAccess(asset, denomination)
-    returns (uint256 timestamp)
+    returns (
+      uint256 timestamp
+    )
   {
     AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
     return aggregator.latestTimestamp();
@@ -873,10 +879,10 @@ contract FeedRegistry is IFeedRegistry, AccessControlled, TypeAndVersionInterfac
   )
     internal
     view
-    returns
-  (
-    uint80 roundId
-  ) {
+    returns (
+      uint80 roundId
+    )
+  {
     if (address(aggregator) == address(0)) return uint80(0);
     return uint80(aggregator.latestRound());
   }
