@@ -5,7 +5,7 @@ import { expect } from "chai";
 import { PairReadAccessController } from "../typechain/PairReadAccessController";
 import { MockConsumer } from "../typechain/MockConsumer";
 import { shouldBehaveLikeAccessControlled } from "./access/AccessControlled.behaviour";
-import { ASSET, DENOMINATION, TEST_ANSWER, PAIR_DATA, TEST_ROUND_DATA } from "./utils/constants";
+import { ASSET, DENOMINATION, TEST_ANSWER, PAIR_DATA } from "./utils/constants";
 import { contract } from "./utils/context";
 import { deployMockAggregator } from "./utils/mocks";
 
