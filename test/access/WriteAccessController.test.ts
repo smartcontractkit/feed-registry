@@ -2,7 +2,7 @@ import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { expect } from "chai";
 import { WriteAccessController } from "../../typechain/WriteAccessController";
-import { shouldBehaveLikeOwned } from "../vendor/Owned.behaviour";
+import { shouldBehaveLikeConfirmedOwner } from "../vendor/ConfirmedOwner.behaviour";
 import { TEST_ADDRESS, EMPTY_BYTES, PAIR_DATA, OTHER_PAIR_DATA } from "../utils/constants";
 import { contract } from "../utils/context";
 
@@ -125,5 +125,5 @@ contract("WriteAccessController", function () {
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(false);
   });
 
-  shouldBehaveLikeOwned();
+  shouldBehaveLikeConfirmedOwner();
 });

@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
-export function shouldBehaveLikeOwned(): void {
-  describe("shouldBehaveLikeOwned", function () {
+export function shouldBehaveLikeConfirmedOwner(): void {
+  describe("shouldBehaveLikeConfirmedOwner", function () {
     it("should assign ownership to the deployer", async function () {
       expect(await this.owned.owner()).to.equal(this.signers.owner.address);
     });

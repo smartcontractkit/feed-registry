@@ -24,6 +24,7 @@ import {
 } from "./utils/constants";
 import { contract } from "./utils/context";
 import { deployMockAggregator } from "./utils/mocks";
+import { shouldBehaveLikeConfirmedOwner } from "./vendor/ConfirmedOwner.behaviour";
 
 const { deployContract } = hre.waffle;
 
@@ -32,6 +33,7 @@ contract("FeedRegistry", function () {
     const FeedRegistryArtifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
     this.registry = <FeedRegistry>await deployContract(this.signers.owner, FeedRegistryArtifact, []);
     this.accessControlled = this.registry;
+    this.owned = this.registry;
 
     this.feed = await deployMockAggregator(this.signers.owner);
     this.otherFeed = await deployMockAggregator(this.signers.owner);
@@ -401,4 +403,5 @@ contract("FeedRegistry", function () {
   });
 
   shouldBehaveLikeAccessControlled();
+  shouldBehaveLikeConfirmedOwner();
 });

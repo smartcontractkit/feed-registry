@@ -3,7 +3,7 @@
 pragma solidity 0.7.6;
 
 import "../vendor/AccessControllerInterface.sol";
-import "../vendor/Owned.sol";
+import "../vendor/ConfirmedOwner.sol";
 
 /**
  * @title WriteAccessController
@@ -11,7 +11,7 @@ import "../vendor/Owned.sol";
  * @dev does not make any special permissions for EOAs, see
  * ReadAccessController for that.
  */
-contract WriteAccessController is AccessControllerInterface, Owned {
+contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.sender) {
   bool public checkEnabled = true;
   mapping(address => bool) internal s_globalAccessList;
   mapping(address => mapping(bytes => bool)) internal s_localAccessList;

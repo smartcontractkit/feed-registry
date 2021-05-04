@@ -4,9 +4,9 @@ pragma solidity 0.7.6;
 
 import "../interfaces/IAccessControlled.sol";
 import "../vendor/AccessControllerInterface.sol";
-import "../vendor/Owned.sol";
+import "../vendor/ConfirmedOwner.sol";
 
-contract AccessControlled is IAccessControlled, Owned {
+contract AccessControlled is IAccessControlled, ConfirmedOwner(msg.sender) {
   AccessControllerInterface internal s_accessController;
 
   function setController(
@@ -20,7 +20,7 @@ contract AccessControlled is IAccessControlled, Owned {
     emit AccessControllerSet(address(_accessController));
   }
 
-  function getController() 
+  function getController()
     public
     view
     override

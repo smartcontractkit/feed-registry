@@ -24,4 +24,4 @@ export const OTHER_ANSWER = utils.parseEther("888888");
 export const OTHER_ROUND = BigNumber.from("123");
 export const OTHER_ROUND_DATA = [OTHER_ROUND, OTHER_ANSWER, TEST_TIMESTAMP, TEST_TIMESTAMP, OTHER_ROUND];
 export const EMPTY_ROUND = [0, 0, 0, 0, 0];
-export const getRoundId = (phase: number, roundId: BigNumber) => PHASE_BASE.mul(phase).add(roundId);
+export const getRoundId = (phase: number, roundId: BigNumber): BigNumber => PHASE_BASE.mul(phase).add(roundId);
