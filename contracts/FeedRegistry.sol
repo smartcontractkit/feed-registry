@@ -741,7 +741,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled, TypeAndVersionInterfac
     AggregatorV2V3Interface currentAggregator = getFeed(asset, denomination);
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
     delete s_proposedAggregators[asset][denomination];
-    uint16 nextPhaseId = currentPhase.id + 1;
+    nextPhaseId = currentPhase.id + 1;
     s_currentPhaseId[asset][denomination] = nextPhaseId;
 
     uint80 previousAggregatorEndingRoundId = _getLatestAggregatorRoundId(currentAggregator);
@@ -803,7 +803,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled, TypeAndVersionInterfac
     Phase memory phase
   )
     internal
-    view
+    pure
     returns (
       uint80 startingRoundId,
       uint80 endingRoundId
@@ -835,7 +835,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled, TypeAndVersionInterfac
     Phase memory phase
   )
     internal
-    view
+    pure
     returns (
       uint80 startingRoundId
     )
@@ -847,7 +847,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled, TypeAndVersionInterfac
     Phase memory phase
   )
     internal
-    view
+    pure
     returns (
       uint80 startingRoundId
     )
@@ -903,13 +903,13 @@ contract FeedRegistry is IFeedRegistry, AccessControlled, TypeAndVersionInterfac
     internal
     view
     returns (
-      Phase memory phase
+      Phase memory
     )
   {
     // Handle case where the round is in current phase
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    (uint80 startingRoundId, uint80 endingRoundId) = _getLatestRoundRange(currentPhase);
-    if (roundId >= startingRoundId && roundId <= endingRoundId) return currentPhase;
+    (uint80 startingCurrentRoundId, uint80 endingCurrentRoundId) = _getLatestRoundRange(currentPhase);
+    if (roundId >= startingCurrentRoundId && roundId <= endingCurrentRoundId) return currentPhase;
 
     // Handle case where the round is in past phases
     for (uint16 phaseId = currentPhase.id - 1; phaseId > 0; phaseId--) {
