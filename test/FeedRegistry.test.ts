@@ -18,6 +18,8 @@ import {
   PHASE_BASE,
   TEST_PROXY_ROUND,
   TEST_PROXY_ROUND_DATA,
+  OTHER_ANSWER,
+  OTHER_TIMESTAMP,
 } from "./utils/constants";
 import { contract } from "./utils/context";
 import { deployMockAggregator } from "./utils/mocks";
@@ -34,10 +36,15 @@ contract("FeedRegistry", function () {
     this.otherFeed = await deployMockAggregator(this.signers.owner);
   });
 
-  it("should initialize correctly", async function () {
-    expect(await this.registry.owner()).to.equal(this.signers.owner.address);
-    const currentPhase = await this.registry.getCurrentPhase(ASSET, DENOMINATION);
-    expect(currentPhase.id).to.equal(0);
+  // TODO: has a limited public interface
+
+  describe("constructor", async function () {
+    it("should initialize correctly", async function () {
+      expect(await this.registry.owner()).to.equal(this.signers.owner.address);
+      const currentPhase = await this.registry.getCurrentPhase(ASSET, DENOMINATION);
+      expect(currentPhase.id).to.equal(0);
+      expect(currentPhase.aggregator).to.equal(ethers.constants.AddressZero);
+    });
   });
 
   it("returns typeAndVersion", async function () {
@@ -96,6 +103,7 @@ contract("FeedRegistry", function () {
       "Invalid proposed aggregator",
     );
   });
+
   it("owner can remove a feed", async function () {
     // Add
     await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
@@ -112,96 +120,128 @@ contract("FeedRegistry", function () {
     expect(isFeedEnabled).to.equal(false);
   });
 
-  it("decimals returns the decimals of a feed", async function () {
-    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.feed.mock.decimals.returns(TEST_DECIMALS); // Mock feed response
+  describe("#decimals", async function () {
+    it("decimals returns the decimals of a feed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.decimals.returns(TEST_DECIMALS); // Mock feed response
 
-    const decimals = await this.registry.decimals(ASSET, DENOMINATION);
-    expect(decimals).to.equal(TEST_DECIMALS);
+      const decimals = await this.registry.decimals(ASSET, DENOMINATION);
+      expect(decimals).to.equal(TEST_DECIMALS);
+    });
+
+    it("decimals should revert for a non-existent feed", async function () {
+      await expect(this.registry.decimals(ASSET, DENOMINATION)).to.be.revertedWith(
+        "function call to a non-contract account",
+      );
+    });
   });
 
-  it("decimals should revert for a non-existent feed", async function () {
-    await expect(this.registry.decimals(ASSET, DENOMINATION)).to.be.revertedWith(
-      "function call to a non-contract account",
-    );
+  describe("#description", async function () {
+    it("description returns the description of a feed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.description.returns(TEST_DESCRIPTION); // Mock feed response
+
+      const description = await this.registry.description(ASSET, DENOMINATION);
+      expect(description).to.equal(TEST_DESCRIPTION);
+    });
+
+    it("description should revert for a non-existent feed", async function () {
+      await expect(this.registry.description(ASSET, DENOMINATION)).to.be.revertedWith(
+        "function call to a non-contract account",
+      );
+    });
   });
 
-  it("description returns the description of a feed", async function () {
-    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.feed.mock.description.returns(TEST_DESCRIPTION); // Mock feed response
+  describe("#version", async function () {
+    it("version returns the version of a feed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.version.returns(TEST_VERSION); // Mock feed response
 
-    const description = await this.registry.description(ASSET, DENOMINATION);
-    expect(description).to.equal(TEST_DESCRIPTION);
+      const version = await this.registry.version(ASSET, DENOMINATION);
+      expect(version).to.equal(TEST_VERSION);
+    });
+
+    it("version should revert for a non-existent feed", async function () {
+      await expect(this.registry.version(ASSET, DENOMINATION)).to.be.revertedWith(
+        "function call to a non-contract account",
+      );
+    });
   });
 
-  it("description should revert for a non-existent feed", async function () {
-    await expect(this.registry.description(ASSET, DENOMINATION)).to.be.revertedWith(
-      "function call to a non-contract account",
-    );
+  describe("#latestAnswer", () => {
+    it("latestAnswer returns the latest answer of a feed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
+
+      const answer = await this.registry.latestAnswer(ASSET, DENOMINATION);
+      expect(answer).to.equal(TEST_ANSWER);
+    });
+
+    it("latestAnswer should use latest aggregator after a phase change", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.otherFeed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.otherFeed.address);
+      await this.otherFeed.mock.latestAnswer.returns(OTHER_ANSWER); // Mock feed response
+
+      const answer = await this.registry.latestAnswer(ASSET, DENOMINATION);
+      expect(answer).to.equal(OTHER_ANSWER);
+    });
+
+    it("latestAnswer should revert for a non-existent feed", async function () {
+      await expect(this.registry.latestAnswer(ASSET, DENOMINATION)).to.be.revertedWith(
+        "function call to a non-contract account",
+      );
+    });
   });
 
-  it("version returns the version of a feed", async function () {
-    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.feed.mock.version.returns(TEST_VERSION); // Mock feed response
+  describe("#latestTimestamp", async function () {
+    it("latestTimestamp returns the latest timestamp of a feed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.latestTimestamp.returns(TEST_TIMESTAMP); // Mock feed response
 
-    const version = await this.registry.version(ASSET, DENOMINATION);
-    expect(version).to.equal(TEST_VERSION);
+      const latestTimestamp = await this.registry.latestTimestamp(ASSET, DENOMINATION);
+      expect(latestTimestamp).to.equal(TEST_TIMESTAMP);
+    });
+
+    it("latestTimestamp should use latest aggregator after a phase change", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.otherFeed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.otherFeed.address);
+      await this.otherFeed.mock.latestTimestamp.returns(OTHER_TIMESTAMP); // Mock feed response
+
+      const answer = await this.registry.latestTimestamp(ASSET, DENOMINATION);
+      expect(answer).to.equal(OTHER_TIMESTAMP);
+    });
+
+    it("latestTimestamp should revert for a non-existent feed", async function () {
+      await expect(this.registry.latestTimestamp(ASSET, DENOMINATION)).to.be.revertedWith(
+        "function call to a non-contract account",
+      );
+    });
   });
 
-  it("version should revert for a non-existent feed", async function () {
-    await expect(this.registry.version(ASSET, DENOMINATION)).to.be.revertedWith(
-      "function call to a non-contract account",
-    );
-  });
+  describe("#latestRound", async function () {
+    it("latestRound returns the latest round of a feed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.latestRound.returns(TEST_ROUND); // Mock feed response
 
-  it("latestAnswer returns the latest answer of a feed", async function () {
-    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.feed.mock.latestAnswer.returns(TEST_ANSWER); // Mock feed response
+      const latestRound = await this.registry.latestRound(ASSET, DENOMINATION);
+      expect(latestRound).to.equal(PHASE_BASE.add(TEST_ROUND));
+    });
 
-    const answer = await this.registry.latestAnswer(ASSET, DENOMINATION);
-    expect(answer).to.equal(TEST_ANSWER);
-  });
-
-  // TODO: latestAnswer should work after a phase change
-
-  it("latestAnswer should revert for a non-existent feed", async function () {
-    await expect(this.registry.latestAnswer(ASSET, DENOMINATION)).to.be.revertedWith(
-      "function call to a non-contract account",
-    );
-  });
-
-  it("latestTimestamp returns the latest timestamp of a feed", async function () {
-    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.feed.mock.latestTimestamp.returns(TEST_TIMESTAMP); // Mock feed response
-
-    const latestTimestamp = await this.registry.latestTimestamp(ASSET, DENOMINATION);
-    expect(latestTimestamp).to.equal(TEST_TIMESTAMP);
-  });
-
-  it("latestTimestamp should revert for a non-existent feed", async function () {
-    await expect(this.registry.latestTimestamp(ASSET, DENOMINATION)).to.be.revertedWith(
-      "function call to a non-contract account",
-    );
-  });
-
-  it("latestRound returns the latest round of a feed", async function () {
-    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.feed.mock.latestRound.returns(TEST_ROUND); // Mock feed response
-
-    const latestRound = await this.registry.latestRound(ASSET, DENOMINATION);
-    expect(latestRound).to.equal(PHASE_BASE.add(TEST_ROUND));
-  });
-
-  it("latestRound should revert for a non-existent feed", async function () {
-    await expect(this.registry.latestRound(ASSET, DENOMINATION)).to.be.revertedWith(
-      "function call to a non-contract account",
-    );
+    it("latestRound should revert for a non-existent feed", async function () {
+      await expect(this.registry.latestRound(ASSET, DENOMINATION)).to.be.revertedWith(
+        "function call to a non-contract account",
+      );
+    });
   });
 
   it("getAnswer returns the answer of a round", async function () {
