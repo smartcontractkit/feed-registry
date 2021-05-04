@@ -20,7 +20,7 @@ import {
   TEST_PROXY_ROUND_DATA,
   OTHER_ANSWER,
   OTHER_TIMESTAMP,
-  EMPTY_ROUND,
+  getRoundId,
 } from "./utils/constants";
 import { contract } from "./utils/context";
 import { deployMockAggregator } from "./utils/mocks";
@@ -36,8 +36,6 @@ contract("FeedRegistry", function () {
     this.feed = await deployMockAggregator(this.signers.owner);
     this.otherFeed = await deployMockAggregator(this.signers.owner);
   });
-
-  // TODO: has a limited public interface
 
   describe("constructor", async function () {
     it("should initialize correctly", async function () {
@@ -259,16 +257,16 @@ contract("FeedRegistry", function () {
       expect(answer).to.equal(TEST_ANSWER);
     });
 
-    // TODO
-    // it("getAnswer should work after a phase change", async function () {
-    //   await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
-    //   await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
-    //   await this.registry.proposeFeed(ASSET, DENOMINATION, this.otherFeed.address);
-    //   await this.registry.confirmFeed(ASSET, DENOMINATION, this.otherFeed.address);
+    it("getAnswer should work after a phase change", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.getAnswer.withArgs(TEST_ROUND).returns(TEST_ANSWER); // Mock feed response
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.otherFeed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.otherFeed.address);
 
-    //   const answer = await this.registry.latestTimestamp(ASSET, DENOMINATION);
-    //   expect(answer).to.equal(OTHER_TIMESTAMP);
-    // });
+      const answer = await this.registry.getAnswer(ASSET, DENOMINATION, getRoundId(1, TEST_ROUND));
+      expect(answer).to.equal(TEST_ANSWER);
+    });
 
     it("getAnswer does not revert when called with a non existent round ID", async function () {
       expect(await this.registry.getAnswer(ASSET, DENOMINATION, TEST_ROUND)).to.equal(0);
@@ -281,7 +279,6 @@ contract("FeedRegistry", function () {
     });
   });
 
-  // TODO: port getTimestamp and more test cases
   describe("#getTimestamp", async function () {
     beforeEach(async function () {
       await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);

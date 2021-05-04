@@ -2,7 +2,7 @@ import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { FeedRegistry } from "../typechain/FeedRegistry";
 import { expect } from "chai";
-import { ASSET, DENOMINATION, PHASE_BASE } from "./utils/constants";
+import { ASSET, DENOMINATION, getRoundId } from "./utils/constants";
 import { contract } from "./utils/context";
 import { BigNumber, ethers } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
@@ -12,7 +12,6 @@ const { deployContract } = hre.waffle;
 const PHASE_ONE = 1;
 const PHASE_TWO = 2;
 const PHASE_THREE = 3;
-const getRoundId = (phase: number, roundId: BigNumber) => PHASE_BASE.mul(phase).add(roundId);
 
 contract("FeedRegistry Phases", function () {
   beforeEach(async function () {
