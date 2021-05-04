@@ -88,29 +88,3 @@ Delete the smart contract artifacts, the coverage reports and the Hardhat cache:
 ```sh
 $ yarn clean
 ```
-
-### OVM Support
-
-```sh
-yarn compile:ovm
-yarn test:ovm
-yarn deploy:ovm
-```
-
-You will also need to [run an Optimistic Ethereum node locally](https://github.com/ethereum-optimism/optimism-tutorial#testing-an-optimistic-ethereum-contract).
-
-```sh
-git clone git@github.com:ethereum-optimism/optimism-integration.git --recurse-submodules
-cd optimism-integration
-
-// Make sure docker is up and running
-./pull.sh
-./up.sh
-```
-
-Then, set the node url in your `.env` file:
-
-```
-...
-L2_NODE_URL=http://localhost:8545
-```

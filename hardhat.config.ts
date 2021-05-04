@@ -3,7 +3,6 @@ import "hardhat-typechain";
 import "hardhat-deploy";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
-import "@eth-optimism/plugins/hardhat/compiler";
 
 import "./tasks/accounts";
 import "./tasks/clean";
@@ -43,13 +42,6 @@ const config: HardhatUserConfig = {
       accounts,
       chainId: 42,
     },
-    optimism: {
-      url: process.env.L2_NODE_URL || "http://localhost:8545", // or set L2_NODE_URL=https://kovan.optimism.io
-      accounts,
-      gasPrice: 0,
-      gas: 9000000,
-      ovm: true,
-    },
   },
   namedAccounts: {
     deployer: 0,
@@ -70,9 +62,6 @@ const config: HardhatUserConfig = {
         runs: 200,
       },
     },
-  },
-  ovm: {
-    solcVersion: "0.7.6",
   },
   typechain: {
     outDir: "typechain",
