@@ -23,3 +23,4 @@ export const OTHER_TIMESTAMP = BigNumber.from("987654321");
 export const OTHER_ANSWER = utils.parseEther("888888");
 export const OTHER_ROUND = BigNumber.from("123");
 export const OTHER_ROUND_DATA = [OTHER_ROUND, OTHER_ANSWER, TEST_TIMESTAMP, TEST_TIMESTAMP, OTHER_ROUND];
+export const EMPTY_ROUND = [0, 0, 0, 0, 0];

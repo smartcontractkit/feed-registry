@@ -20,6 +20,7 @@ import {
   TEST_PROXY_ROUND_DATA,
   OTHER_ANSWER,
   OTHER_TIMESTAMP,
+  EMPTY_ROUND,
 } from "./utils/constants";
 import { contract } from "./utils/context";
 import { deployMockAggregator } from "./utils/mocks";
@@ -51,73 +52,77 @@ contract("FeedRegistry", function () {
     expect(await this.registry.typeAndVersion()).to.equal("FeedRegistry 1.0.0");
   });
 
-  it("owner can propose a feed", async function () {
-    await expect(this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address))
-      .to.emit(this.registry, "FeedProposed")
-      .withArgs(ASSET, DENOMINATION, this.feed.address, ethers.constants.AddressZero);
-    expect(await this.registry.getProposedFeed(ASSET, DENOMINATION)).to.equal(this.feed.address);
+  describe("#proposeFeed", async function () {
+    it("owner can propose a feed", async function () {
+      await expect(this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address))
+        .to.emit(this.registry, "FeedProposed")
+        .withArgs(ASSET, DENOMINATION, this.feed.address, ethers.constants.AddressZero);
+      expect(await this.registry.getProposedFeed(ASSET, DENOMINATION)).to.equal(this.feed.address);
+    });
+
+    it("non-owners cannot propose a feed", async function () {
+      await expect(
+        this.registry.connect(this.signers.other).proposeFeed(ASSET, DENOMINATION, this.feed.address),
+      ).to.be.revertedWith("Only callable by owner");
+    });
   });
 
-  it("non-owners cannot propose a feed", async function () {
-    await expect(
-      this.registry.connect(this.signers.other).proposeFeed(ASSET, DENOMINATION, this.feed.address),
-    ).to.be.revertedWith("Only callable by owner");
-  });
+  describe("#confirmFeed", async function () {
+    it("owner can confirm a feed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
 
-  it("owner can confirm a feed", async function () {
-    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      const currentPhase = await this.registry.getCurrentPhase(ASSET, DENOMINATION);
+      await expect(this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address))
+        .to.emit(this.registry, "FeedConfirmed")
+        .withArgs(ASSET, DENOMINATION, this.feed.address, ethers.constants.AddressZero, currentPhase.id + 1);
 
-    const currentPhase = await this.registry.getCurrentPhase(ASSET, DENOMINATION);
-    await expect(this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address))
-      .to.emit(this.registry, "FeedConfirmed")
-      .withArgs(ASSET, DENOMINATION, this.feed.address, ethers.constants.AddressZero, currentPhase.id + 1);
+      const feed = await this.registry.getFeed(ASSET, DENOMINATION);
+      expect(feed).to.equal(this.feed.address);
 
-    const feed = await this.registry.getFeed(ASSET, DENOMINATION);
-    expect(feed).to.equal(this.feed.address);
+      const isFeedEnabled = await this.registry.isFeedEnabled(feed);
+      expect(isFeedEnabled);
 
-    const isFeedEnabled = await this.registry.isFeedEnabled(feed);
-    expect(isFeedEnabled);
+      const newPhase = await this.registry.getCurrentPhase(ASSET, DENOMINATION);
+      expect(newPhase.id).to.equal(currentPhase.id + 1);
+      expect(newPhase.aggregator).to.equal(this.feed.address);
+      expect(newPhase.startingAggregatorRoundId).to.equal(await this.feed.latestRound());
+      expect(newPhase.endingAggregatorRoundId).to.equal(0);
+    });
 
-    const newPhase = await this.registry.getCurrentPhase(ASSET, DENOMINATION);
-    expect(newPhase.id).to.equal(currentPhase.id + 1);
-    expect(newPhase.aggregator).to.equal(this.feed.address);
-    expect(newPhase.startingAggregatorRoundId).to.equal(await this.feed.latestRound());
-    expect(newPhase.endingAggregatorRoundId).to.equal(0);
-  });
+    it("non-owners cannot confirm a feed", async function () {
+      await expect(
+        this.registry.connect(this.signers.other).confirmFeed(ASSET, DENOMINATION, this.feed.address),
+      ).to.be.revertedWith("Only callable by owner");
+    });
 
-  it("non-owners cannot confirm a feed", async function () {
-    await expect(
-      this.registry.connect(this.signers.other).confirmFeed(ASSET, DENOMINATION, this.feed.address),
-    ).to.be.revertedWith("Only callable by owner");
-  });
+    it("owner cannot confirm a feed without proposing first", async function () {
+      await expect(this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address)).to.be.revertedWith(
+        "Invalid proposed aggregator",
+      );
+    });
 
-  it("owner cannot confirm a feed without proposing first", async function () {
-    await expect(this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address)).to.be.revertedWith(
-      "Invalid proposed aggregator",
-    );
-  });
+    it("owner cannot confirm a different feed than what is proposed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await expect(this.registry.confirmFeed(ASSET, DENOMINATION, TEST_ADDRESS)).to.be.revertedWith(
+        "Invalid proposed aggregator",
+      );
+    });
 
-  it("owner cannot confirm a different feed than what is proposed", async function () {
-    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
-    await expect(this.registry.confirmFeed(ASSET, DENOMINATION, TEST_ADDRESS)).to.be.revertedWith(
-      "Invalid proposed aggregator",
-    );
-  });
+    it("owner can remove a feed", async function () {
+      // Add
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
 
-  it("owner can remove a feed", async function () {
-    // Add
-    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      // Remove
+      await this.registry.proposeFeed(ASSET, DENOMINATION, ethers.constants.AddressZero);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, ethers.constants.AddressZero);
 
-    // Remove
-    await this.registry.proposeFeed(ASSET, DENOMINATION, ethers.constants.AddressZero);
-    await this.registry.confirmFeed(ASSET, DENOMINATION, ethers.constants.AddressZero);
+      const feed = await this.registry.getFeed(ASSET, DENOMINATION);
+      expect(feed).to.equal(ethers.constants.AddressZero);
 
-    const feed = await this.registry.getFeed(ASSET, DENOMINATION);
-    expect(feed).to.equal(ethers.constants.AddressZero);
-
-    const isFeedEnabled = await this.registry.isFeedEnabled(this.feed.address);
-    expect(isFeedEnabled).to.equal(false);
+      const isFeedEnabled = await this.registry.isFeedEnabled(this.feed.address);
+      expect(isFeedEnabled).to.equal(false);
+    });
   });
 
   describe("#decimals", async function () {
@@ -277,50 +282,126 @@ contract("FeedRegistry", function () {
   });
 
   // TODO: port getTimestamp and more test cases
-  it("getTimestamp returns the timestamp of a round", async function () {
-    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.feed.mock.getTimestamp.withArgs(TEST_ROUND).returns(TEST_TIMESTAMP); // Mock feed response
+  describe("#getTimestamp", async function () {
+    beforeEach(async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.getTimestamp.withArgs(TEST_ROUND).returns(TEST_TIMESTAMP); // Mock feed response
+    });
 
-    const timestamp = await this.registry.getTimestamp(ASSET, DENOMINATION, PHASE_BASE.add(TEST_ROUND));
-    expect(timestamp).to.equal(TEST_TIMESTAMP);
+    it("getTimestamp returns the timestamp of a round", async function () {
+      const timestamp = await this.registry.getTimestamp(ASSET, DENOMINATION, PHASE_BASE.add(TEST_ROUND));
+      expect(timestamp).to.equal(TEST_TIMESTAMP);
+    });
+
+    it("getTimestamp should not revert when called with a non existent ID", async function () {
+      expect(await this.registry.getTimestamp(ASSET, DENOMINATION, TEST_ROUND)).to.equal(0);
+    });
+
+    it("getTimestamp returns 0 when round ID is too large", async function () {
+      expect(
+        await this.registry.getTimestamp(ASSET, DENOMINATION, BigNumber.from(2).pow(255).add(PHASE_BASE).add(1)),
+      ).to.equal(0);
+    });
   });
 
-  it("getTimestamp should not revert when called with a non existent ID", async function () {
-    expect(await this.registry.getTimestamp(ASSET, DENOMINATION, TEST_ROUND)).to.equal(0);
+  describe("#latestRoundData", async function () {
+    it("latestRoundData returns the latest round data of a feed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.latestRoundData.returns(...TEST_ROUND_DATA); // Mock feed response
+
+      const roundData = await this.registry.latestRoundData(ASSET, DENOMINATION);
+      expect(roundData).to.eql(TEST_PROXY_ROUND_DATA);
+    });
+
+    it("latestRoundData should revert for a non-existent feed", async function () {
+      await expect(this.registry.latestRoundData(ASSET, DENOMINATION)).to.be.revertedWith(
+        "function call to a non-contract account",
+      );
+    });
   });
 
-  it("latestRoundData returns the latest round data of a feed", async function () {
-    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.feed.mock.latestRoundData.returns(...TEST_ROUND_DATA); // Mock feed response
+  describe("#getRoundData", async function () {
+    it("getRoundData returns the latest round data of a feed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.getRoundData.withArgs(TEST_ROUND).returns(...TEST_ROUND_DATA); // Mock feed response
 
-    const roundData = await this.registry.latestRoundData(ASSET, DENOMINATION);
-    expect(roundData).to.eql(TEST_PROXY_ROUND_DATA);
+      const roundData = await this.registry.getRoundData(ASSET, DENOMINATION, TEST_PROXY_ROUND);
+      expect(roundData).to.eql(TEST_PROXY_ROUND_DATA);
+    });
+
+    it("getRoundData should revert for a non-existent feed", async function () {
+      await expect(this.registry.getRoundData(ASSET, DENOMINATION, TEST_ROUND)).to.be.revertedWith(
+        "function call to a non-contract account",
+      );
+    });
   });
 
-  it("latestRoundData should revert for a non-existent feed", async function () {
-    await expect(this.registry.latestRoundData(ASSET, DENOMINATION)).to.be.revertedWith(
-      "function call to a non-contract account",
-    );
+  describe("#proposedLatestRoundData", async function () {
+    it("proposedLatestRoundData returns the latest round data of a proposed feed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.latestRoundData.returns(...TEST_ROUND_DATA); // Mock feed response
+
+      const proposedRoundData = await this.registry.proposedLatestRoundData(ASSET, DENOMINATION);
+      expect(proposedRoundData).to.eql(TEST_ROUND_DATA);
+
+      await expect(this.registry.latestRoundData(ASSET, DENOMINATION)).to.be.revertedWith(
+        "function call to a non-contract account",
+      );
+    });
+
+    it("proposedLatestRoundData should revert after a feed is confirmed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.latestRoundData.returns(...TEST_ROUND_DATA); // Mock feed response
+
+      await expect(this.registry.proposedLatestRoundData(ASSET, DENOMINATION)).to.be.revertedWith(
+        "No proposed aggregator present",
+      );
+    });
+
+    it("proposedLatestRoundData should revert when there is no proposed aggregator", async function () {
+      await this.feed.mock.latestRoundData.returns(...TEST_ROUND_DATA); // Mock feed response
+
+      await expect(this.registry.proposedLatestRoundData(ASSET, DENOMINATION)).to.be.revertedWith(
+        "No proposed aggregator present",
+      );
+    });
   });
 
-  it("getRoundData returns the latest round data of a feed", async function () {
-    await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
-    await this.feed.mock.getRoundData.withArgs(TEST_ROUND).returns(...TEST_ROUND_DATA); // Mock feed response
+  describe("#proposedGetRoundData", async function () {
+    it("proposedGetRoundData returns the latest round data of a proposed feed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.getRoundData.returns(...TEST_ROUND_DATA); // Mock feed response
 
-    const roundData = await this.registry.getRoundData(ASSET, DENOMINATION, TEST_PROXY_ROUND);
-    expect(roundData).to.eql(TEST_PROXY_ROUND_DATA);
+      const proposedRoundData = await this.registry.proposedGetRoundData(ASSET, DENOMINATION, TEST_ROUND);
+      expect(proposedRoundData).to.eql(TEST_ROUND_DATA);
+
+      await expect(this.registry.getRoundData(ASSET, DENOMINATION, TEST_ROUND)).to.be.revertedWith(
+        "function call to a non-contract account",
+      );
+    });
+
+    it("proposedGetRoundData should revert after a feed is confirmed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.getRoundData.returns(...TEST_ROUND_DATA); // Mock feed response
+
+      await expect(this.registry.proposedGetRoundData(ASSET, DENOMINATION, TEST_ROUND)).to.be.revertedWith(
+        "No proposed aggregator present",
+      );
+    });
+
+    it("proposedGetRoundData should revert when there is no proposed aggregator", async function () {
+      await this.feed.mock.getRoundData.returns(...TEST_ROUND_DATA); // Mock feed response
+
+      await expect(this.registry.proposedGetRoundData(ASSET, DENOMINATION, TEST_ROUND)).to.be.revertedWith(
+        "No proposed aggregator present",
+      );
+    });
   });
-
-  it("getRoundData should revert for a non-existent feed", async function () {
-    await expect(this.registry.getRoundData(ASSET, DENOMINATION, TEST_ROUND)).to.be.revertedWith(
-      "function call to a non-contract account",
-    );
-  });
-
-  // TODO: more test cases from https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/test/v0.7/AggregatorProxy.test.ts
 
   shouldBehaveLikeAccessControlled();
 });
