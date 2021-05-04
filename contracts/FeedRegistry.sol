@@ -7,7 +7,6 @@ import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./access/AccessControlled.sol";
 import "./interfaces/IFeedRegistry.sol";
 import "./interfaces/TypeAndVersionInterface.sol";
-import "./libraries/Denominations.sol";
 
 /**
   * @notice An on-chain registry of assets to aggregators.
@@ -38,395 +37,6 @@ contract FeedRegistry is IFeedRegistry, AccessControlled, TypeAndVersionInterfac
     )
   {
     return "FeedRegistry 1.0.0";
-  }
-
-  /**
-   * @notice Allows the owner to propose a new address for the aggregator
-   * @param asset asset address
-   * @param denomination denomination address
-   * @param aggregator The new aggregator contract address
-   */
-  function proposeFeed(
-    address asset,
-    address denomination,
-    address aggregator
-  )
-    external
-    override
-    onlyOwner()
-  {
-    Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    s_proposedAggregators[asset][denomination] = AggregatorV2V3Interface(aggregator);
-    emit FeedProposed(asset, denomination, aggregator, address(currentPhase.aggregator));
-  }
-
-  /**
-   * @notice Allows the owner to confirm and change the address
-   * to the proposed aggregator
-   * @dev Reverts if the given address doesn't match what was previously
-   * proposed
-   * @param asset asset address
-   * @param denomination denomination address
-   * @param aggregator The new aggregator contract address
-   */
-  function confirmFeed(
-    address asset,
-    address denomination,
-    address aggregator
-  )
-    external
-    override
-    onlyOwner()
-  {
-    require(aggregator == address(s_proposedAggregators[asset][denomination]), "Invalid proposed aggregator");
-    (uint16 nextPhaseId, address previousAggregator) = _setFeed(asset, denomination, aggregator);
-    s_isAggregatorEnabled[aggregator] = true;
-    s_isAggregatorEnabled[previousAggregator] = false;
-    emit FeedConfirmed(asset, denomination, aggregator, previousAggregator, nextPhaseId);
-  }
-
-  /**
-   * @notice retrieve the aggregator of an asset / denomination pair in the current phase
-   * @param asset asset address
-   * @param denomination denomination address
-   * @return aggregator
-   */
-  function getFeed(
-    address asset,
-    address denomination
-  )
-    public
-    view
-    override
-    returns (
-      AggregatorV2V3Interface aggregator
-    )
-  {
-    Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    return currentPhase.aggregator;
-  }
-
-  /**
-   * @notice retrieve the aggregator of an asset / denomination pair at a specific phase
-   * @param asset asset address
-   * @param denomination denomination address
-   * @param phaseId phase ID
-   * @return aggregator
-   */
-  function getPhaseFeed(
-    address asset,
-    address denomination,
-    uint16 phaseId
-  )
-    public
-    view
-    override
-    returns (
-      AggregatorV2V3Interface aggregator
-    )
-  {
-    return AggregatorV2V3Interface(s_phases[asset][denomination][phaseId].aggregator);
-  }
-
-  /**
-   * @notice returns true if a aggregator is enabled for any pair
-   * @param aggregator aggregator address
-   */
-  function isFeedEnabled(
-    address aggregator
-  )
-    public
-    view
-    override
-    returns (
-      bool
-    )
-  {
-    return s_isAggregatorEnabled[aggregator];
-  }
-
-  /**
-   * @notice returns a feed's current phase
-   * @param asset asset address
-   * @param denomination denomination address
-   * @return currentPhase is the feed's current phase
-   */
-  function getCurrentPhase(
-    address asset,
-    address denomination
-  )
-    public
-    view
-    override
-    returns (
-      Phase memory currentPhase
-    )
-  {
-    uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
-    return s_phases[asset][denomination][currentPhaseId];
-  }
-
-  /**
-   * @notice returns specified phase by id
-   * @param asset asset address
-   * @param denomination denomination address
-   * @param phaseId phase id
-   * @return phase
-   */
-  function getPhase(
-    address asset,
-    address denomination,
-    uint16 phaseId
-  )
-    public
-    view
-    override
-    returns (
-      Phase memory phase
-    )
-  {
-    return s_phases[asset][denomination][phaseId];
-  }
-
-  /**
-   * @notice retrieve the aggregator of an asset / denomination pair at a specific round id
-   * @param asset asset address
-   * @param denomination denomination address
-   * @param roundId the proxy round id
-   */
-  function getRoundFeed(
-    address asset,
-    address denomination,
-    uint80 roundId
-  )
-    public
-    view
-    override
-    returns (
-      AggregatorV2V3Interface aggregator
-    )
-  {
-    return _getPhaseByRound(asset, denomination, roundId).aggregator;
-  }
-
-  /**
-   * @notice return the previous round id of a given round
-   * @param asset asset address
-   * @param denomination denomination address
-   * @param roundId the round id number to retrieve the updated timestamp for
-   * @dev Note that this is not the aggregator round id, but the proxy round id
-   * To get full ranges of round ids of different phases, use getRoundRange()
-   * @return previousRoundId
-   */
-  function getPreviousRoundId(
-    address asset,
-    address denomination,
-    uint80 roundId
-  ) external
-    view
-    override
-    returns (
-      uint80 previousRoundId
-    )
-  {
-    Phase memory phase = _getPhaseByRound(asset, denomination, roundId);
-    return _getPreviousRoundId(asset, denomination, phase.id, roundId);
-  }
-
-  /**
-   * @notice return the next round id of a given round
-   * @param asset asset address
-   * @param denomination denomination address
-   * @param roundId the round id number to retrieve the updated timestamp for
-   * @dev Note that this is not the aggregator round id, but the proxy round id
-   * To get full ranges of round ids of different phases, use getRoundRange()
-   * @return nextRoundId
-   */
-  function getNextRoundId(
-    address asset,
-    address denomination,
-    uint80 roundId
-  ) external
-    view
-    override
-    returns (
-      uint80 nextRoundId
-    )
-  {
-    Phase memory phase = _getPhaseByRound(asset, denomination, roundId);
-    return _getNextRoundId(asset, denomination, phase.id, roundId);
-  }
-
-  /**
-   * @notice returns the range of proxy round ids of a phase
-   * @param asset asset address
-   * @param denomination denomination address
-   * @param phaseId phase id
-   * @return startingRoundId
-   * @return endingRoundId
-   */
-  function getRoundRange(
-    address asset,
-    address denomination,
-    uint16 phaseId
-  )
-    public
-    view
-    override
-    returns (
-      uint80 startingRoundId,
-      uint80 endingRoundId
-    )
-  {
-    Phase memory phase = s_phases[asset][denomination][phaseId];
-    Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    if (phase.id == currentPhase.id) return _getLatestRoundRange(currentPhase);
-    return _getRoundRange(phase);
-  }
-
-  /**
-   * @notice Reads the current answer for an asset / denomination pair's aggregator.
-   * @param asset asset address
-   * @param denomination denomination address
-   * @notice We advise to use latestRoundData() instead because it returns more in-depth information.
-   * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
-   * an already answered Aggregator or use the recommended latestRoundData
-   * instead which includes better verification information.
-   */
-  function latestAnswer(
-    address asset,
-    address denomination
-  )
-    external
-    view
-    override
-    checkAccess(asset, denomination)
-    returns (
-      int256 answer
-    )
-  {
-    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
-    return aggregator.latestAnswer();
-  }
-
-  /**
-   * @notice get the latest completed round where the answer was updated. This
-   * @param asset asset address
-   * @param denomination denomination address
-   * ID includes the proxy's phase, to make sure round IDs increase even when
-   * switching to a newly deployed aggregator.
-   *
-   * @notice We advise to use latestRoundData() instead because it returns more in-depth information.
-   * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
-   * an already answered Aggregator or use the recommended latestRoundData
-   * instead which includes better verification information.
-   */
-  function latestTimestamp(
-    address asset,
-    address denomination
-  )
-    external
-    view
-    override
-    checkAccess(asset, denomination)
-    returns (
-      uint256 timestamp
-    )
-  {
-    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
-    return aggregator.latestTimestamp();
-  }
-
-  /**
-   * @notice get the latest completed round where the answer was updated
-   * @param asset asset address
-   * @param denomination denomination address
-   * @dev overridden function to add the checkAccess() modifier
-   *
-   * @notice We advise to use latestRoundData() instead because it returns more in-depth information.
-   * @dev Use latestRoundData instead. This does not error if no
-   * answer has been reached, it will simply return 0. Either wait to point to
-   * an already answered Aggregator or use the recommended latestRoundData
-   * instead which includes better verification information.
-   */
-  function latestRound(
-    address asset,
-    address denomination
-  )
-    external
-    view
-    override
-    checkAccess(asset, denomination)
-    returns (
-      uint256 roundId
-    )
-  {
-    Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    return addPhase(currentPhase.id, uint64(currentPhase.aggregator.latestRound()));
-  }
-
-  /**
-   * @notice get past rounds answers
-   * @param asset asset address
-   * @param denomination denomination address
-   * @param roundId the proxy round id number to retrieve the answer for
-   * @dev overridden function to add the checkAccess() modifier
-   *
-   * @notice We advise to use getRoundData() instead because it returns more in-depth information.
-   * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
-   * an already answered Aggregator or use the recommended getRoundData
-   * instead which includes better verification information.
-   */
-  function getAnswer(
-    address asset,
-    address denomination,
-    uint256 roundId
-  )
-    external
-    view
-    override
-    checkAccess(asset, denomination)
-    returns (
-      int256 answer
-    )
-  {
-    if (roundId > MAX_ID) return 0;
-    (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(roundId);
-    AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
-    if (address(aggregator) == address(0)) return 0;
-    return aggregator.getAnswer(aggregatorRoundId);
-  }
-
-  /**
-   * @notice get block timestamp when an answer was last updated
-   * @param asset asset address
-   * @param denomination denomination address
-   * @param roundId the proxy round id number to retrieve the updated timestamp for
-   * @dev overridden function to add the checkAccess() modifier
-   *
-   * @notice We advise to use getRoundData() instead because it returns more in-depth information.
-   * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
-   * an already answered Aggregator or use the recommended getRoundData
-   * instead which includes better verification information.
-   */
-  function getTimestamp(
-    address asset,
-    address denomination,
-    uint256 roundId
-  )
-    external
-    view
-    override
-    checkAccess(asset, denomination)
-    returns (
-      uint256 timestamp
-    )
-  {
-    if (roundId > MAX_ID) return 0;
-    (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(roundId);
-    AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
-    if (address(aggregator) == address(0)) return 0;
-    return aggregator.getTimestamp(aggregatorRoundId);
   }
 
   /**
@@ -587,6 +197,397 @@ contract FeedRegistry is IFeedRegistry, AccessControlled, TypeAndVersionInterfac
       answeredInRound
     ) = aggregator.getRoundData(aggregatorRoundId);
     return addPhaseIds(roundId, answer, startedAt, updatedAt, answeredInRound, phaseId);
+  }
+
+
+  /**
+   * @notice Reads the current answer for an asset / denomination pair's aggregator.
+   * @param asset asset address
+   * @param denomination denomination address
+   * @notice We advise to use latestRoundData() instead because it returns more in-depth information.
+   * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
+   * an already answered Aggregator or use the recommended latestRoundData
+   * instead which includes better verification information.
+   */
+  function latestAnswer(
+    address asset,
+    address denomination
+  )
+    external
+    view
+    override
+    checkAccess(asset, denomination)
+    returns (
+      int256 answer
+    )
+  {
+    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
+    return aggregator.latestAnswer();
+  }
+
+  /**
+   * @notice get the latest completed round where the answer was updated. This
+   * @param asset asset address
+   * @param denomination denomination address
+   * ID includes the proxy's phase, to make sure round IDs increase even when
+   * switching to a newly deployed aggregator.
+   *
+   * @notice We advise to use latestRoundData() instead because it returns more in-depth information.
+   * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
+   * an already answered Aggregator or use the recommended latestRoundData
+   * instead which includes better verification information.
+   */
+  function latestTimestamp(
+    address asset,
+    address denomination
+  )
+    external
+    view
+    override
+    checkAccess(asset, denomination)
+    returns (
+      uint256 timestamp
+    )
+  {
+    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
+    return aggregator.latestTimestamp();
+  }
+
+  /**
+   * @notice get the latest completed round where the answer was updated
+   * @param asset asset address
+   * @param denomination denomination address
+   * @dev overridden function to add the checkAccess() modifier
+   *
+   * @notice We advise to use latestRoundData() instead because it returns more in-depth information.
+   * @dev Use latestRoundData instead. This does not error if no
+   * answer has been reached, it will simply return 0. Either wait to point to
+   * an already answered Aggregator or use the recommended latestRoundData
+   * instead which includes better verification information.
+   */
+  function latestRound(
+    address asset,
+    address denomination
+  )
+    external
+    view
+    override
+    checkAccess(asset, denomination)
+    returns (
+      uint256 roundId
+    )
+  {
+    Phase memory currentPhase = getCurrentPhase(asset, denomination);
+    return addPhase(currentPhase.id, uint64(currentPhase.aggregator.latestRound()));
+  }
+
+  /**
+   * @notice get past rounds answers
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param roundId the proxy round id number to retrieve the answer for
+   * @dev overridden function to add the checkAccess() modifier
+   *
+   * @notice We advise to use getRoundData() instead because it returns more in-depth information.
+   * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
+   * an already answered Aggregator or use the recommended getRoundData
+   * instead which includes better verification information.
+   */
+  function getAnswer(
+    address asset,
+    address denomination,
+    uint256 roundId
+  )
+    external
+    view
+    override
+    checkAccess(asset, denomination)
+    returns (
+      int256 answer
+    )
+  {
+    if (roundId > MAX_ID) return 0;
+    (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(roundId);
+    AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
+    if (address(aggregator) == address(0)) return 0;
+    return aggregator.getAnswer(aggregatorRoundId);
+  }
+
+  /**
+   * @notice get block timestamp when an answer was last updated
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param roundId the proxy round id number to retrieve the updated timestamp for
+   * @dev overridden function to add the checkAccess() modifier
+   *
+   * @notice We advise to use getRoundData() instead because it returns more in-depth information.
+   * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
+   * an already answered Aggregator or use the recommended getRoundData
+   * instead which includes better verification information.
+   */
+  function getTimestamp(
+    address asset,
+    address denomination,
+    uint256 roundId
+  )
+    external
+    view
+    override
+    checkAccess(asset, denomination)
+    returns (
+      uint256 timestamp
+    )
+  {
+    if (roundId > MAX_ID) return 0;
+    (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(roundId);
+    AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
+    if (address(aggregator) == address(0)) return 0;
+    return aggregator.getTimestamp(aggregatorRoundId);
+  }
+
+
+  /**
+   * @notice retrieve the aggregator of an asset / denomination pair in the current phase
+   * @param asset asset address
+   * @param denomination denomination address
+   * @return aggregator
+   */
+  function getFeed(
+    address asset,
+    address denomination
+  )
+    public
+    view
+    override
+    returns (
+      AggregatorV2V3Interface aggregator
+    )
+  {
+    Phase memory currentPhase = getCurrentPhase(asset, denomination);
+    return currentPhase.aggregator;
+  }
+
+  /**
+   * @notice retrieve the aggregator of an asset / denomination pair at a specific phase
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param phaseId phase ID
+   * @return aggregator
+   */
+  function getPhaseFeed(
+    address asset,
+    address denomination,
+    uint16 phaseId
+  )
+    public
+    view
+    override
+    returns (
+      AggregatorV2V3Interface aggregator
+    )
+  {
+    return AggregatorV2V3Interface(s_phases[asset][denomination][phaseId].aggregator);
+  }
+
+  /**
+   * @notice returns true if a aggregator is enabled for any pair
+   * @param aggregator aggregator address
+   */
+  function isFeedEnabled(
+    address aggregator
+  )
+    public
+    view
+    override
+    returns (
+      bool
+    )
+  {
+    return s_isAggregatorEnabled[aggregator];
+  }
+
+  /**
+   * @notice returns a feed's current phase
+   * @param asset asset address
+   * @param denomination denomination address
+   * @return currentPhase is the feed's current phase
+   */
+  function getCurrentPhase(
+    address asset,
+    address denomination
+  )
+    public
+    view
+    override
+    returns (
+      Phase memory currentPhase
+    )
+  {
+    uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
+    return s_phases[asset][denomination][currentPhaseId];
+  }
+
+  /**
+   * @notice returns specified phase by id
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param phaseId phase id
+   * @return phase
+   */
+  function getPhase(
+    address asset,
+    address denomination,
+    uint16 phaseId
+  )
+    public
+    view
+    override
+    returns (
+      Phase memory phase
+    )
+  {
+    return s_phases[asset][denomination][phaseId];
+  }
+
+  /**
+   * @notice retrieve the aggregator of an asset / denomination pair at a specific round id
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param roundId the proxy round id
+   */
+  function getRoundFeed(
+    address asset,
+    address denomination,
+    uint80 roundId
+  )
+    public
+    view
+    override
+    returns (
+      AggregatorV2V3Interface aggregator
+    )
+  {
+    return _getPhaseByRound(asset, denomination, roundId).aggregator;
+  }
+
+  /**
+   * @notice returns the range of proxy round ids of a phase
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param phaseId phase id
+   * @return startingRoundId
+   * @return endingRoundId
+   */
+  function getRoundRange(
+    address asset,
+    address denomination,
+    uint16 phaseId
+  )
+    public
+    view
+    override
+    returns (
+      uint80 startingRoundId,
+      uint80 endingRoundId
+    )
+  {
+    Phase memory phase = s_phases[asset][denomination][phaseId];
+    Phase memory currentPhase = getCurrentPhase(asset, denomination);
+    if (phase.id == currentPhase.id) return _getLatestRoundRange(currentPhase);
+    return _getRoundRange(phase);
+  }
+
+  /**
+   * @notice return the previous round id of a given round
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param roundId the round id number to retrieve the updated timestamp for
+   * @dev Note that this is not the aggregator round id, but the proxy round id
+   * To get full ranges of round ids of different phases, use getRoundRange()
+   * @return previousRoundId
+   */
+  function getPreviousRoundId(
+    address asset,
+    address denomination,
+    uint80 roundId
+  ) external
+    view
+    override
+    returns (
+      uint80 previousRoundId
+    )
+  {
+    Phase memory phase = _getPhaseByRound(asset, denomination, roundId);
+    return _getPreviousRoundId(asset, denomination, phase.id, roundId);
+  }
+
+  /**
+   * @notice return the next round id of a given round
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param roundId the round id number to retrieve the updated timestamp for
+   * @dev Note that this is not the aggregator round id, but the proxy round id
+   * To get full ranges of round ids of different phases, use getRoundRange()
+   * @return nextRoundId
+   */
+  function getNextRoundId(
+    address asset,
+    address denomination,
+    uint80 roundId
+  ) external
+    view
+    override
+    returns (
+      uint80 nextRoundId
+    )
+  {
+    Phase memory phase = _getPhaseByRound(asset, denomination, roundId);
+    return _getNextRoundId(asset, denomination, phase.id, roundId);
+  }
+
+  /**
+   * @notice Allows the owner to propose a new address for the aggregator
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param aggregator The new aggregator contract address
+   */
+  function proposeFeed(
+    address asset,
+    address denomination,
+    address aggregator
+  )
+    external
+    override
+    onlyOwner()
+  {
+    Phase memory currentPhase = getCurrentPhase(asset, denomination);
+    s_proposedAggregators[asset][denomination] = AggregatorV2V3Interface(aggregator);
+    emit FeedProposed(asset, denomination, aggregator, address(currentPhase.aggregator));
+  }
+
+  /**
+   * @notice Allows the owner to confirm and change the address
+   * to the proposed aggregator
+   * @dev Reverts if the given address doesn't match what was previously
+   * proposed
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param aggregator The new aggregator contract address
+   */
+  function confirmFeed(
+    address asset,
+    address denomination,
+    address aggregator
+  )
+    external
+    override
+    onlyOwner()
+  {
+    require(aggregator == address(s_proposedAggregators[asset][denomination]), "Invalid proposed aggregator");
+    (uint16 nextPhaseId, address previousAggregator) = _setFeed(asset, denomination, aggregator);
+    s_isAggregatorEnabled[aggregator] = true;
+    s_isAggregatorEnabled[previousAggregator] = false;
+    emit FeedConfirmed(asset, denomination, aggregator, previousAggregator, nextPhaseId);
   }
 
   /**

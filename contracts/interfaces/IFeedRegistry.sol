@@ -28,17 +28,122 @@ interface IFeedRegistry is IAccessControlled {
     uint16 nextPhaseId
   );
 
-  function proposeFeed(
-    address asset,
-    address denomination,
-    address aggregator
-  ) external;
+  // V3 AggregatorV3Interface
 
-  function confirmFeed(
+  function decimals(
+    address asset,
+    address denomination
+  )
+    external
+    view
+    returns (
+      uint8
+    );
+
+  function description(
+    address asset,
+    address denomination
+  )
+    external
+    view
+    returns (
+      string memory
+    );
+
+  function version(
+    address asset,
+    address denomination
+  )
+    external
+    view
+    returns (
+      uint256
+    );
+
+  function latestRoundData(
+    address asset,
+    address denomination
+  )
+    external
+    view
+    returns (
+      uint80 roundId,
+      int256 answer,
+      uint256 startedAt,
+      uint256 updatedAt,
+      uint80 answeredInRound
+    );
+
+  function getRoundData(
     address asset,
     address denomination,
-    address aggregator
-  ) external;
+    uint80 _roundId
+  )
+    external
+    view
+    returns (
+      uint80 roundId,
+      int256 answer,
+      uint256 startedAt,
+      uint256 updatedAt,
+      uint80 answeredInRound
+    );
+
+  // V2 AggregatorInterface
+
+  function latestAnswer(
+    address asset,
+    address denomination
+  )
+    external
+    view
+    returns (
+      int256 answer
+    );
+
+  function latestTimestamp(
+    address asset,
+    address denomination
+  )
+    external
+    view
+    returns (
+      uint256 timestamp
+    );
+
+  function latestRound(
+    address asset,
+    address denomination
+  )
+    external
+    view
+    returns (
+      uint256 roundId
+    );
+
+  function getAnswer(
+    address asset,
+    address denomination,
+    uint256 roundId
+  )
+    external
+    view
+    returns (
+      int256 answer
+    );
+
+  function getTimestamp(
+    address asset,
+    address denomination,
+    uint256 roundId
+  )
+    external
+    view
+    returns (
+      uint256 timestamp
+    );
+
+  // Registry getters
 
   function getFeed(
     address asset,
@@ -136,120 +241,19 @@ interface IFeedRegistry is IAccessControlled {
       uint80 nextRoundId
     );
 
-  // V2 AggregatorInterface
+  // Feed management
 
-  function latestAnswer(
-    address asset,
-    address denomination
-  )
-    external
-    view
-    returns (
-      int256 answer
-    );
-
-  function latestTimestamp(
-    address asset,
-    address denomination
-  )
-    external
-    view
-    returns (
-      uint256 timestamp
-    );
-
-  function latestRound(
-    address asset,
-    address denomination
-  )
-    external
-    view
-    returns (
-      uint256 roundId
-    );
-
-  function getAnswer(
+  function proposeFeed(
     address asset,
     address denomination,
-    uint256 roundId
-  )
-    external
-    view
-    returns (
-      int256 answer
-    );
+    address aggregator
+  ) external;
 
-  function getTimestamp(
+  function confirmFeed(
     address asset,
     address denomination,
-    uint256 roundId
-  )
-    external
-    view
-    returns (
-      uint256 timestamp
-    );
-
-  // V3 AggregatorV3Interface
-
-  function decimals(
-    address asset,
-    address denomination
-  )
-    external
-    view
-    returns (
-      uint8
-    );
-
-  function description(
-    address asset,
-    address denomination
-  )
-    external
-    view
-    returns (
-      string memory
-    );
-
-  function version(
-    address asset,
-    address denomination
-  )
-    external
-    view
-    returns (
-      uint256
-    );
-
-  function latestRoundData(
-    address asset,
-    address denomination
-  )
-    external
-    view
-    returns (
-      uint80 roundId,
-      int256 answer,
-      uint256 startedAt,
-      uint256 updatedAt,
-      uint80 answeredInRound
-    );
-
-  function getRoundData(
-    address asset,
-    address denomination,
-    uint80 _roundId
-  )
-    external
-    view
-    returns (
-      uint80 roundId,
-      int256 answer,
-      uint256 startedAt,
-      uint256 updatedAt,
-      uint80 answeredInRound
-    );
+    address aggregator
+  ) external;
 
   // Proposed aggregator
 
