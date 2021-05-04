@@ -40,6 +40,10 @@ contract("FeedRegistry", function () {
     expect(currentPhase.id).to.equal(0);
   });
 
+  it("returns typeAndVersion", async function () {
+    expect(await this.registry.typeAndVersion()).to.equal("FeedRegistry 1.0.0");
+  });
+
   it("owner can propose a feed", async function () {
     await expect(this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address))
       .to.emit(this.registry, "FeedProposed")

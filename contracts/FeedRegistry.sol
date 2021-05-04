@@ -6,6 +6,7 @@ pragma abicoder v2; // solhint-disable compiler-version
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./access/AccessControlled.sol";
 import "./interfaces/IFeedRegistry.sol";
+import "./interfaces/TypeAndVersionInterface.sol";
 import "./libraries/Denominations.sol";
 
 /**
@@ -14,7 +15,7 @@ import "./libraries/Denominations.sol";
   * trusted to update it. This registry contract works for multiple feeds, not just a single aggregator.
   * @notice Only access enabled addresses are allowed to access getters for answers and round data
   */
-contract FeedRegistry is IFeedRegistry, AccessControlled {
+contract FeedRegistry is IFeedRegistry, AccessControlled, TypeAndVersionInterface {
   uint256 constant private PHASE_OFFSET = 64;
   uint256 constant private PHASE_SIZE = 16;
   uint256 constant private MAX_ID = 2**(PHASE_OFFSET+PHASE_SIZE) - 1;
@@ -23,6 +24,19 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   mapping(address => mapping(address => AggregatorV2V3Interface)) private s_proposedAggregators;
   mapping(address => mapping(address => uint16)) private s_currentPhaseId;
   mapping(address => mapping(address => mapping(uint16 => Phase))) private s_phases; // Current and past phases
+
+  /*
+   * Versioning
+   */
+  function typeAndVersion()
+    external
+    override
+    pure
+    virtual
+    returns (string memory)
+  {
+    return "FeedRegistry 1.0.0";
+  }
 
   /**
    * @notice Allows the owner to propose a new address for the aggregator
