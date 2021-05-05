@@ -5,8 +5,9 @@ pragma abicoder v2; // solhint-disable compiler-version
 
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./IAccessControlled.sol";
+import "./TypeAndVersionInterface.sol";
 
-interface IFeedRegistry is IAccessControlled {
+interface IFeedRegistry is IAccessControlled, TypeAndVersionInterface {
   struct Phase {
     uint16 id;
     AggregatorV2V3Interface aggregator;
