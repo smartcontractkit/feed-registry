@@ -12,7 +12,7 @@ import "../vendor/ConfirmedOwner.sol";
  * ReadAccessController for that.
  */
 contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.sender) {
-  bool public checkEnabled = true;
+  bool private s_checkEnabled = true;
   mapping(address => bool) internal s_globalAccessList;
   mapping(address => mapping(bytes => bool)) internal s_localAccessList;
 
@@ -20,6 +20,16 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
   event AccessRemoved(address user, bytes data);
   event CheckAccessEnabled();
   event CheckAccessDisabled();
+
+  function checkEnabled()
+    public
+    view
+    returns (
+      bool
+    )
+  {
+    return s_checkEnabled;
+  }
 
   /**
    * @notice Returns the access of an address
@@ -36,7 +46,7 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
     override
     returns (bool)
   {
-    return s_globalAccessList[user] || s_localAccessList[user][data] || !checkEnabled;
+    return s_globalAccessList[user] || s_localAccessList[user][data] || !s_checkEnabled;
   }
 
 /**
@@ -110,8 +120,8 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
     external
     onlyOwner()
   {
-    if (!checkEnabled) {
-      checkEnabled = true;
+    if (!s_checkEnabled) {
+      s_checkEnabled = true;
       emit CheckAccessEnabled();
     }
   }
@@ -123,8 +133,8 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
     external
     onlyOwner()
   {
-    if (checkEnabled) {
-      checkEnabled = false;
+    if (s_checkEnabled) {
+      s_checkEnabled = false;
       emit CheckAccessDisabled();
     }
   }
@@ -133,7 +143,7 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
    * @dev reverts if the caller does not have access
    */
   modifier checkAccess() {
-    if (checkEnabled) {
+    if (s_checkEnabled) {
       require(hasAccess(msg.sender, msg.data), "No access");
     }
     _;
