@@ -24,7 +24,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   mapping(address => mapping(address => mapping(uint16 => Phase))) private s_phases; // Current and past phases
 
   /*
-   * Versioning
+   * @notice Versioning
    */
   function typeAndVersion()
     external
