@@ -141,7 +141,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       updatedAt,
       answeredInRound
     ) = currentPhase.aggregator.latestRoundData();
-    return addPhaseIds(roundId, answer, startedAt, updatedAt, answeredInRound, currentPhase.id);
+    return _addPhaseIds(roundId, answer, startedAt, updatedAt, answeredInRound, currentPhase.id);
   }
 
   /**
@@ -186,7 +186,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       uint80 answeredInRound
     )
   {
-    (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(_roundId);
+    (uint16 phaseId, uint64 aggregatorRoundId) = _parseIds(_roundId);
     AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
     (
       roundId,
@@ -195,7 +195,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       updatedAt,
       answeredInRound
     ) = aggregator.getRoundData(aggregatorRoundId);
-    return addPhaseIds(roundId, answer, startedAt, updatedAt, answeredInRound, phaseId);
+    return _addPhaseIds(roundId, answer, startedAt, updatedAt, answeredInRound, phaseId);
   }
 
 
@@ -228,8 +228,6 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
    * @notice get the latest completed timestamp where the answer was updated.
    * @param asset asset address
    * @param denomination denomination address
-   * ID includes the proxy's phase, to make sure round IDs increase even when
-   * switching to a newly deployed aggregator.
    *
    * @notice We advise to use latestRoundData() instead because it returns more in-depth information.
    * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
@@ -277,7 +275,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     )
   {
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    return addPhase(currentPhase.id, uint64(currentPhase.aggregator.latestRound()));
+    return _addPhase(currentPhase.id, uint64(currentPhase.aggregator.latestRound()));
   }
 
   /**
@@ -306,7 +304,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     )
   {
     if (roundId > MAX_ID) return 0;
-    (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(roundId);
+    (uint16 phaseId, uint64 aggregatorRoundId) = _parseIds(roundId);
     AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
     if (address(aggregator) == address(0)) return 0;
     return aggregator.getAnswer(aggregatorRoundId);
@@ -338,7 +336,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     )
   {
     if (roundId > MAX_ID) return 0;
-    (uint16 phaseId, uint64 aggregatorRoundId) = parseIds(roundId);
+    (uint16 phaseId, uint64 aggregatorRoundId) = _parseIds(roundId);
     AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
     if (address(aggregator) == address(0)) return 0;
     return aggregator.getTimestamp(aggregatorRoundId);
@@ -677,7 +675,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     return s_proposedAggregators[asset][denomination].latestRoundData();
   }
 
-  function addPhase(
+  function _addPhase(
     uint16 phase,
     uint64 originalId
   )
@@ -690,7 +688,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     return uint80(uint256(phase) << PHASE_OFFSET | originalId);
   }
 
-  function parseIds(
+  function _parseIds(
     uint256 roundId
   )
     internal
@@ -706,7 +704,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     return (phaseId, aggregatorRoundId);
   }
 
-  function addPhaseIds(
+  function _addPhaseIds(
       uint80 roundId,
       int256 answer,
       uint256 startedAt,
@@ -725,11 +723,11 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     )
   {
     return (
-      addPhase(phaseId, uint64(roundId)),
+      _addPhase(phaseId, uint64(roundId)),
       answer,
       startedAt,
       updatedAt,
-      addPhase(phaseId, uint64(answeredInRound))
+      _addPhase(phaseId, uint64(answeredInRound))
     );
   }
 
@@ -846,7 +844,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       uint80 startingRoundId
     )
   {
-    return addPhase(phase.id, uint64(phase.startingAggregatorRoundId));
+    return _addPhase(phase.id, uint64(phase.startingAggregatorRoundId));
   }
 
   function _getEndingRoundId(
@@ -858,7 +856,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       uint80 startingRoundId
     )
   {
-    return addPhase(phase.id, uint64(phase.endingAggregatorRoundId));
+    return _addPhase(phase.id, uint64(phase.endingAggregatorRoundId));
   }
 
   function _getLatestRoundId(
@@ -871,7 +869,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
     )
   {
     uint80 latestAggregatorRoundId = _getLatestAggregatorRoundId(currentPhase.aggregator);
-    return addPhase(currentPhase.id, uint64(latestAggregatorRoundId));
+    return _addPhase(currentPhase.id, uint64(latestAggregatorRoundId));
   }
 
   function _getLatestAggregatorRoundId(
