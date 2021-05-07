@@ -225,7 +225,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
   }
 
   /**
-   * @notice get the latest completed round where the answer was updated. This
+   * @notice get the latest completed timestamp where the answer was updated.
    * @param asset asset address
    * @param denomination denomination address
    * ID includes the proxy's phase, to make sure round IDs increase even when
