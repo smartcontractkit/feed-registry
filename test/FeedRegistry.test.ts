@@ -49,7 +49,7 @@ contract("FeedRegistry", function () {
   });
 
   it("returns typeAndVersion", async function () {
-    expect(await this.registry.typeAndVersion()).to.equal("FeedRegistry 1.0.0");
+    expect(await this.registry.typeAndVersion()).to.equal("FeedRegistry 1.0.0-alpha");
   });
 
   describe("#proposeFeed", async function () {

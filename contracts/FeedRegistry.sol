@@ -35,7 +35,7 @@ contract FeedRegistry is IFeedRegistry, AccessControlled {
       string memory
     )
   {
-    return "FeedRegistry 1.0.0";
+    return "FeedRegistry 1.0.0-alpha";
   }
 
   /**
