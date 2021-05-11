@@ -4,7 +4,7 @@ pragma solidity 0.7.6;
 
 import "../vendor/AccessControllerInterface.sol";
 
-interface IAccessControlled {
+interface AccessControlledInterface {
   event AccessControllerSet(
     address indexed accessController
   );

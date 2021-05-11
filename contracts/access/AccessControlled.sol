@@ -2,11 +2,11 @@
 
 pragma solidity 0.7.6;
 
-import "../interfaces/IAccessControlled.sol";
+import "../interfaces/AccessControlledInterface.sol";
 import "../vendor/AccessControllerInterface.sol";
 import "../vendor/ConfirmedOwner.sol";
 
-contract AccessControlled is IAccessControlled, ConfirmedOwner(msg.sender) {
+contract AccessControlled is AccessControlledInterface, ConfirmedOwner(msg.sender) {
   AccessControllerInterface internal s_accessController;
 
   function setController(

@@ -4,10 +4,10 @@ pragma solidity 0.7.6;
 pragma abicoder v2; // solhint-disable compiler-version
 
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
-import "./IAccessControlled.sol";
+import "./AccessControlledInterface.sol";
 import "./TypeAndVersionInterface.sol";
 
-interface IFeedRegistry is IAccessControlled, TypeAndVersionInterface {
+interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInterface {
   struct Phase {
     uint16 id;
     AggregatorV2V3Interface aggregator;

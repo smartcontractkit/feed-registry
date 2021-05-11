@@ -2,13 +2,13 @@
 
 pragma solidity 0.7.6;
 
-import "../interfaces/IFeedRegistry.sol";
+import "../interfaces/FeedRegistryInterface.sol";
 
 contract MockConsumer {
-  IFeedRegistry private s_FeedRegistry;
+  FeedRegistryInterface private s_FeedRegistry;
 
   constructor(
-    IFeedRegistry FeedRegistry
+    FeedRegistryInterface FeedRegistry
   ) {
     s_FeedRegistry = FeedRegistry;
   }
@@ -17,7 +17,7 @@ contract MockConsumer {
     public
     view
     returns (
-      IFeedRegistry
+      FeedRegistryInterface
     )
   {
     return s_FeedRegistry;

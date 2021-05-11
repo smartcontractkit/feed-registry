@@ -5,7 +5,7 @@ pragma abicoder v2; // solhint-disable compiler-version
 
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
 import "./access/AccessControlled.sol";
-import "./interfaces/IFeedRegistry.sol";
+import "./interfaces/FeedRegistryInterface.sol";
 
 /**
   * @notice An on-chain registry of assets to aggregators.
@@ -13,7 +13,7 @@ import "./interfaces/IFeedRegistry.sol";
   * trusted to update it. This registry contract works for multiple feeds, not just a single aggregator.
   * @notice Only access enabled addresses are allowed to access getters for answers and round data
   */
-contract FeedRegistry is IFeedRegistry, AccessControlled {
+contract FeedRegistry is FeedRegistryInterface, AccessControlled {
   uint256 constant private PHASE_OFFSET = 64;
   uint256 constant private PHASE_SIZE = 16;
   uint256 constant private MAX_ID = 2**(PHASE_OFFSET+PHASE_SIZE) - 1;
