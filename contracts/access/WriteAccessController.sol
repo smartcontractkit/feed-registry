@@ -120,10 +120,7 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
     external
     onlyOwner()
   {
-    if (!s_checkEnabled) {
-      s_checkEnabled = true;
-      emit CheckAccessEnabled();
-    }
+    _enableAccessCheck();
   }
 
   /**
@@ -133,10 +130,7 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
     external
     onlyOwner()
   {
-    if (s_checkEnabled) {
-      s_checkEnabled = false;
-      emit CheckAccessDisabled();
-    }
+    _disableAccessCheck();
   }
 
   /**
@@ -147,6 +141,20 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
       require(hasAccess(msg.sender, msg.data), "No access");
     }
     _;
+  }
+
+  function _enableAccessCheck() internal {
+    if (!s_checkEnabled) {
+      s_checkEnabled = true;
+      emit CheckAccessEnabled();
+    }
+  }
+
+  function _disableAccessCheck() internal {
+    if (s_checkEnabled) {
+      s_checkEnabled = false;
+      emit CheckAccessDisabled();
+    }
   }
 
   function _addGlobalAccess(address user) internal {
