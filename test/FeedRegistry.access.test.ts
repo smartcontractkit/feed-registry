@@ -36,7 +36,7 @@ contract("FeedRegistry Access controls", function () {
     expect(await this.registry.connect(this.signers.other).latestAnswer(ASSET, DENOMINATION)).to.equal(TEST_ANSWER);
 
     // Should revert because access is set to false by default, and access controllers checkEnabled defaults to true
-    await this.registry.setController(this.accessController.address);
+    await this.registry.setAccessController(this.accessController.address);
     expect(await this.accessController.hasAccess(this.consumer.address, PAIR_DATA)).to.equal(false);
     await expect(this.consumer.read(ASSET, DENOMINATION)).to.be.revertedWith("No access");
 

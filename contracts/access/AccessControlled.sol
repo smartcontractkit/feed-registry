@@ -9,7 +9,7 @@ import "../vendor/ConfirmedOwner.sol";
 contract AccessControlled is AccessControlledInterface, ConfirmedOwner(msg.sender) {
   AccessControllerInterface internal s_accessController;
 
-  function setController(
+  function setAccessController(
     AccessControllerInterface _accessController
   )
     public
@@ -20,7 +20,7 @@ contract AccessControlled is AccessControlledInterface, ConfirmedOwner(msg.sende
     emit AccessControllerSet(address(_accessController));
   }
 
-  function getController()
+  function getAccessController()
     public
     view
     override

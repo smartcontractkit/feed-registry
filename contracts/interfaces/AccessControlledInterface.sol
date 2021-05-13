@@ -9,12 +9,12 @@ interface AccessControlledInterface {
     address indexed accessController
   );
 
-  function setController(
+  function setAccessController(
     AccessControllerInterface _accessController
   )
     external;
 
-  function getController()
+  function getAccessController()
     external
     view
     returns (
