@@ -558,8 +558,11 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     onlyOwner()
   {
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
-    s_proposedAggregators[asset][denomination] = AggregatorV2V3Interface(aggregator);
-    emit FeedProposed(asset, denomination, aggregator, address(currentPhase.aggregator));
+    address currentProposedAggregator = address(s_proposedAggregators[asset][denomination]);
+    if (currentProposedAggregator != aggregator) {
+      s_proposedAggregators[asset][denomination] = AggregatorV2V3Interface(aggregator);
+      emit FeedProposed(asset, denomination, aggregator, address(currentPhase.aggregator));
+    }
   }
 
   /**
