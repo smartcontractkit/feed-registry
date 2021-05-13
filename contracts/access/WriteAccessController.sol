@@ -46,7 +46,7 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
     override
     returns (bool)
   {
-    return s_globalAccessList[user] || s_localAccessList[user][data] || !s_checkEnabled;
+    return !s_checkEnabled || s_globalAccessList[user] || s_localAccessList[user][data];
   }
 
 /**
