@@ -56,16 +56,16 @@ contract("FeedRegistry rounds", function () {
     await this.feedD.mock.latestRound.returns(D_LATEST_ROUND);
   });
 
-  it("getRoundRange() should return the round range for a phase", async function () {
-    const Phase1RoundRange = await this.registry.getRoundRange(ASSET, DENOMINATION, PHASE_ONE);
+  it("getPhaseRange() should return the round range for a phase", async function () {
+    const Phase1RoundRange = await this.registry.getPhaseRange(ASSET, DENOMINATION, PHASE_ONE);
     expect(Phase1RoundRange.startingRoundId).to.equal(getRoundId(PHASE_ONE, A_STARTING_ROUND));
     expect(Phase1RoundRange.endingRoundId).to.equal(getRoundId(PHASE_ONE, A_ENDING_ROUND));
 
-    const Phase2RoundRange = await this.registry.getRoundRange(ASSET, DENOMINATION, PHASE_TWO);
+    const Phase2RoundRange = await this.registry.getPhaseRange(ASSET, DENOMINATION, PHASE_TWO);
     expect(Phase2RoundRange.startingRoundId).to.equal(getRoundId(PHASE_TWO, B_STARTING_ROUND));
     expect(Phase2RoundRange.endingRoundId).to.equal(getRoundId(PHASE_TWO, B_ENDING_ROUND));
 
-    const Phase3RoundRange = await this.registry.getRoundRange(ASSET, DENOMINATION, PHASE_THREE);
+    const Phase3RoundRange = await this.registry.getPhaseRange(ASSET, DENOMINATION, PHASE_THREE);
     expect(Phase3RoundRange.startingRoundId).to.equal(getRoundId(PHASE_THREE, ZERO));
     expect(Phase3RoundRange.endingRoundId).to.equal(getRoundId(PHASE_THREE, ZERO));
   });

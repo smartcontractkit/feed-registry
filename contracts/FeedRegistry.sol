@@ -475,7 +475,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
    * @return startingRoundId
    * @return endingRoundId
    */
-  function getRoundRange(
+  function getPhaseRange(
     address asset,
     address denomination,
     uint16 phaseId
@@ -491,7 +491,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     Phase memory phase = s_phases[asset][denomination][phaseId];
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
     if (phase.id == currentPhase.id) return _getLatestRoundRange(currentPhase);
-    return _getRoundRange(phase);
+    return _getPhaseRange(phase);
   }
 
   /**
@@ -500,7 +500,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
    * @param denomination denomination address
    * @param roundId the round id number to retrieve the updated timestamp for
    * @dev Note that this is not the aggregator round id, but the proxy round id
-   * To get full ranges of round ids of different phases, use getRoundRange()
+   * To get full ranges of round ids of different phases, use getPhaseRange()
    * @return previousRoundId
    */
   function getPreviousRoundId(
@@ -524,7 +524,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
    * @param denomination denomination address
    * @param roundId the round id number to retrieve the updated timestamp for
    * @dev Note that this is not the aggregator round id, but the proxy round id
-   * To get full ranges of round ids of different phases, use getRoundRange()
+   * To get full ranges of round ids of different phases, use getPhaseRange()
    * @return nextRoundId
    */
   function getNextRoundId(
@@ -773,7 +773,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
   {
     for (uint16 pid = phaseId; pid > 0; pid--) {
       Phase memory phase = _getPhase(asset, denomination, pid);
-      (uint80 startingRoundId, uint80 endingRoundId) = _getRoundRange(phase);
+      (uint80 startingRoundId, uint80 endingRoundId) = _getPhaseRange(phase);
       if (address(phase.aggregator) == address(0)) continue;
       if (roundId <= startingRoundId) continue;
       if (roundId > startingRoundId && roundId <= endingRoundId) return roundId - 1;
@@ -797,7 +797,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     Phase memory currentPhase = getCurrentPhase(asset, denomination);
     for (uint16 pid = phaseId; pid <= currentPhase.id; pid++) {
       Phase memory phase = _getPhase(asset, denomination, pid);
-      (uint80 startingRoundId, uint80 endingRoundId) = (pid == currentPhase.id) ? _getLatestRoundRange(phase) : _getRoundRange(phase);
+      (uint80 startingRoundId, uint80 endingRoundId) = (pid == currentPhase.id) ? _getLatestRoundRange(phase) : _getPhaseRange(phase);
       if (address(phase.aggregator) == address(0)) continue;
       if (roundId >= endingRoundId) continue;
       if (roundId >= startingRoundId && roundId < endingRoundId) return roundId + 1;
@@ -806,7 +806,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     return 0; // Round not found
   }
 
-  function _getRoundRange(
+  function _getPhaseRange(
     Phase memory phase
   )
     internal
@@ -922,7 +922,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     for (uint16 phaseId = currentPhase.id - 1; phaseId > 0; phaseId--) {
       Phase memory phase = s_phases[asset][denomination][phaseId];
       if (address(phase.aggregator) == address(0)) continue;
-      (uint80 startingRoundId, uint80 endingRoundId) = _getRoundRange(phase);
+      (uint80 startingRoundId, uint80 endingRoundId) = _getPhaseRange(phase);
       if (roundId >= startingRoundId && roundId <= endingRoundId) return phase;
       if (roundId > endingRoundId) break;
     }

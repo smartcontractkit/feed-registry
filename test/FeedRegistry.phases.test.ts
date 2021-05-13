@@ -127,7 +127,7 @@ contract("FeedRegistry Phases", function () {
     const aLatestRound = BigNumber.from("10");
     await feedA.mock.latestRound.returns(aLatestRound);
 
-    const phaseRoundRange = await this.registry.getRoundRange(ASSET, DENOMINATION, PHASE_ONE);
+    const phaseRoundRange = await this.registry.getPhaseRange(ASSET, DENOMINATION, PHASE_ONE);
     expect(phaseRoundRange.startingRoundId).to.equal(getRoundId(PHASE_ONE, aStartingRound));
     expect(phaseRoundRange.endingRoundId).to.equal(getRoundId(PHASE_ONE, aLatestRound));
     expect(await this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_ONE, aLatestRound))).to.equal(

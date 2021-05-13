@@ -210,7 +210,7 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
       AggregatorV2V3Interface aggregator
     );
 
-  function getRoundRange(
+  function getPhaseRange(
     address asset,
     address denomination,
     uint16 phaseId
