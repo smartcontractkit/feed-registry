@@ -8,9 +8,8 @@ import "./AccessControlledInterface.sol";
 import "./TypeAndVersionInterface.sol";
 
 interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInterface {
-  struct Phase {
+  struct PhaseRoundRange {
     uint16 id;
-    AggregatorV2V3Interface aggregator;
     uint80 startingAggregatorRoundId; // The latest round id of `aggregator` at phase start
     uint80 endingAggregatorRoundId; // The latest round of the at phase end
   }
@@ -174,27 +173,6 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     view
     returns (
       bool
-    );
-
-  function getCurrentPhase(
-    address asset,
-    address denomination
-  )
-    external
-    view
-    returns (
-      Phase memory currentPhase
-    );
-
-  function getPhase(
-    address asset,
-    address denomination,
-    uint16 phaseId
-  )
-    external
-    view
-    returns (
-      Phase memory phase
     );
 
   // Round helpers
