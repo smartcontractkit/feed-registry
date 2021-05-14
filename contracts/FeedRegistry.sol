@@ -22,7 +22,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
   mapping(address => mapping(address => AggregatorV2V3Interface)) private s_proposedAggregators;
   mapping(address => mapping(address => uint16)) private s_currentPhaseId;
   mapping(address => mapping(address => mapping(uint16 => AggregatorV2V3Interface))) private s_phaseAggregators;
-  mapping(address => mapping(address => mapping(uint16 => PhaseRoundRange))) private s_phaseRoundRanges;
+  mapping(address => mapping(address => mapping(uint16 => Phase))) private s_phases;
 
   /*
    * @notice Versioning
@@ -407,6 +407,28 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
   }
 
   /**
+   * @notice returns specified phase by id
+   * @param asset asset address
+   * @param denomination denomination address
+   * @param phaseId phase id
+   * @return phase
+   */
+  function getPhase(
+    address asset,
+    address denomination,
+    uint16 phaseId
+  )
+    public
+    view
+    override
+    returns (
+      Phase memory phase
+    )
+  {
+    return s_phases[asset][denomination][phaseId];
+  }
+
+  /**
    * @notice retrieve the aggregator of an asset / denomination pair at a specific round id
    * @param asset asset address
    * @param denomination denomination address
@@ -449,7 +471,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       uint80 endingRoundId
     )
   {
-    PhaseRoundRange memory range = s_phaseRoundRanges[asset][denomination][phaseId];
+    Phase memory range = s_phases[asset][denomination][phaseId];
     uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
     if (range.phaseId == currentPhaseId) return _getLatestRoundRange(asset, denomination, currentPhaseId);
     return _getPhaseRange(asset, denomination, phaseId);
@@ -727,10 +749,10 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     s_currentPhaseId[asset][denomination] = nextPhaseId;
 
     uint80 previousAggregatorEndingRoundId = _getLatestAggregatorRoundId(currentAggregator);
-    s_phaseRoundRanges[asset][denomination][currentPhaseId].endingAggregatorRoundId = previousAggregatorEndingRoundId;
+    s_phases[asset][denomination][currentPhaseId].endingAggregatorRoundId = previousAggregatorEndingRoundId;
     uint80 startingRoundId = _getLatestAggregatorRoundId(AggregatorV2V3Interface(newAggregator));
     s_phaseAggregators[asset][denomination][nextPhaseId] = AggregatorV2V3Interface(newAggregator);
-    s_phaseRoundRanges[asset][denomination][nextPhaseId] = PhaseRoundRange(nextPhaseId, startingRoundId, 0);
+    s_phases[asset][denomination][nextPhaseId] = Phase(nextPhaseId, startingRoundId, 0);
 
     return (nextPhaseId, address(currentAggregator));
   }
@@ -773,7 +795,8 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
     for (uint16 pid = phaseId; pid <= currentPhaseId; pid++) {
       AggregatorV2V3Interface phaseAggregator = s_phaseAggregators[asset][denomination][pid];
-      (uint80 startingRoundId, uint80 endingRoundId) = (pid == currentPhaseId) ? _getLatestRoundRange(asset, denomination, pid) : _getPhaseRange(asset, denomination, pid);
+      (uint80 startingRoundId, uint80 endingRoundId) =
+        (pid == currentPhaseId) ? _getLatestRoundRange(asset, denomination, pid) : _getPhaseRange(asset, denomination, pid);
       if (address(phaseAggregator) == address(0)) continue;
       if (roundId >= endingRoundId) continue;
       if (roundId >= startingRoundId && roundId < endingRoundId) return roundId + 1;
@@ -794,7 +817,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       uint80 endingRoundId
     )
   {
-    PhaseRoundRange memory range = s_phaseRoundRanges[asset][denomination][phaseId];
+    Phase memory range = s_phases[asset][denomination][phaseId];
     return (
       _getStartingRoundId(range),
       _getEndingRoundId(range)
@@ -813,7 +836,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       uint80 endingRoundId
     )
   {
-    PhaseRoundRange memory range = s_phaseRoundRanges[asset][denomination][currentPhaseId];
+    Phase memory range = s_phases[asset][denomination][currentPhaseId];
     return (
       _getStartingRoundId(range),
       _getLatestRoundId(asset, denomination, currentPhaseId)
@@ -821,7 +844,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
   }
 
   function _getStartingRoundId(
-    PhaseRoundRange memory range
+    Phase memory range
   )
     internal
     pure
@@ -833,7 +856,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
   }
 
   function _getEndingRoundId(
-    PhaseRoundRange memory range
+    Phase memory range
   )
     internal
     pure

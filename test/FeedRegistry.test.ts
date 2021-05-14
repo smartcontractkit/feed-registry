@@ -42,9 +42,11 @@ contract("FeedRegistry", function () {
   describe("constructor", async function () {
     it("should initialize correctly", async function () {
       expect(await this.registry.owner()).to.equal(this.signers.owner.address);
-      const currentPhase = await this.registry.getCurrentPhase(ASSET, DENOMINATION);
-      expect(currentPhase.id).to.equal(0);
-      expect(currentPhase.aggregator).to.equal(ethers.constants.AddressZero);
+      const currentPhaseId = await this.registry.getCurrentPhaseId(ASSET, DENOMINATION);
+      const currentPhase = await this.registry.getPhase(ASSET, DENOMINATION, currentPhaseId);
+      expect(currentPhase.phaseId).to.equal(0);
+      const currentPhaseAggregator = await this.registry.getPhaseFeed(ASSET, DENOMINATION, currentPhaseId);
+      expect(currentPhaseAggregator).to.equal(ethers.constants.AddressZero);
     });
   });
 
@@ -71,10 +73,11 @@ contract("FeedRegistry", function () {
     it("owner can confirm a feed", async function () {
       await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
 
-      const currentPhase = await this.registry.getCurrentPhase(ASSET, DENOMINATION);
+      const currentPhaseId = await this.registry.getCurrentPhaseId(ASSET, DENOMINATION);
+      const currentPhase = await this.registry.getPhase(ASSET, DENOMINATION, currentPhaseId);
       await expect(this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address))
         .to.emit(this.registry, "FeedConfirmed")
-        .withArgs(ASSET, DENOMINATION, this.feed.address, ethers.constants.AddressZero, currentPhase.id + 1);
+        .withArgs(ASSET, DENOMINATION, this.feed.address, ethers.constants.AddressZero, currentPhase.phaseId + 1);
 
       const feed = await this.registry.getFeed(ASSET, DENOMINATION);
       expect(feed).to.equal(this.feed.address);
@@ -82,9 +85,11 @@ contract("FeedRegistry", function () {
       const isFeedEnabled = await this.registry.isFeedEnabled(feed);
       expect(isFeedEnabled);
 
-      const newPhase = await this.registry.getCurrentPhase(ASSET, DENOMINATION);
-      expect(newPhase.id).to.equal(currentPhase.id + 1);
-      expect(newPhase.aggregator).to.equal(this.feed.address);
+      const newPhaseId = await this.registry.getCurrentPhaseId(ASSET, DENOMINATION);
+      const newPhaseAggregator = await this.registry.getPhaseFeed(ASSET, DENOMINATION, newPhaseId);
+      expect(newPhaseAggregator).to.equal(this.feed.address);
+      const newPhase = await this.registry.getPhase(ASSET, DENOMINATION, newPhaseId);
+      expect(newPhase.phaseId).to.equal(currentPhase.phaseId + 1);
       expect(newPhase.startingAggregatorRoundId).to.equal(await this.feed.latestRound());
       expect(newPhase.endingAggregatorRoundId).to.equal(0);
     });
