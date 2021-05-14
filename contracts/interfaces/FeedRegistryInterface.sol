@@ -9,7 +9,6 @@ import "./TypeAndVersionInterface.sol";
 
 interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInterface {
   struct Phase {
-    uint16 phaseId;
     uint80 startingAggregatorRoundId; // The latest round id of `aggregator` at phase start
     uint80 endingAggregatorRoundId; // The latest round of the at phase end
   }

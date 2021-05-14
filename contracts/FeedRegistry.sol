@@ -471,9 +471,8 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       uint80 endingRoundId
     )
   {
-    Phase memory range = s_phases[asset][denomination][phaseId];
     uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
-    if (range.phaseId == currentPhaseId) return _getLatestRoundRange(asset, denomination, currentPhaseId);
+    if (phaseId == currentPhaseId) return _getLatestRoundRange(asset, denomination, currentPhaseId);
     return _getPhaseRange(asset, denomination, phaseId);
   }
 
@@ -752,7 +751,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     s_phases[asset][denomination][currentPhaseId].endingAggregatorRoundId = previousAggregatorEndingRoundId;
     uint80 startingRoundId = _getLatestAggregatorRoundId(AggregatorV2V3Interface(newAggregator));
     s_phaseAggregators[asset][denomination][nextPhaseId] = AggregatorV2V3Interface(newAggregator);
-    s_phases[asset][denomination][nextPhaseId] = Phase(nextPhaseId, startingRoundId, 0);
+    s_phases[asset][denomination][nextPhaseId] = Phase(startingRoundId, 0);
 
     return (nextPhaseId, address(currentAggregator));
   }
@@ -817,10 +816,10 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       uint80 endingRoundId
     )
   {
-    Phase memory range = s_phases[asset][denomination][phaseId];
+    Phase memory phase = s_phases[asset][denomination][phaseId];
     return (
-      _getStartingRoundId(range),
-      _getEndingRoundId(range)
+      _getStartingRoundId(phaseId, phase),
+      _getEndingRoundId(phaseId, phase)
     );
   }
 
@@ -836,15 +835,16 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       uint80 endingRoundId
     )
   {
-    Phase memory range = s_phases[asset][denomination][currentPhaseId];
+    Phase memory phase = s_phases[asset][denomination][currentPhaseId];
     return (
-      _getStartingRoundId(range),
+      _getStartingRoundId(currentPhaseId, phase),
       _getLatestRoundId(asset, denomination, currentPhaseId)
     );
   }
 
   function _getStartingRoundId(
-    Phase memory range
+    uint16 phaseId,
+    Phase memory phase
   )
     internal
     pure
@@ -852,11 +852,12 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       uint80 startingRoundId
     )
   {
-    return _addPhase(range.phaseId, uint64(range.startingAggregatorRoundId));
+    return _addPhase(phaseId, uint64(phase.startingAggregatorRoundId));
   }
 
   function _getEndingRoundId(
-    Phase memory range
+    uint16 phaseId,
+    Phase memory phase
   )
     internal
     pure
@@ -864,7 +865,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       uint80 startingRoundId
     )
   {
-    return _addPhase(range.phaseId, uint64(range.endingAggregatorRoundId));
+    return _addPhase(phaseId, uint64(phase.endingAggregatorRoundId));
   }
 
   function _getLatestRoundId(

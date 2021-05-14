@@ -43,8 +43,6 @@ contract("FeedRegistry", function () {
     it("should initialize correctly", async function () {
       expect(await this.registry.owner()).to.equal(this.signers.owner.address);
       const currentPhaseId = await this.registry.getCurrentPhaseId(ASSET, DENOMINATION);
-      const currentPhase = await this.registry.getPhase(ASSET, DENOMINATION, currentPhaseId);
-      expect(currentPhase.phaseId).to.equal(0);
       const currentPhaseAggregator = await this.registry.getPhaseFeed(ASSET, DENOMINATION, currentPhaseId);
       expect(currentPhaseAggregator).to.equal(ethers.constants.AddressZero);
     });
@@ -74,10 +72,9 @@ contract("FeedRegistry", function () {
       await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
 
       const currentPhaseId = await this.registry.getCurrentPhaseId(ASSET, DENOMINATION);
-      const currentPhase = await this.registry.getPhase(ASSET, DENOMINATION, currentPhaseId);
       await expect(this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address))
         .to.emit(this.registry, "FeedConfirmed")
-        .withArgs(ASSET, DENOMINATION, this.feed.address, ethers.constants.AddressZero, currentPhase.phaseId + 1);
+        .withArgs(ASSET, DENOMINATION, this.feed.address, ethers.constants.AddressZero, currentPhaseId + 1);
 
       const feed = await this.registry.getFeed(ASSET, DENOMINATION);
       expect(feed).to.equal(this.feed.address);
@@ -86,10 +83,10 @@ contract("FeedRegistry", function () {
       expect(isFeedEnabled);
 
       const newPhaseId = await this.registry.getCurrentPhaseId(ASSET, DENOMINATION);
+      expect(newPhaseId).to.equal(currentPhaseId + 1);
       const newPhaseAggregator = await this.registry.getPhaseFeed(ASSET, DENOMINATION, newPhaseId);
       expect(newPhaseAggregator).to.equal(this.feed.address);
       const newPhase = await this.registry.getPhase(ASSET, DENOMINATION, newPhaseId);
-      expect(newPhase.phaseId).to.equal(currentPhase.phaseId + 1);
       expect(newPhase.startingAggregatorRoundId).to.equal(await this.feed.latestRound());
       expect(newPhase.endingAggregatorRoundId).to.equal(0);
     });

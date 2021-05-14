@@ -96,17 +96,14 @@ contract("FeedRegistry Phases", function () {
 
     // Check phase historical data is available
     const Phase1Data = await this.registry.getPhase(ASSET, DENOMINATION, PHASE_ONE);
-    expect(Phase1Data.phaseId).to.equal(PHASE_ONE);
     expect(Phase1Data.startingAggregatorRoundId).to.equal(feedAStartingRound);
     expect(Phase1Data.endingAggregatorRoundId).to.equal(feedAEndingRound);
 
     const Phase2Data = await this.registry.getPhase(ASSET, DENOMINATION, PHASE_TWO);
-    expect(Phase2Data.phaseId).to.equal(PHASE_TWO);
     expect(Phase2Data.startingAggregatorRoundId).to.equal(feedBStartingRound);
     expect(Phase2Data.endingAggregatorRoundId).to.equal(feedBEndingRound); // feedA was previous phase aggregator
 
     const Phase3Data = await this.registry.getPhase(ASSET, DENOMINATION, PHASE_THREE);
-    expect(Phase3Data.phaseId).to.equal(PHASE_THREE);
     expect(Phase3Data.startingAggregatorRoundId).to.equal(0);
     expect(Phase3Data.endingAggregatorRoundId).to.equal(0);
 
