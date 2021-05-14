@@ -565,7 +565,6 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     override
     onlyOwner()
   {
-    require(aggregator == address(s_proposedAggregators[asset][denomination]), "Invalid proposed aggregator");
     (uint16 nextPhaseId, address previousAggregator) = _setFeed(asset, denomination, aggregator);
     s_isAggregatorEnabled[aggregator] = true;
     s_isAggregatorEnabled[previousAggregator] = false;
@@ -741,16 +740,18 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       address previousAggregator
     )
   {
-    AggregatorV2V3Interface currentAggregator = getFeed(asset, denomination);
-    uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
+    require(newAggregator == address(s_proposedAggregators[asset][denomination]), "Invalid proposed aggregator");
     delete s_proposedAggregators[asset][denomination];
+
+    AggregatorV2V3Interface currentAggregator = getFeed(asset, denomination);
+    uint80 previousAggregatorEndingRoundId = _getLatestAggregatorRoundId(currentAggregator);
+    uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
+    s_phases[asset][denomination][currentPhaseId].endingAggregatorRoundId = previousAggregatorEndingRoundId;
+
     nextPhaseId = currentPhaseId + 1;
     s_currentPhaseId[asset][denomination] = nextPhaseId;
-
-    uint80 previousAggregatorEndingRoundId = _getLatestAggregatorRoundId(currentAggregator);
-    s_phases[asset][denomination][currentPhaseId].endingAggregatorRoundId = previousAggregatorEndingRoundId;
-    uint80 startingRoundId = _getLatestAggregatorRoundId(AggregatorV2V3Interface(newAggregator));
     s_phaseAggregators[asset][denomination][nextPhaseId] = AggregatorV2V3Interface(newAggregator);
+    uint80 startingRoundId = _getLatestAggregatorRoundId(AggregatorV2V3Interface(newAggregator));
     s_phases[asset][denomination][nextPhaseId] = Phase(startingRoundId, 0);
 
     return (nextPhaseId, address(currentAggregator));
