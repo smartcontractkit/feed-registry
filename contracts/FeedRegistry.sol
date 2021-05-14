@@ -639,6 +639,20 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     return s_proposedAggregators[asset][denomination].latestRoundData();
   }
 
+  function getCurrentPhaseId(
+    address asset,
+    address denomination
+  )
+    public
+    view
+    override
+    returns (
+      uint16 currentPhaseId
+    )
+  {
+    return s_currentPhaseId[asset][denomination];
+  }
+
   function _addPhase(
     uint16 phase,
     uint64 originalId

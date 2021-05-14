@@ -274,4 +274,15 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
       uint256 updatedAt,
       uint80 answeredInRound
     );
+
+  // Phases
+  function getCurrentPhaseId(
+    address asset,
+    address denomination
+  )
+    external
+    view
+    returns (
+      uint16 currentPhaseId
+    );
 }
