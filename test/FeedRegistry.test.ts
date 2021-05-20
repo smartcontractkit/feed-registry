@@ -28,6 +28,7 @@ import { deployMockAggregator } from "./utils/mocks";
 import { shouldBehaveLikeConfirmedOwner } from "./vendor/ConfirmedOwner.behaviour";
 
 const { deployContract } = hre.waffle;
+const V3_NO_DATA_ERROR = "No data present";
 
 contract("FeedRegistry", function () {
   beforeEach(async function () {
@@ -352,6 +353,16 @@ contract("FeedRegistry", function () {
 
       const emptyRoundData = await this.registry.getRoundData(ASSET, DENOMINATION, TEST_PROXY_ROUND);
       expect(emptyRoundData).to.eql(EMPTY_ROUND);
+    });
+
+    it("getRoundData should revert if the aggregator reverts", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.getRoundData.withArgs(TEST_ROUND).revertsWithReason(V3_NO_DATA_ERROR); // Mock feed response
+
+      await expect(this.registry.getRoundData(ASSET, DENOMINATION, TEST_PROXY_ROUND)).to.be.revertedWith(
+        V3_NO_DATA_ERROR,
+      );
     });
   });
 
