@@ -21,6 +21,7 @@ import {
   OTHER_ANSWER,
   OTHER_TIMESTAMP,
   getRoundId,
+  EMPTY_ROUND,
 } from "./utils/constants";
 import { contract } from "./utils/context";
 import { deployMockAggregator } from "./utils/mocks";
@@ -334,9 +335,21 @@ contract("FeedRegistry", function () {
     });
 
     it("getRoundData should revert for a non-existent feed", async function () {
-      await expect(this.registry.getRoundData(ASSET, DENOMINATION, TEST_ROUND)).to.be.revertedWith(
+      await expect(this.registry.getRoundData(ASSET, DENOMINATION, TEST_PROXY_ROUND)).to.be.revertedWith(
         "function call to a non-contract account",
       );
+    });
+
+    it("getRoundData should not revert for a feed with 0 answer", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.feed.mock.getRoundData.withArgs(TEST_ROUND).returns(...EMPTY_ROUND); // Mock feed response
+
+      const feed = await this.registry.getFeed(ASSET, DENOMINATION);
+      console.log(feed);
+
+      const emptyRoundData = await this.registry.getRoundData(ASSET, DENOMINATION, TEST_PROXY_ROUND);
+      expect(emptyRoundData).to.eql(EMPTY_ROUND);
     });
   });
 

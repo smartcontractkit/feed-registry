@@ -1,5 +1,6 @@
 import { BigNumber, ethers, utils } from "ethers";
 
+const ZERO = BigNumber.from(0);
 export const ASSET = "0x0000000000000000000000000000000000000001";
 export const DENOMINATION = "0x0000000000000000000000000000000000000002";
 export const OTHER_DENOMINATION = "0x0000000000000000000000000000000000000003";
@@ -23,5 +24,5 @@ export const OTHER_TIMESTAMP = BigNumber.from("987654321");
 export const OTHER_ANSWER = utils.parseEther("888888");
 export const OTHER_ROUND = BigNumber.from("123");
 export const OTHER_ROUND_DATA = [OTHER_ROUND, OTHER_ANSWER, TEST_TIMESTAMP, TEST_TIMESTAMP, OTHER_ROUND];
-export const EMPTY_ROUND = [0, 0, 0, 0, 0];
+export const EMPTY_ROUND = [PHASE_BASE.add(ZERO), ZERO, ZERO, ZERO, PHASE_BASE.add(ZERO)];
 export const getRoundId = (phase: number, roundId: BigNumber): BigNumber => PHASE_BASE.mul(phase).add(roundId);
