@@ -3,6 +3,7 @@
 pragma solidity 0.7.6;
 
 import "./WriteAccessController.sol";
+import "../utils/EOAContext.sol";
 
 /**
  * @title PairReadAccessController
@@ -16,7 +17,7 @@ import "./WriteAccessController.sol";
  * since it grants any externally owned account access! See
  * WriteAccessController for that.
  */
-contract PairReadAccessController is WriteAccessController {
+contract PairReadAccessController is WriteAccessController, EOAContext {
   /**
    * @notice Returns the access of an address to an asset/denomination pair
    * @param account The address to query
@@ -37,6 +38,6 @@ contract PairReadAccessController is WriteAccessController {
       address denomination
     ) = abi.decode(data[4:], (address, address));
     bytes memory pairData = abi.encode(asset, denomination); // Check access to pair (TKN / ETH)
-    return super.hasAccess(account, pairData) || account == address(0);
+    return super.hasAccess(account, pairData) || _isEOA(account);
   }
 }

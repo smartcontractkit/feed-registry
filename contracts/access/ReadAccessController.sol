@@ -3,6 +3,7 @@
 pragma solidity 0.7.6;
 
 import "./WriteAccessController.sol";
+import "../utils/EOAContext.sol";
 
 /**
  * @title ReadAccessController
@@ -15,7 +16,7 @@ import "./WriteAccessController.sol";
  * since it grants any externally owned account access! See
  * WriteAccessController for that.
  */
-contract ReadAccessController is WriteAccessController {
+contract ReadAccessController is WriteAccessController, EOAContext {
   /**
    * @notice Returns the access of an address
    * @param account The address to query
@@ -31,6 +32,6 @@ contract ReadAccessController is WriteAccessController {
     override
     returns (bool)
   {
-    return super.hasAccess(account, data) || account == address(0);
+    return super.hasAccess(account, data) || _isEOA(account);
   }
 }
