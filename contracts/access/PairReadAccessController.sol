@@ -24,7 +24,7 @@ contract PairReadAccessController is WriteAccessController {
    */
   function hasAccess(
     address account,
-    bytes memory data
+    bytes calldata data
   )
     public
     view
@@ -35,8 +35,8 @@ contract PairReadAccessController is WriteAccessController {
     (
       address asset,
       address denomination
-    ) = abi.decode(data, (address, address));
-    bytes memory pairData = abi.encode(asset, denomination); // Parse only asset pair (TKN / USD)
+    ) = abi.decode(data[4:], (address, address));
+    bytes memory pairData = abi.encode(asset, denomination); // Check access to pair (TKN / ETH)
     return super.hasAccess(account, pairData) || account == address(0);
   }
 }

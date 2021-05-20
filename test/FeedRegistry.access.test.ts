@@ -34,15 +34,16 @@ contract("FeedRegistry Access controls", function () {
   it("access controls should work for getter", async function () {
     // Access control is disabled when no controller is set
     expect(await this.registry.connect(this.signers.other).latestAnswer(ASSET, DENOMINATION)).to.equal(TEST_ANSWER);
+    const encodedRegistryCall = this.registry.interface.encodeFunctionData("latestAnswer", [ASSET, DENOMINATION]);
 
     // Should revert because access is set to false by default, and access controllers checkEnabled defaults to true
     await this.registry.setAccessController(this.accessController.address);
-    expect(await this.accessController.hasAccess(this.consumer.address, PAIR_DATA)).to.equal(false);
+    expect(await this.accessController.hasAccess(this.consumer.address, encodedRegistryCall)).to.equal(false);
     await expect(this.consumer.read(ASSET, DENOMINATION)).to.be.revertedWith("No access");
 
     // Should pass because access is set to true
     await this.accessController.addLocalAccess(this.consumer.address, PAIR_DATA);
-    expect(await this.accessController.hasAccess(this.consumer.address, PAIR_DATA)).to.equal(true);
+    expect(await this.accessController.hasAccess(this.consumer.address, encodedRegistryCall)).to.equal(true);
     expect(await this.consumer.read(ASSET, DENOMINATION)).to.equal(TEST_ANSWER);
   });
 

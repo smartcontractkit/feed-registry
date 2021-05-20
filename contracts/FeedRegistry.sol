@@ -125,7 +125,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     external
     view
     override
-    checkAccess(asset, denomination)
+    checkPairAccess()
     returns (
       uint80 roundId,
       int256 answer,
@@ -179,7 +179,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     external
     view
     override
-    checkAccess(asset, denomination)
+    checkPairAccess()
     returns (
       uint80 roundId,
       int256 answer,
@@ -217,7 +217,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     external
     view
     override
-    checkAccess(asset, denomination)
+    checkPairAccess()
     returns (
       int256 answer
     )
@@ -243,7 +243,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     external
     view
     override
-    checkAccess(asset, denomination)
+    checkPairAccess()
     returns (
       uint256 timestamp
     )
@@ -271,7 +271,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     external
     view
     override
-    checkAccess(asset, denomination)
+    checkPairAccess()
     returns (
       uint256 roundId
     )
@@ -301,7 +301,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     external
     view
     override
-    checkAccess(asset, denomination)
+    checkPairAccess()
     returns (
       int256 answer
     )
@@ -333,7 +333,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     external
     view
     override
-    checkAccess(asset, denomination)
+    checkPairAccess()
     returns (
       uint256 timestamp
     )
@@ -926,15 +926,11 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
   }
 
   /**
-   * @dev reverts if the caller does not have access by the accessController
-   * contract to the aggregator or is the contract itself.
+   * @dev reverts if the caller does not have access granted by the accessController contract
+   * to the asset / denomination pair or is the contract itself.
    */
-  modifier checkAccess(
-    address asset,
-    address denomination
-  ) {
-    bytes memory callData = abi.encode(asset, denomination, msg.data);
-    require(address(s_accessController) == address(0) || s_accessController.hasAccess(msg.sender, callData), "No access");
+  modifier checkPairAccess() {
+    require(address(s_accessController) == address(0) || s_accessController.hasAccess(msg.sender, msg.data), "No access");
     _;
   }
 
