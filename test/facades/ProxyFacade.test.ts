@@ -23,6 +23,7 @@ contract("ProxyFacade", function () {
 
     this.feed = await deployMockAggregator(this.signers.owner);
     await this.feed.mock.latestAnswer.returns(TEST_ANSWER);
+    await this.feed.mock.getAnswer.withArgs(TEST_ROUND).returns(TEST_ANSWER); // Mock feed response
     await this.feed.mock.latestTimestamp.returns(TEST_TIMESTAMP);
     await this.feed.mock.latestRound.returns(TEST_ROUND);
     await this.feed.mock.latestRoundData.returns(...TEST_ROUND_DATA);
@@ -52,6 +53,7 @@ contract("ProxyFacade", function () {
     expect(await this.proxyFacade.latestAnswer()).to.equal(TEST_ANSWER);
     expect(await this.proxyFacade.latestTimestamp()).to.equal(TEST_TIMESTAMP);
     expect(await this.proxyFacade.latestRound()).to.equal(TEST_PROXY_ROUND);
+    expect(await this.proxyFacade.getAnswer(TEST_PROXY_ROUND)).to.equal(TEST_ANSWER);
     // TODO: other getters
   });
 
@@ -60,6 +62,11 @@ contract("ProxyFacade", function () {
     expect(await this.proxy.latestAnswer()).to.equal(TEST_ANSWER);
     expect(await this.proxy.latestTimestamp()).to.equal(TEST_TIMESTAMP);
     expect(await this.proxy.latestRound()).to.equal(TEST_PROXY_ROUND);
-    // TODO: other getters
+
+    // TODO
+    // Problem: Our current proxies only forwards the aggregator round id component
+    // So if our proxies are pointing to a non-aggregator contract the phaseId is lost
+    // https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.6/AggregatorProxy.sol#L89
+    // expect(await this.proxy.getAnswer(TEST_PROXY_ROUND)).to.equal(TEST_ANSWER);
   });
 });
