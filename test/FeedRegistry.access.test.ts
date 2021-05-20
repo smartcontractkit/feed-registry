@@ -5,7 +5,7 @@ import { expect } from "chai";
 import { PairReadAccessController } from "../typechain/PairReadAccessController";
 import { MockConsumer } from "../typechain/MockConsumer";
 import { shouldBehaveLikeAccessControlled } from "./access/AccessControlled.behaviour";
-import { ASSET, DENOMINATION, TEST_ANSWER, PAIR_DATA } from "./utils/constants";
+import { ASSET, DENOMINATION, PAIR_DATA, TEST_ANSWER, TEST_ROUND } from "./utils/constants";
 import { contract } from "./utils/context";
 import { deployMockAggregator } from "./utils/mocks";
 
@@ -18,6 +18,9 @@ contract("FeedRegistry Access controls", function () {
     this.accessControlled = this.registry;
 
     this.feed = await deployMockAggregator(this.signers.owner);
+    await this.feed.mock.latestAnswer.returns(TEST_ANSWER);
+    await this.feed.mock.latestRound.returns(TEST_ROUND);
+
     await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
     await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
 

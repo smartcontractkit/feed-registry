@@ -2,7 +2,15 @@ import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { FeedRegistry } from "../../typechain/FeedRegistry";
 import { expect } from "chai";
-import { TEST_ANSWER, ASSET, DENOMINATION } from "../utils/constants";
+import {
+  TEST_ANSWER,
+  ASSET,
+  DENOMINATION,
+  TEST_ROUND,
+  TEST_PROXY_ROUND,
+  TEST_TIMESTAMP,
+  TEST_ROUND_DATA,
+} from "../utils/constants";
 import { contract } from "../utils/context";
 import { deployMockAggregator } from "../utils/mocks";
 
@@ -14,6 +22,11 @@ contract("ProxyFacade", function () {
     this.registry = <FeedRegistry>await deployContract(this.signers.owner, FeedRegistryArtifact, []);
 
     this.feed = await deployMockAggregator(this.signers.owner);
+    await this.feed.mock.latestAnswer.returns(TEST_ANSWER);
+    await this.feed.mock.latestTimestamp.returns(TEST_TIMESTAMP);
+    await this.feed.mock.latestRound.returns(TEST_ROUND);
+    await this.feed.mock.latestRoundData.returns(...TEST_ROUND_DATA);
+
     await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
     await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
 
@@ -33,18 +46,20 @@ contract("ProxyFacade", function () {
     expect(await this.proxyFacade.getFeedRegistry()).to.equal(this.registry.address);
     expect(await this.proxyFacade.getAsset()).to.equal(ASSET);
     expect(await this.proxyFacade.getDenomination()).to.equal(DENOMINATION);
+  });
+
+  it("proxyFacade should be able to read from registry", async function () {
     expect(await this.proxyFacade.latestAnswer()).to.equal(TEST_ANSWER);
+    expect(await this.proxyFacade.latestTimestamp()).to.equal(TEST_TIMESTAMP);
+    expect(await this.proxyFacade.latestRound()).to.equal(TEST_PROXY_ROUND);
     // TODO: other getters
   });
 
-  it("proxyFacade should be able to read answer from registry", async function () {
-    expect(await this.proxyFacade.latestAnswer()).to.equal(TEST_ANSWER);
-    // TODO: other getters
-  });
-
-  it("proxy should be able to read answer through proxyFacade", async function () {
+  it("proxy should be able to read through proxyFacade", async function () {
     expect(await this.proxy.aggregator()).to.equal(this.proxyFacade.address);
     expect(await this.proxy.latestAnswer()).to.equal(TEST_ANSWER);
+    expect(await this.proxy.latestTimestamp()).to.equal(TEST_TIMESTAMP);
+    expect(await this.proxy.latestRound()).to.equal(TEST_PROXY_ROUND);
     // TODO: other getters
   });
 });

@@ -37,7 +37,12 @@ contract("FeedRegistry", function () {
     this.owned = this.registry;
 
     this.feed = await deployMockAggregator(this.signers.owner);
+    await this.feed.mock.latestAnswer.returns(TEST_ANSWER);
+    await this.feed.mock.latestRound.returns(TEST_ROUND);
+
     this.otherFeed = await deployMockAggregator(this.signers.owner);
+    await this.otherFeed.mock.latestAnswer.returns(TEST_ANSWER);
+    await this.otherFeed.mock.latestRound.returns(TEST_ROUND);
   });
 
   describe("constructor", async function () {
