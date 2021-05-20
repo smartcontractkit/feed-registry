@@ -350,9 +350,6 @@ contract("FeedRegistry", function () {
       await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
       await this.feed.mock.getRoundData.withArgs(TEST_ROUND).returns(...EMPTY_ROUND); // Mock feed response
 
-      const feed = await this.registry.getFeed(ASSET, DENOMINATION);
-      console.log(feed);
-
       const emptyRoundData = await this.registry.getRoundData(ASSET, DENOMINATION, TEST_PROXY_ROUND);
       expect(emptyRoundData).to.eql(EMPTY_ROUND);
     });
