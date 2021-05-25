@@ -4,9 +4,9 @@ The Feed Registry is an on-chain mapping of assets to feeds. It allows users and
 
 ## Background
 
-DeFi protocols that use Chainlink often implement their own on-chain registry of token addresses to Chainlink feeds. Examples include ([Yearn](https://github.com/yearn/audit/blob/4b07283c80fc005e899afa8b5fb2bb949fe11f28/contracts/ySwap/ChainLinkFeedsRegistry.sol), [Aave](https://github.com/aave/protocol-v2/blob/2708551bcf3afb28ee9798ccf7f3027ea0ecec10/contracts/misc/AaveOracle.sol#L25), [dydx](https://github.com/dydxprotocol/perpetual/blob/master/contracts/protocol/v1/PerpetualV1.sol#L59-L60), [Alpha Homora](https://github.com/AlphaFinanceLab/alphahomora-bsc/blob/master/contracts/5/PriceOracle.sol#L1-L10), [Alpha Homora](https://github.com/AlphaFinanceLab/alphahomora-bsc/blob/master/contracts/5/PriceOracle.sol#L1-L10).
+DeFi protocols that use Chainlink often implement their own on-chain registry of token addresses to Chainlink feeds. Examples include [Yearn](https://github.com/yearn/audit/blob/4b07283c80fc005e899afa8b5fb2bb949fe11f28/contracts/ySwap/ChainLinkFeedsRegistry.sol), [Aave](https://github.com/aave/protocol-v2/blob/2708551bcf3afb28ee9798ccf7f3027ea0ecec10/contracts/misc/AaveOracle.sol#L25), [dydx](https://github.com/dydxprotocol/perpetual/blob/master/contracts/protocol/v1/PerpetualV1.sol#L59-L60), [Alpha Homora](https://github.com/AlphaFinanceLab/alphahomora-bsc/blob/master/contracts/5/PriceOracle.sol#L1-L10), [Alpha Homora](https://github.com/AlphaFinanceLab/alphahomora-bsc/blob/master/contracts/5/PriceOracle.sol#L1-L10).
 
-To speed up integration and ensure that protocols use the correct feeds, the Feed Registry provides a canonical on-chain registry of assets to feeds. Users can
+To speed up integration and ensure that protocols use the correct feeds, the Feed Registry provides a canonical on-chain registry of assets to feeds.
 
 ## Architecture
 
@@ -39,7 +39,13 @@ interface FeedRegistryInterface {
 }
 ```
 
-The `address` type is used for `asset` and `denomination` after gathering feedback from multiple users. These `asset` and `denomination` address represent a specific pair. For example, to query the LINK / USD feed, you call the `latestAnswer(address asset, address denomination)` getter with an `asset` and `denomination` of the LINK token address and the Denominations.USD address respectively.
+The `address` type is used for `asset` and `denomination` after gathering feedback from multiple users. These `asset` and `denomination` address represent a specific pair. For example, to query the LINK / USD feed, you call:
+
+```solidity
+latestAnswer(address asset, address denomination)
+```
+
+by supplying an `asset` and `denomination` parameter, with the LINK token address and the `Denominations.USD` address respectively.
 
 ## Feed Registry price feed management
 
