@@ -3,14 +3,15 @@
   "plugins": ["prettier"],
   "rules": {
     "code-complexity": ["error", 7],
-    "compiler-version": ["error", "^0.7.0"],
+    "compiler-version": ["off", "^0.7.0"],
     "const-name-snakecase": "off",
     "constructor-syntax": "error",
+    "var-name-mixedcase": "off",
     "func-visibility": ["error", { "ignoreConstructors": true }],
-    "max-line-length": ["error", 120],
+    "max-line-length": ["error", 160],
     "not-rely-on-time": "off",
     "prettier/prettier": [
-      "error",
+      "off",
       {
         "endOfLine": "auto"
       }
