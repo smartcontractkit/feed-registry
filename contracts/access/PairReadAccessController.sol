@@ -13,7 +13,7 @@ import "../utils/EOAContext.sol";
  * any contract storage regardless of onchain access control measures, so this
  * does not weaken the access control while improving usability)
  * - accounts explicitly added to an access list
- * @dev ReadAccessController is not suitable for access controlling writes
+ * @dev PairReadAccessController is not suitable for access controlling writes
  * since it grants any externally owned account access! See
  * WriteAccessController for that.
  */

@@ -347,7 +347,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
 
 
   /**
-   * @notice retrieve the aggregator of an asset / denomination pair in the current phase
+   * @notice Retrieve the aggregator of an asset / denomination pair in the current phase
    * @param asset asset address
    * @param denomination denomination address
    * @return aggregator

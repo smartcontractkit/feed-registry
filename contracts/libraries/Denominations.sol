@@ -7,6 +7,7 @@ library Denominations {
   address public constant BTC = 0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB;
 
   // Fiat currencies follow https://en.wikipedia.org/wiki/ISO_4217
+  // Addresses for fiat currencies are the base 10 numbers provided in the wiki link, written the same way, despite addresses being base 16.
   address public constant USD = 0x0000000000000000000000000000000000000840;
   address public constant GBP = 0x0000000000000000000000000000000000000826;
   address public constant EUR = 0x0000000000000000000000000000000000000978;
