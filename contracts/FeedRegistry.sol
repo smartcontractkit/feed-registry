@@ -408,7 +408,8 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
   }
 
   /**
-   * @notice returns specified phase by id
+   * @notice returns a phase by id. A Phase contains the starting and ending aggregator round ids.
+   * endingAggregatorRoundId will be 0 if the phase is the current phase
    * @dev reverts if the phase does not exist
    * @param asset asset address
    * @param denomination denomination address
