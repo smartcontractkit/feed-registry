@@ -579,6 +579,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
 
   /**
    * @notice Returns the proposed aggregator for an asset / denomination pair
+   * returns a zero address if there is no proposed aggregator for the pair
    * @param asset asset address
    * @param denomination denomination address
    * @return proposedAggregator

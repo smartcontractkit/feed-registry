@@ -125,35 +125,37 @@ contract("FeedRegistry Phases", function () {
     expect(Phase4RoundRange.startingRoundId).to.equal(getRoundId(PHASE_FOUR, feedBNewStartingRound));
     expect(Phase4RoundRange.endingRoundId).to.equal(getRoundId(PHASE_FOUR, feedBNewLatestRound)); // latest feedB round
 
-    // // Check phase historical data is available
-    // const Phase1Data = await this.registry.getPhase(ASSET, DENOMINATION, PHASE_ONE);
-    // expect(Phase1Data.startingAggregatorRoundId).to.equal(feedAStartingRound);
-    // expect(Phase1Data.endingAggregatorRoundId).to.equal(feedAEndingRound);
+    // Check phase historical data is available
+    const Phase1Data = await this.registry.getPhase(ASSET, DENOMINATION, PHASE_ONE);
+    expect(Phase1Data.startingAggregatorRoundId).to.equal(feedAStartingRound);
+    expect(Phase1Data.endingAggregatorRoundId).to.equal(feedAEndingRound);
 
-    // const Phase2Data = await this.registry.getPhase(ASSET, DENOMINATION, PHASE_TWO);
-    // expect(Phase2Data.startingAggregatorRoundId).to.equal(feedBStartingRound);
-    // expect(Phase2Data.endingAggregatorRoundId).to.equal(feedBEndingRound); // feedA was previous phase aggregator
+    const Phase2Data = await this.registry.getPhase(ASSET, DENOMINATION, PHASE_TWO);
+    expect(Phase2Data.startingAggregatorRoundId).to.equal(feedBStartingRound);
+    expect(Phase2Data.endingAggregatorRoundId).to.equal(feedBEndingRound); // feedA was previous phase aggregator
 
-    // const Phase3Data = await this.registry.getPhase(ASSET, DENOMINATION, PHASE_THREE);
-    // expect(Phase3Data.startingAggregatorRoundId).to.equal(0);
-    // expect(Phase3Data.endingAggregatorRoundId).to.equal(0);
+    const Phase3Data = await this.registry.getPhase(ASSET, DENOMINATION, PHASE_THREE);
+    expect(Phase3Data.startingAggregatorRoundId).to.equal(0);
+    expect(Phase3Data.endingAggregatorRoundId).to.equal(0);
 
-    // const Phase4Data = await this.registry.getPhase(ASSET, DENOMINATION, PHASE_FOUR);
-    // expect(Phase4Data.startingAggregatorRoundId).to.equal(feedBNewStartingRound);
-    // expect(Phase4Data.endingAggregatorRoundId).to.equal(0); // phase has not ended
+    const Phase4Data = await this.registry.getPhase(ASSET, DENOMINATION, PHASE_FOUR);
+    expect(Phase4Data.startingAggregatorRoundId).to.equal(feedBNewStartingRound);
+    expect(Phase4Data.endingAggregatorRoundId).to.equal(0); // phase has not ended
 
-    // expect(await this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_ONE, feedAStartingRound))).to.equal(
-    //   feedA.address,
-    // );
-    // expect(
-    //   await this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_ONE, feedAEndingRound.sub(1))),
-    // ).to.equal(feedA.address);
-    // expect(
-    //   await this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_TWO, feedBStartingRound.add(1))),
-    // ).to.equal(feedB.address);
-    // expect(
-    //   await this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_THREE, feedBEndingRound.add(1))),
-    // ).to.equal(feedCAddress);
+    expect(await this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_ONE, feedAStartingRound))).to.equal(
+      feedA.address,
+    );
+    expect(
+      await this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_ONE, feedAEndingRound.sub(1))),
+    ).to.equal(feedA.address);
+    expect(
+      await this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_TWO, feedBStartingRound.add(1))),
+    ).to.equal(feedB.address);
+    await expect(
+      this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_THREE, feedBEndingRound.add(1))),
+    ).to.be.revertedWith(
+      "Feed not found for round", // zero address
+    );
   });
 
   it("should be able to inspect active feed in current phase", async function () {
