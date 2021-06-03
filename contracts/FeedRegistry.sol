@@ -409,6 +409,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
 
   /**
    * @notice returns specified phase by id
+   * @dev reverts if the phase does not exist
    * @param asset asset address
    * @param denomination denomination address
    * @param phaseId phase id
@@ -427,7 +428,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     )
   {
     Phase memory phase = s_phases[asset][denomination][phaseId];
-    // TODO: should revert if empty phase
+    require(_phaseExists(phase), "Phase does not exist");
     return phase;
   }
 
@@ -735,6 +736,18 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     );
   }
 
+  function _phaseExists(
+    Phase memory phase
+  )
+    internal
+    pure
+    returns (
+      bool
+    )
+  {
+    return phase.phaseId > 0;
+  }
+
   function _getProposedFeed(
     address asset,
     address denomination
@@ -785,7 +798,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     s_currentPhaseId[asset][denomination] = nextPhaseId;
     s_phaseAggregators[asset][denomination][nextPhaseId] = AggregatorV2V3Interface(newAggregator);
     uint80 startingRoundId = _getLatestAggregatorRoundId(AggregatorV2V3Interface(newAggregator));
-    s_phases[asset][denomination][nextPhaseId] = Phase(startingRoundId, 0);
+    s_phases[asset][denomination][nextPhaseId] = Phase(nextPhaseId, startingRoundId, 0);
 
     return (nextPhaseId, address(currentAggregator));
   }

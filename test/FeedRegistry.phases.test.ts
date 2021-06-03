@@ -10,6 +10,7 @@ import { deployMockContract } from "ethereum-waffle";
 const { deployContract } = hre.waffle;
 
 const ZERO = BigNumber.from(0);
+const PHASE_ZERO = 0;
 const PHASE_ONE = 1;
 const PHASE_TWO = 2;
 const PHASE_THREE = 3;
@@ -28,6 +29,10 @@ contract("FeedRegistry Phases", function () {
     expect(currentPhaseAggregator).to.equal(ethers.constants.AddressZero);
     expect(currentPhase.startingRoundId).to.equal(0);
     expect(currentPhase.endingRoundId).to.equal(0);
+  });
+
+  it("getPhase() should revert for non-existent phases", async function () {
+    await expect(this.registry.getPhase(ASSET, DENOMINATION, PHASE_ONE)).to.be.revertedWith("Phase does not exist");
   });
 
   // Tests phase logic when switching aggregators
