@@ -540,6 +540,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     onlyOwner()
   {
     AggregatorV2V3Interface currentPhaseAggregator = getFeed(asset, denomination);
+    require(aggregator != address(currentPhaseAggregator), "Cannot propose current aggregator");
     address proposedAggregator = address(getProposedFeed(asset, denomination));
     if (proposedAggregator != aggregator) {
       s_proposedAggregators[asset][denomination] = AggregatorV2V3Interface(aggregator);

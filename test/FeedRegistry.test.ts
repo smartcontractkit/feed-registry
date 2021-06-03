@@ -67,6 +67,15 @@ contract("FeedRegistry", function () {
       expect(await this.registry.getProposedFeed(ASSET, DENOMINATION)).to.equal(this.feed.address);
     });
 
+    it("owner cannot re-propose the current feed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+
+      await expect(this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address)).to.be.revertedWith(
+        "Cannot propose current aggregator",
+      );
+    });
+
     it("non-owners cannot propose a feed", async function () {
       await expect(
         this.registry.connect(this.signers.other).proposeFeed(ASSET, DENOMINATION, this.feed.address),
