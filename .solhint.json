@@ -16,6 +16,7 @@
         "endOfLine": "auto"
       }
     ],
+    "no-empty-blocks": "off",
     "reason-string": ["warn", { "maxLength": 64 }]
   }
 }
