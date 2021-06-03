@@ -50,8 +50,9 @@ contract("FeedRegistry", function () {
     it("should initialize correctly", async function () {
       expect(await this.registry.owner()).to.equal(this.signers.owner.address);
       const currentPhaseId = await this.registry.getCurrentPhaseId(ASSET, DENOMINATION);
-      const currentPhaseAggregator = await this.registry.getPhaseFeed(ASSET, DENOMINATION, currentPhaseId);
-      expect(currentPhaseAggregator).to.equal(ethers.constants.AddressZero);
+      await expect(this.registry.getPhaseFeed(ASSET, DENOMINATION, currentPhaseId)).to.be.revertedWith(
+        "Feed not found",
+      ); // zero address
     });
   });
 
@@ -142,8 +143,7 @@ contract("FeedRegistry", function () {
       await this.registry.proposeFeed(ASSET, DENOMINATION, ethers.constants.AddressZero);
       await this.registry.confirmFeed(ASSET, DENOMINATION, ethers.constants.AddressZero);
 
-      const feed = await this.registry.getFeed(ASSET, DENOMINATION);
-      expect(feed).to.equal(ethers.constants.AddressZero);
+      await expect(this.registry.getFeed(ASSET, DENOMINATION)).to.be.revertedWith("Feed not found"); // zero address
 
       const isFeedEnabled = await this.registry.isFeedEnabled(this.feed.address);
       expect(isFeedEnabled).to.equal(false);

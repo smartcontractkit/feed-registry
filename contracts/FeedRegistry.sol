@@ -363,9 +363,8 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       AggregatorV2V3Interface aggregator
     )
   {
-    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
-    // TODO: should revert if aggregator is zero address
-    return aggregator;
+    aggregator = _getFeed(asset, denomination);
+    require(address(aggregator) != address(0), "Feed not found");
   }
 
   /**
@@ -387,9 +386,8 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       AggregatorV2V3Interface aggregator
     )
   {
-    AggregatorV2V3Interface aggregator = _getPhaseFeed(asset, denomination, phaseId);
-    // TODO: should revert if aggregator is zero address
-    return aggregator;
+    aggregator = _getPhaseFeed(asset, denomination, phaseId);
+    require(address(aggregator) != address(0), "Feed not found for phase");
   }
 
   /**
@@ -430,9 +428,8 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       Phase memory phase
     )
   {
-    Phase memory phase = s_phases[asset][denomination][phaseId];
+    phase = s_phases[asset][denomination][phaseId];
     require(_phaseExists(phase), "Phase does not exist");
-    return phase;
   }
 
   /**
@@ -454,9 +451,8 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     )
   {
     uint16 phaseId = _getPhaseIdByRoundId(asset, denomination, roundId);
-    AggregatorV2V3Interface aggregator = _getPhaseFeed(asset, denomination, phaseId);
-    // TODO: should revert if aggregator is zero address
-    return aggregator;
+    aggregator = _getPhaseFeed(asset, denomination, phaseId);
+    require(address(aggregator) != address(0), "Feed not found for round");
   }
 
   /**
@@ -548,7 +544,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     override
     onlyOwner()
   {
-    AggregatorV2V3Interface currentPhaseAggregator = getFeed(asset, denomination);
+    AggregatorV2V3Interface currentPhaseAggregator = _getFeed(asset, denomination);
     require(aggregator != address(currentPhaseAggregator), "Cannot propose current aggregator");
     address proposedAggregator = address(_getProposedFeed(asset, denomination));
     if (proposedAggregator != aggregator) {
@@ -598,9 +594,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       AggregatorV2V3Interface proposedAggregator
     )
   {
-    AggregatorV2V3Interface proposedAggregator = _getProposedFeed(asset, denomination);
-    // TODO: should revert if zero address
-    return proposedAggregator;
+    return _getProposedFeed(asset, denomination);
   }
 
   /**
