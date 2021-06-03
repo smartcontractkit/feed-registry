@@ -189,7 +189,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     )
   {
     (uint16 phaseId, uint64 aggregatorRoundId) = _parseIds(_roundId);
-    AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
+    AggregatorV2V3Interface aggregator = _getPhaseFeed(asset, denomination, phaseId);
     (
       roundId,
       answer,
@@ -308,7 +308,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
   {
     if (roundId > MAX_ID) return 0;
     (uint16 phaseId, uint64 aggregatorRoundId) = _parseIds(roundId);
-    AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
+    AggregatorV2V3Interface aggregator = _getPhaseFeed(asset, denomination, phaseId);
     if (address(aggregator) == address(0)) return 0;
     return aggregator.getAnswer(aggregatorRoundId);
   }
@@ -340,7 +340,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
   {
     if (roundId > MAX_ID) return 0;
     (uint16 phaseId, uint64 aggregatorRoundId) = _parseIds(roundId);
-    AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
+    AggregatorV2V3Interface aggregator = _getPhaseFeed(asset, denomination, phaseId);
     if (address(aggregator) == address(0)) return 0;
     return aggregator.getTimestamp(aggregatorRoundId);
   }
@@ -364,7 +364,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     )
   {
     AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
-    // TODO: should revert aggregator is zero address
+    // TODO: should revert if aggregator is zero address
     return aggregator;
   }
 
@@ -387,7 +387,9 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       AggregatorV2V3Interface aggregator
     )
   {
-    return AggregatorV2V3Interface(s_phaseAggregators[asset][denomination][phaseId]);
+    AggregatorV2V3Interface aggregator = _getPhaseFeed(asset, denomination, phaseId);
+    // TODO: should revert if aggregator is zero address
+    return aggregator;
   }
 
   /**
@@ -452,7 +454,9 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     )
   {
     uint16 phaseId = _getPhaseIdByRoundId(asset, denomination, roundId);
-    return getPhaseFeed(asset, denomination, phaseId);
+    AggregatorV2V3Interface aggregator = _getPhaseFeed(asset, denomination, phaseId);
+    // TODO: should revert if aggregator is zero address
+    return aggregator;
   }
 
   /**
@@ -762,6 +766,20 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     return s_proposedAggregators[asset][denomination];
   }
 
+  function _getPhaseFeed(
+    address asset,
+    address denomination,
+    uint16 phaseId
+  )
+    internal
+    view
+    returns (
+      AggregatorV2V3Interface aggregator
+    )
+  {
+    return s_phaseAggregators[asset][denomination][phaseId];
+  }
+
   function _getFeed(
     address asset,
     address denomination
@@ -773,7 +791,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     )
   {
     uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
-    return s_phaseAggregators[asset][denomination][currentPhaseId];
+    return _getPhaseFeed(asset, denomination, currentPhaseId);
   }
 
   function _setFeed(
