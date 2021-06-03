@@ -17,7 +17,7 @@ contract AccessControlled is AccessControlledInterface, ConfirmedOwner(msg.sende
     onlyOwner()
   {
     s_accessController = _accessController;
-    emit AccessControllerSet(address(_accessController));
+    emit AccessControllerSet(address(_accessController), msg.sender);
   }
 
   function getAccessController()

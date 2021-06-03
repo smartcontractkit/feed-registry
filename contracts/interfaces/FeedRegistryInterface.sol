@@ -17,14 +17,16 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     address indexed asset,
     address indexed denomination,
     address indexed proposedAggregator,
-    address currentAggregator
+    address currentAggregator,
+    address sender
   );
   event FeedConfirmed(
     address indexed asset,
     address indexed denomination,
     address indexed latestAggregator,
     address previousAggregator,
-    uint16 nextPhaseId
+    uint16 nextPhaseId,
+    address sender
   );
 
   // V3 AggregatorV3Interface

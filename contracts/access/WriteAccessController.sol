@@ -16,8 +16,8 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
   mapping(address => bool) internal s_globalAccessList;
   mapping(address => mapping(bytes => bool)) internal s_localAccessList;
 
-  event AccessAdded(address user, bytes data);
-  event AccessRemoved(address user, bytes data);
+  event AccessAdded(address user, bytes data, address sender);
+  event AccessRemoved(address user, bytes data, address sender);
   event CheckAccessEnabled();
   event CheckAccessDisabled();
 
@@ -159,21 +159,21 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
 
   function _addGlobalAccess(address user) internal {
     s_globalAccessList[user] = true;
-    emit AccessAdded(user, "");
+    emit AccessAdded(user, "", msg.sender);
   }
 
   function _removeGlobalAccess(address user) internal {
     s_globalAccessList[user] = false;
-    emit AccessRemoved(user, "");
+    emit AccessRemoved(user, "", msg.sender);
   }
 
   function _addLocalAccess(address user, bytes memory data) internal {
     s_localAccessList[user][data] = true;
-    emit AccessAdded(user, data);
+    emit AccessAdded(user, data, msg.sender);
   }
 
   function _removeLocalAccess(address user, bytes memory data) internal {
     s_localAccessList[user][data] = false;
-    emit AccessRemoved(user, data);
+    emit AccessRemoved(user, data, msg.sender);
   }
 }

@@ -543,7 +543,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     address proposedAggregator = address(getProposedFeed(asset, denomination));
     if (proposedAggregator != aggregator) {
       s_proposedAggregators[asset][denomination] = AggregatorV2V3Interface(aggregator);
-      emit FeedProposed(asset, denomination, aggregator, address(currentPhaseAggregator));
+      emit FeedProposed(asset, denomination, aggregator, address(currentPhaseAggregator), msg.sender);
     }
   }
 
@@ -568,7 +568,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     (uint16 nextPhaseId, address previousAggregator) = _setFeed(asset, denomination, aggregator);
     s_isAggregatorEnabled[aggregator] = true;
     s_isAggregatorEnabled[previousAggregator] = false;
-    emit FeedConfirmed(asset, denomination, aggregator, previousAggregator, nextPhaseId);
+    emit FeedConfirmed(asset, denomination, aggregator, previousAggregator, nextPhaseId, msg.sender);
   }
 
   /**

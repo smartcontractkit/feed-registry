@@ -24,7 +24,7 @@ contract("WriteAccessController", function () {
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(false);
     await expect(this.controller.addGlobalAccess(TEST_ADDRESS))
       .to.emit(this.controller, "AccessAdded")
-      .withArgs(TEST_ADDRESS, EMPTY_BYTES);
+      .withArgs(TEST_ADDRESS, EMPTY_BYTES, this.signers.owner.address);
 
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(true);
     expect(await this.controller.hasAccess(TEST_ADDRESS, PAIR_DATA)).to.equal(true); // Also grants local access
@@ -41,7 +41,7 @@ contract("WriteAccessController", function () {
     expect(await this.controller.hasAccess(TEST_ADDRESS, PAIR_DATA)).to.equal(false);
     await expect(this.controller.addLocalAccess(TEST_ADDRESS, PAIR_DATA))
       .to.emit(this.controller, "AccessAdded")
-      .withArgs(TEST_ADDRESS, PAIR_DATA);
+      .withArgs(TEST_ADDRESS, PAIR_DATA, this.signers.owner.address);
 
     expect(await this.controller.hasAccess(TEST_ADDRESS, PAIR_DATA)).to.equal(true);
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(false); // Does not grant global access
@@ -60,7 +60,7 @@ contract("WriteAccessController", function () {
 
     await expect(this.controller.removeGlobalAccess(TEST_ADDRESS))
       .to.emit(this.controller, "AccessRemoved")
-      .withArgs(TEST_ADDRESS, EMPTY_BYTES);
+      .withArgs(TEST_ADDRESS, EMPTY_BYTES, this.signers.owner.address);
 
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(false);
   });
@@ -78,7 +78,7 @@ contract("WriteAccessController", function () {
 
     await expect(this.controller.removeLocalAccess(TEST_ADDRESS, PAIR_DATA))
       .to.emit(this.controller, "AccessRemoved")
-      .withArgs(TEST_ADDRESS, PAIR_DATA);
+      .withArgs(TEST_ADDRESS, PAIR_DATA, this.signers.owner.address);
 
     expect(await this.controller.hasAccess(TEST_ADDRESS, PAIR_DATA)).to.equal(false);
   });
