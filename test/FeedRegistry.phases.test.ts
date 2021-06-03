@@ -23,10 +23,7 @@ contract("FeedRegistry Phases", function () {
 
   it("should initialize phase 0", async function () {
     const currentPhaseId = await this.registry.getCurrentPhaseId(ASSET, DENOMINATION);
-    const currentPhase = await this.registry.getPhaseRange(ASSET, DENOMINATION, currentPhaseId);
     expect(currentPhaseId).to.equal(0);
-    expect(currentPhase.startingRoundId).to.equal(0);
-    expect(currentPhase.endingRoundId).to.equal(0);
     await expect(this.registry.getPhaseFeed(ASSET, DENOMINATION, currentPhaseId)).to.be.revertedWith(
       "Feed not found for phase",
     );
@@ -34,6 +31,12 @@ contract("FeedRegistry Phases", function () {
 
   it("getPhase() should revert for non-existent phases", async function () {
     await expect(this.registry.getPhase(ASSET, DENOMINATION, PHASE_ONE)).to.be.revertedWith("Phase does not exist");
+  });
+
+  it("getPhaseRange() should revert for non-existent phases", async function () {
+    await expect(this.registry.getPhaseRange(ASSET, DENOMINATION, PHASE_ONE)).to.be.revertedWith(
+      "Phase does not exist",
+    );
   });
 
   // Tests phase logic when switching aggregators
