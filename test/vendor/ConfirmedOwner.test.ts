@@ -23,6 +23,6 @@ contract("ConfirmedOwner", function () {
     );
     await expect(
       deployContract(this.signers.owner, confirmedOwnerArtifact, [ethers.constants.AddressZero]),
-    ).to.be.revertedWith("New owner cannot be zero address");
+    ).to.be.revertedWith("Cannot set owner to zero");
   });
 });
