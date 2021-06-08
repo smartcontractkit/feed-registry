@@ -7,15 +7,14 @@ library Denominations {
   address public constant BTC = 0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB;
 
   // Fiat currencies follow https://en.wikipedia.org/wiki/ISO_4217
-  // Addresses for fiat currencies are the base 10 numbers provided in the wiki link, written the same way, despite addresses being base 16.
-  address public constant USD = 0x0000000000000000000000000000000000000840;
-  address public constant GBP = 0x0000000000000000000000000000000000000826;
-  address public constant EUR = 0x0000000000000000000000000000000000000978;
-  address public constant JPY = 0x0000000000000000000000000000000000000392;
-  address public constant KRW = 0x0000000000000000000000000000000000000410;
-  address public constant CNY = 0x0000000000000000000000000000000000000156;
-  address public constant AUD = 0x0000000000000000000000000000000000000036;
-  address public constant CAD = 0x0000000000000000000000000000000000000124;
-  address public constant CHF = 0x0000000000000000000000000000000000000756;
-  address public constant ARS = 0x0000000000000000000000000000000000000032;
+  address public constant USD = address(840);
+  address public constant GBP = address(826);
+  address public constant EUR = address(978);
+  address public constant JPY = address(392);
+  address public constant KRW = address(410);
+  address public constant CNY = address(156);
+  address public constant AUD = address(36);
+  address public constant CAD = address(124);
+  address public constant CHF = address(756);
+  address public constant ARS = address(32);
 }
