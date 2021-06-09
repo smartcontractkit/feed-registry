@@ -59,9 +59,7 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
     external
     onlyOwner()
   {
-    if (!s_globalAccessList[user]) {
-      _addGlobalAccess(user);
-    }
+    _addGlobalAccess(user);
   }
 
   /**
@@ -76,9 +74,7 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
     external
     onlyOwner()
   {
-    if (!s_localAccessList[user][data]) {
-      _addLocalAccess(user, data);
-    }
+    _addLocalAccess(user, data);
   }
 
   /**
@@ -91,9 +87,7 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
     external
     onlyOwner()
   {
-    if (s_globalAccessList[user]) {
-      _removeGlobalAccess(user);
-    }
+    _removeGlobalAccess(user);
   }
 
   /**
@@ -108,9 +102,7 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
     external
     onlyOwner()
   {
-    if (s_localAccessList[user][data]) {
-      _removeLocalAccess(user, data);
-    }
+    _removeLocalAccess(user, data);
   }
 
   /**
@@ -158,22 +150,30 @@ contract WriteAccessController is AccessControllerInterface, ConfirmedOwner(msg.
   }
 
   function _addGlobalAccess(address user) internal {
-    s_globalAccessList[user] = true;
-    emit AccessAdded(user, "", msg.sender);
+    if (!s_globalAccessList[user]) {
+      s_globalAccessList[user] = true;
+      emit AccessAdded(user, "", msg.sender);
+    }
   }
 
   function _removeGlobalAccess(address user) internal {
-    s_globalAccessList[user] = false;
-    emit AccessRemoved(user, "", msg.sender);
+    if (s_globalAccessList[user]) {
+      s_globalAccessList[user] = false;
+      emit AccessRemoved(user, "", msg.sender);
+    }
   }
 
   function _addLocalAccess(address user, bytes memory data) internal {
-    s_localAccessList[user][data] = true;
-    emit AccessAdded(user, data, msg.sender);
+    if (!s_localAccessList[user][data]) {
+      s_localAccessList[user][data] = true;
+      emit AccessAdded(user, data, msg.sender);
+    }
   }
 
   function _removeLocalAccess(address user, bytes memory data) internal {
-    s_localAccessList[user][data] = false;
-    emit AccessRemoved(user, data, msg.sender);
+    if (s_localAccessList[user][data]) {
+      s_localAccessList[user][data] = false;
+      emit AccessRemoved(user, data, msg.sender);
+    }
   }
 }
