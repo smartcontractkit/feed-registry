@@ -103,6 +103,9 @@ contract("FeedRegistry", function () {
       const feed = await this.registry.getFeed(ASSET, DENOMINATION);
       expect(feed).to.equal(this.feed.address);
 
+      const proposedFeed = await this.registry.getProposedFeed(ASSET, DENOMINATION);
+      expect(proposedFeed).to.equal(ethers.constants.AddressZero);
+
       const isFeedEnabled = await this.registry.isFeedEnabled(feed);
       expect(isFeedEnabled);
 

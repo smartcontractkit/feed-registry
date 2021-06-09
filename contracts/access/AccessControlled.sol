@@ -16,6 +16,7 @@ contract AccessControlled is AccessControlledInterface, ConfirmedOwner(msg.sende
     override
     onlyOwner()
   {
+    require(address(_accessController) != address(s_accessController), "Access controller is already set");
     s_accessController = _accessController;
     emit AccessControllerSet(address(_accessController), msg.sender);
   }
