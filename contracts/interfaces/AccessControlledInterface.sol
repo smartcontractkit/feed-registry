@@ -6,7 +6,8 @@ import "../vendor/AccessControllerInterface.sol";
 
 interface AccessControlledInterface {
   event AccessControllerSet(
-    address indexed accessController
+    address indexed accessController,
+    address indexed sender
   );
 
   function setAccessController(

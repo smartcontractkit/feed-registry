@@ -13,6 +13,7 @@ const ZERO = BigNumber.from(0);
 const PHASE_ONE = 1;
 const PHASE_TWO = 2;
 const PHASE_THREE = 3;
+const PHASE_FOUR = 4;
 
 contract("FeedRegistry Phases", function () {
   beforeEach(async function () {
@@ -22,18 +23,27 @@ contract("FeedRegistry Phases", function () {
 
   it("should initialize phase 0", async function () {
     const currentPhaseId = await this.registry.getCurrentPhaseId(ASSET, DENOMINATION);
-    const currentPhaseAggregator = await this.registry.getPhaseFeed(ASSET, DENOMINATION, currentPhaseId);
-    const currentPhase = await this.registry.getPhaseRange(ASSET, DENOMINATION, currentPhaseId);
     expect(currentPhaseId).to.equal(0);
-    expect(currentPhaseAggregator).to.equal(ethers.constants.AddressZero);
-    expect(currentPhase.startingRoundId).to.equal(0);
-    expect(currentPhase.endingRoundId).to.equal(0);
+    await expect(this.registry.getPhaseFeed(ASSET, DENOMINATION, currentPhaseId)).to.be.revertedWith(
+      "Feed not found for phase",
+    );
+  });
+
+  it("getPhase() should revert for non-existent phases", async function () {
+    await expect(this.registry.getPhase(ASSET, DENOMINATION, PHASE_ONE)).to.be.revertedWith("Phase does not exist");
+  });
+
+  it("getPhaseRange() should revert for non-existent phases", async function () {
+    await expect(this.registry.getPhaseRange(ASSET, DENOMINATION, PHASE_ONE)).to.be.revertedWith(
+      "Phase does not exist",
+    );
   });
 
   // Tests phase logic when switching aggregators
   // Phase 1: Feed A is enabled from rounds 1 - 10
   // Phase 2: Feed B is enabled from rounds 123 - 156
   // Phase 3: Feed is set to zero address
+  // Phase 4: Feed B is enabled
   it("start and end round ids for previous & new aggregators should be captured in Phases", async function () {
     // Phase 1: Feed A is enabled from rounds 1 - 10
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
@@ -70,9 +80,11 @@ contract("FeedRegistry Phases", function () {
     expect(Phase2Id).to.equal(PHASE_TWO);
     const Phase2Aggregator = await this.registry.getPhaseFeed(ASSET, DENOMINATION, Phase2Id);
     expect(Phase2Aggregator).to.equal(feedB.address);
+    const feedBLatestRound = BigNumber.from("150");
+    await feedB.mock.latestRound.returns(feedBLatestRound); // Mock feed latest round response
     const Phase2RoundRange = await this.registry.getPhaseRange(ASSET, DENOMINATION, Phase2Id);
     expect(Phase2RoundRange.startingRoundId).to.equal(getRoundId(PHASE_TWO, feedBStartingRound));
-    expect(Phase2RoundRange.endingRoundId).to.equal(getRoundId(PHASE_TWO, feedBStartingRound)); // latest feedB round
+    expect(Phase2RoundRange.endingRoundId).to.equal(getRoundId(PHASE_TWO, feedBLatestRound)); // latest feedB round
     const feedBEndingRound = BigNumber.from("156");
     await feedB.mock.latestRound.returns(feedBEndingRound); // Mock feed latest round response
 
@@ -85,14 +97,36 @@ contract("FeedRegistry Phases", function () {
 
     const Phase3Id = await this.registry.getCurrentPhaseId(ASSET, DENOMINATION);
     expect(Phase3Id).to.equal(PHASE_THREE);
-    const Phase3Aggregator = await this.registry.getPhaseFeed(ASSET, DENOMINATION, Phase3Id);
-    expect(Phase3Aggregator).to.equal(feedCAddress);
+    await expect(this.registry.getPhaseFeed(ASSET, DENOMINATION, Phase3Id)).to.be.revertedWith(
+      "Feed not found for phase", // zero address
+    );
     const Phase3RoundRange = await this.registry.getPhaseRange(ASSET, DENOMINATION, Phase3Id);
     expect(Phase3RoundRange.startingRoundId).to.equal(getRoundId(PHASE_THREE, ZERO));
     expect(Phase3RoundRange.endingRoundId).to.equal(getRoundId(PHASE_THREE, ZERO));
     await expect(this.registry.latestRound(ASSET, DENOMINATION)).to.be.revertedWith(
       "function call to a non-contract account",
     );
+
+    // Phase 4: Feed B is enabled after a zero address phase
+    const feedBNewStartingRound = BigNumber.from("1123");
+    await feedB.mock.latestRound.returns(feedBNewStartingRound); // Mock feed response
+    await this.registry.proposeFeed(ASSET, DENOMINATION, feedB.address);
+    await this.registry.confirmFeed(ASSET, DENOMINATION, feedB.address);
+    const updatedPhase3RoundRange = await this.registry.getPhaseRange(ASSET, DENOMINATION, Phase3Id);
+    expect(updatedPhase3RoundRange.endingRoundId).to.equal(getRoundId(PHASE_THREE, ZERO)); // zero address latest round is 0
+
+    expect(await this.registry.latestRound(ASSET, DENOMINATION)).to.equal(
+      getRoundId(PHASE_FOUR, feedBNewStartingRound),
+    );
+    const Phase4Id = await this.registry.getCurrentPhaseId(ASSET, DENOMINATION);
+    expect(Phase4Id).to.equal(PHASE_FOUR);
+    const Phase4Aggregator = await this.registry.getPhaseFeed(ASSET, DENOMINATION, Phase4Id);
+    expect(Phase4Aggregator).to.equal(feedB.address);
+    const feedBNewLatestRound = BigNumber.from("1050");
+    await feedB.mock.latestRound.returns(feedBNewLatestRound); // Mock feed latest round response
+    const Phase4RoundRange = await this.registry.getPhaseRange(ASSET, DENOMINATION, Phase4Id);
+    expect(Phase4RoundRange.startingRoundId).to.equal(getRoundId(PHASE_FOUR, feedBNewStartingRound));
+    expect(Phase4RoundRange.endingRoundId).to.equal(getRoundId(PHASE_FOUR, feedBNewLatestRound)); // latest feedB round
 
     // Check phase historical data is available
     const Phase1Data = await this.registry.getPhase(ASSET, DENOMINATION, PHASE_ONE);
@@ -107,6 +141,10 @@ contract("FeedRegistry Phases", function () {
     expect(Phase3Data.startingAggregatorRoundId).to.equal(0);
     expect(Phase3Data.endingAggregatorRoundId).to.equal(0);
 
+    const Phase4Data = await this.registry.getPhase(ASSET, DENOMINATION, PHASE_FOUR);
+    expect(Phase4Data.startingAggregatorRoundId).to.equal(feedBNewStartingRound);
+    expect(Phase4Data.endingAggregatorRoundId).to.equal(0); // phase has not ended
+
     expect(await this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_ONE, feedAStartingRound))).to.equal(
       feedA.address,
     );
@@ -116,9 +154,11 @@ contract("FeedRegistry Phases", function () {
     expect(
       await this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_TWO, feedBStartingRound.add(1))),
     ).to.equal(feedB.address);
-    expect(
-      await this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_THREE, feedBEndingRound.add(1))),
-    ).to.equal(feedCAddress);
+    await expect(
+      this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_THREE, feedBEndingRound.add(1))),
+    ).to.be.revertedWith(
+      "Feed not found for round", // zero address
+    );
   });
 
   it("should be able to inspect active feed in current phase", async function () {
@@ -140,7 +180,7 @@ contract("FeedRegistry Phases", function () {
     );
   });
 
-  it("retrieving a feed by an invalid round id should return zero address", async function () {
+  it("retrieving a feed by an invalid round id should revert", async function () {
     // Phase 1: Feed A is enabled from rounds 1 - 10
     const aggregatorArtifact: Artifact = await hre.artifacts.readArtifact("AggregatorV2V3Interface");
     const feedA = await deployMockContract(this.signers.owner, aggregatorArtifact.abi);
@@ -155,11 +195,11 @@ contract("FeedRegistry Phases", function () {
     await this.registry.proposeFeed(ASSET, DENOMINATION, ethers.constants.AddressZero);
     await this.registry.confirmFeed(ASSET, DENOMINATION, ethers.constants.AddressZero);
 
-    expect(await this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_ONE, aLatestRound).add(1))).to.equal(
-      ethers.constants.AddressZero,
-    );
-    expect(await this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_TWO, BigNumber.from(1)))).to.equal(
-      ethers.constants.AddressZero,
-    );
+    await expect(
+      this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_ONE, aLatestRound).add(1)),
+    ).to.be.revertedWith("Feed not found for round");
+    await expect(
+      this.registry.getRoundFeed(ASSET, DENOMINATION, getRoundId(PHASE_TWO, BigNumber.from(1))),
+    ).to.be.revertedWith("Feed not found for round");
   });
 });

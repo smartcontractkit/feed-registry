@@ -53,7 +53,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       uint8
     )
   {
-    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
+    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
     return aggregator.decimals();
   }
 
@@ -71,7 +71,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       string memory
     )
   {
-    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
+    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
     return aggregator.description();
   }
 
@@ -90,7 +90,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       uint256
     )
   {
-    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
+    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
     return aggregator.version();
   }
 
@@ -135,7 +135,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     )
   {
     uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
-    AggregatorV2V3Interface currentPhaseAggregator = getFeed(asset, denomination);
+    AggregatorV2V3Interface currentPhaseAggregator = _getFeed(asset, denomination);
     (
       roundId,
       answer,
@@ -189,7 +189,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     )
   {
     (uint16 phaseId, uint64 aggregatorRoundId) = _parseIds(_roundId);
-    AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
+    AggregatorV2V3Interface aggregator = _getPhaseFeed(asset, denomination, phaseId);
     (
       roundId,
       answer,
@@ -222,7 +222,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       int256 answer
     )
   {
-    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
+    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
     return aggregator.latestAnswer();
   }
 
@@ -248,7 +248,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       uint256 timestamp
     )
   {
-    AggregatorV2V3Interface aggregator = getFeed(asset, denomination);
+    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
     return aggregator.latestTimestamp();
   }
 
@@ -277,7 +277,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     )
   {
     uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
-    AggregatorV2V3Interface currentPhaseAggregator = getFeed(asset, denomination);
+    AggregatorV2V3Interface currentPhaseAggregator = _getFeed(asset, denomination);
     return _addPhase(currentPhaseId, uint64(currentPhaseAggregator.latestRound()));
   }
 
@@ -308,7 +308,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
   {
     if (roundId > MAX_ID) return 0;
     (uint16 phaseId, uint64 aggregatorRoundId) = _parseIds(roundId);
-    AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
+    AggregatorV2V3Interface aggregator = _getPhaseFeed(asset, denomination, phaseId);
     if (address(aggregator) == address(0)) return 0;
     return aggregator.getAnswer(aggregatorRoundId);
   }
@@ -340,14 +340,14 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
   {
     if (roundId > MAX_ID) return 0;
     (uint16 phaseId, uint64 aggregatorRoundId) = _parseIds(roundId);
-    AggregatorV2V3Interface aggregator = getPhaseFeed(asset, denomination, phaseId);
+    AggregatorV2V3Interface aggregator = _getPhaseFeed(asset, denomination, phaseId);
     if (address(aggregator) == address(0)) return 0;
     return aggregator.getTimestamp(aggregatorRoundId);
   }
 
 
   /**
-   * @notice retrieve the aggregator of an asset / denomination pair in the current phase
+   * @notice Retrieve the aggregator of an asset / denomination pair in the current phase
    * @param asset asset address
    * @param denomination denomination address
    * @return aggregator
@@ -363,8 +363,8 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       AggregatorV2V3Interface aggregator
     )
   {
-    uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
-    return s_phaseAggregators[asset][denomination][currentPhaseId];
+    aggregator = _getFeed(asset, denomination);
+    require(address(aggregator) != address(0), "Feed not found");
   }
 
   /**
@@ -386,7 +386,8 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       AggregatorV2V3Interface aggregator
     )
   {
-    return AggregatorV2V3Interface(s_phaseAggregators[asset][denomination][phaseId]);
+    aggregator = _getPhaseFeed(asset, denomination, phaseId);
+    require(address(aggregator) != address(0), "Feed not found for phase");
   }
 
   /**
@@ -407,7 +408,9 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
   }
 
   /**
-   * @notice returns specified phase by id
+   * @notice returns a phase by id. A Phase contains the starting and ending aggregator round ids.
+   * endingAggregatorRoundId will be 0 if the phase is the current phase
+   * @dev reverts if the phase does not exist
    * @param asset asset address
    * @param denomination denomination address
    * @param phaseId phase id
@@ -425,7 +428,8 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       Phase memory phase
     )
   {
-    return s_phases[asset][denomination][phaseId];
+    phase = _getPhase(asset, denomination, phaseId);
+    require(_phaseExists(phase), "Phase does not exist");
   }
 
   /**
@@ -447,7 +451,8 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     )
   {
     uint16 phaseId = _getPhaseIdByRoundId(asset, denomination, roundId);
-    return getPhaseFeed(asset, denomination, phaseId);
+    aggregator = _getPhaseFeed(asset, denomination, phaseId);
+    require(address(aggregator) != address(0), "Feed not found for round");
   }
 
   /**
@@ -471,6 +476,9 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       uint80 endingRoundId
     )
   {
+    Phase memory phase = _getPhase(asset, denomination, phaseId);
+    require(_phaseExists(phase), "Phase does not exist");
+
     uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
     if (phaseId == currentPhaseId) return _getLatestRoundRange(asset, denomination, currentPhaseId);
     return _getPhaseRange(asset, denomination, phaseId);
@@ -539,11 +547,12 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     override
     onlyOwner()
   {
-    AggregatorV2V3Interface currentPhaseAggregator = getFeed(asset, denomination);
-    address proposedAggregator = address(getProposedFeed(asset, denomination));
+    AggregatorV2V3Interface currentPhaseAggregator = _getFeed(asset, denomination);
+    require(aggregator != address(currentPhaseAggregator), "Cannot propose current aggregator");
+    address proposedAggregator = address(_getProposedFeed(asset, denomination));
     if (proposedAggregator != aggregator) {
       s_proposedAggregators[asset][denomination] = AggregatorV2V3Interface(aggregator);
-      emit FeedProposed(asset, denomination, aggregator, address(currentPhaseAggregator));
+      emit FeedProposed(asset, denomination, aggregator, address(currentPhaseAggregator), msg.sender);
     }
   }
 
@@ -568,11 +577,12 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     (uint16 nextPhaseId, address previousAggregator) = _setFeed(asset, denomination, aggregator);
     s_isAggregatorEnabled[aggregator] = true;
     s_isAggregatorEnabled[previousAggregator] = false;
-    emit FeedConfirmed(asset, denomination, aggregator, previousAggregator, nextPhaseId);
+    emit FeedConfirmed(asset, denomination, aggregator, previousAggregator, nextPhaseId, msg.sender);
   }
 
   /**
    * @notice Returns the proposed aggregator for an asset / denomination pair
+   * returns a zero address if there is no proposed aggregator for the pair
    * @param asset asset address
    * @param denomination denomination address
    * @return proposedAggregator
@@ -588,7 +598,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       AggregatorV2V3Interface proposedAggregator
     )
   {
-    return s_proposedAggregators[asset][denomination];
+    return _getProposedFeed(asset, denomination);
   }
 
   /**
@@ -729,6 +739,73 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     );
   }
 
+  function _getPhase(
+    address asset,
+    address denomination,
+    uint16 phaseId
+  )
+    internal
+    view
+    returns (
+      Phase memory phase
+    )
+  {
+    return s_phases[asset][denomination][phaseId];
+  }
+
+  function _phaseExists(
+    Phase memory phase
+  )
+    internal
+    pure
+    returns (
+      bool
+    )
+  {
+    return phase.phaseId > 0;
+  }
+
+  function _getProposedFeed(
+    address asset,
+    address denomination
+  )
+    internal
+    view
+    returns (
+      AggregatorV2V3Interface proposedAggregator
+    )
+  {
+    return s_proposedAggregators[asset][denomination];
+  }
+
+  function _getPhaseFeed(
+    address asset,
+    address denomination,
+    uint16 phaseId
+  )
+    internal
+    view
+    returns (
+      AggregatorV2V3Interface aggregator
+    )
+  {
+    return s_phaseAggregators[asset][denomination][phaseId];
+  }
+
+  function _getFeed(
+    address asset,
+    address denomination
+  )
+    internal
+    view
+    returns (
+      AggregatorV2V3Interface aggregator
+    )
+  {
+    uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
+    return _getPhaseFeed(asset, denomination, currentPhaseId);
+  }
+
   function _setFeed(
     address asset,
     address denomination,
@@ -743,7 +820,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     require(newAggregator == address(s_proposedAggregators[asset][denomination]), "Invalid proposed aggregator");
     delete s_proposedAggregators[asset][denomination];
 
-    AggregatorV2V3Interface currentAggregator = getFeed(asset, denomination);
+    AggregatorV2V3Interface currentAggregator = _getFeed(asset, denomination);
     uint80 previousAggregatorEndingRoundId = _getLatestAggregatorRoundId(currentAggregator);
     uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
     s_phases[asset][denomination][currentPhaseId].endingAggregatorRoundId = previousAggregatorEndingRoundId;
@@ -752,7 +829,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     s_currentPhaseId[asset][denomination] = nextPhaseId;
     s_phaseAggregators[asset][denomination][nextPhaseId] = AggregatorV2V3Interface(newAggregator);
     uint80 startingRoundId = _getLatestAggregatorRoundId(AggregatorV2V3Interface(newAggregator));
-    s_phases[asset][denomination][nextPhaseId] = Phase(startingRoundId, 0);
+    s_phases[asset][denomination][nextPhaseId] = Phase(nextPhaseId, startingRoundId, 0);
 
     return (nextPhaseId, address(currentAggregator));
   }
@@ -770,7 +847,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
     )
   {
     for (uint16 pid = phaseId; pid > 0; pid--) {
-      AggregatorV2V3Interface phaseAggregator = s_phaseAggregators[asset][denomination][pid];
+      AggregatorV2V3Interface phaseAggregator = _getPhaseFeed(asset, denomination, pid);
       (uint80 startingRoundId, uint80 endingRoundId) = _getPhaseRange(asset, denomination, pid);
       if (address(phaseAggregator) == address(0)) continue;
       if (roundId <= startingRoundId) continue;
@@ -794,7 +871,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
   {
     uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
     for (uint16 pid = phaseId; pid <= currentPhaseId; pid++) {
-      AggregatorV2V3Interface phaseAggregator = s_phaseAggregators[asset][denomination][pid];
+      AggregatorV2V3Interface phaseAggregator = _getPhaseFeed(asset, denomination, pid);
       (uint80 startingRoundId, uint80 endingRoundId) =
         (pid == currentPhaseId) ? _getLatestRoundRange(asset, denomination, pid) : _getPhaseRange(asset, denomination, pid);
       if (address(phaseAggregator) == address(0)) continue;
@@ -817,7 +894,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       uint80 endingRoundId
     )
   {
-    Phase memory phase = s_phases[asset][denomination][phaseId];
+    Phase memory phase = _getPhase(asset, denomination, phaseId);
     return (
       _getStartingRoundId(phaseId, phase),
       _getEndingRoundId(phaseId, phase)
@@ -880,7 +957,7 @@ contract FeedRegistry is FeedRegistryInterface, AccessControlled {
       uint80 startingRoundId
     )
   {
-    AggregatorV2V3Interface currentPhaseAggregator = getFeed(asset, denomination);
+    AggregatorV2V3Interface currentPhaseAggregator = _getFeed(asset, denomination);
     uint80 latestAggregatorRoundId = _getLatestAggregatorRoundId(currentPhaseAggregator);
     return _addPhase(currentPhaseId, uint64(latestAggregatorRoundId));
   }

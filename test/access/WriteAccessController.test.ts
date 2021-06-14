@@ -24,11 +24,22 @@ contract("WriteAccessController", function () {
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(false);
     await expect(this.controller.addGlobalAccess(TEST_ADDRESS))
       .to.emit(this.controller, "AccessAdded")
-      .withArgs(TEST_ADDRESS, EMPTY_BYTES);
+      .withArgs(TEST_ADDRESS, EMPTY_BYTES, this.signers.owner.address);
 
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(true);
     expect(await this.controller.hasAccess(TEST_ADDRESS, PAIR_DATA)).to.equal(true); // Also grants local access
     expect(await this.controller.hasAccess(TEST_ADDRESS, OTHER_PAIR_DATA)).to.equal(true);
+  });
+
+  it("add global access is idempotent", async function () {
+    await expect(this.controller.addGlobalAccess(TEST_ADDRESS))
+      .to.emit(this.controller, "AccessAdded")
+      .withArgs(TEST_ADDRESS, EMPTY_BYTES, this.signers.owner.address);
+    await expect(this.controller.addGlobalAccess(TEST_ADDRESS))
+      .to.not.emit(this.controller, "AccessAdded")
+      .withArgs(TEST_ADDRESS, EMPTY_BYTES, this.signers.owner.address);
+
+    expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(true);
   });
 
   it("non-owners cannot add global access", async function () {
@@ -41,11 +52,22 @@ contract("WriteAccessController", function () {
     expect(await this.controller.hasAccess(TEST_ADDRESS, PAIR_DATA)).to.equal(false);
     await expect(this.controller.addLocalAccess(TEST_ADDRESS, PAIR_DATA))
       .to.emit(this.controller, "AccessAdded")
-      .withArgs(TEST_ADDRESS, PAIR_DATA);
+      .withArgs(TEST_ADDRESS, PAIR_DATA, this.signers.owner.address);
 
     expect(await this.controller.hasAccess(TEST_ADDRESS, PAIR_DATA)).to.equal(true);
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(false); // Does not grant global access
     expect(await this.controller.hasAccess(TEST_ADDRESS, OTHER_PAIR_DATA)).to.equal(false);
+  });
+
+  it("add local access is idempotent", async function () {
+    await expect(this.controller.addLocalAccess(TEST_ADDRESS, PAIR_DATA))
+      .to.emit(this.controller, "AccessAdded")
+      .withArgs(TEST_ADDRESS, PAIR_DATA, this.signers.owner.address);
+    await expect(this.controller.addLocalAccess(TEST_ADDRESS, PAIR_DATA))
+      .to.not.emit(this.controller, "AccessAdded")
+      .withArgs(TEST_ADDRESS, PAIR_DATA, this.signers.owner.address);
+
+    expect(await this.controller.hasAccess(TEST_ADDRESS, PAIR_DATA)).to.equal(true);
   });
 
   it("non-owners cannot add local access", async function () {
@@ -60,7 +82,7 @@ contract("WriteAccessController", function () {
 
     await expect(this.controller.removeGlobalAccess(TEST_ADDRESS))
       .to.emit(this.controller, "AccessRemoved")
-      .withArgs(TEST_ADDRESS, EMPTY_BYTES);
+      .withArgs(TEST_ADDRESS, EMPTY_BYTES, this.signers.owner.address);
 
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(false);
   });
@@ -78,7 +100,7 @@ contract("WriteAccessController", function () {
 
     await expect(this.controller.removeLocalAccess(TEST_ADDRESS, PAIR_DATA))
       .to.emit(this.controller, "AccessRemoved")
-      .withArgs(TEST_ADDRESS, PAIR_DATA);
+      .withArgs(TEST_ADDRESS, PAIR_DATA, this.signers.owner.address);
 
     expect(await this.controller.hasAccess(TEST_ADDRESS, PAIR_DATA)).to.equal(false);
   });
@@ -123,6 +145,22 @@ contract("WriteAccessController", function () {
     await this.controller.enableAccessCheck();
     expect(await this.controller.checkEnabled()).to.equal(true);
     expect(await this.controller.hasAccess(TEST_ADDRESS, EMPTY_BYTES)).to.equal(false);
+  });
+
+  it("disable access check is idempotent", async function () {
+    expect(await this.controller.checkEnabled()).to.equal(true);
+    await this.controller.disableAccessCheck();
+    await this.controller.disableAccessCheck();
+    expect(await this.controller.checkEnabled()).to.equal(false);
+  });
+
+  it("disable access check is idempotent", async function () {
+    await this.controller.disableAccessCheck();
+    expect(await this.controller.checkEnabled()).to.equal(false);
+
+    await this.controller.enableAccessCheck();
+    await this.controller.enableAccessCheck();
+    expect(await this.controller.checkEnabled()).to.equal(true);
   });
 
   shouldBehaveLikeConfirmedOwner();

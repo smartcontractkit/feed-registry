@@ -50,8 +50,9 @@ contract("FeedRegistry", function () {
     it("should initialize correctly", async function () {
       expect(await this.registry.owner()).to.equal(this.signers.owner.address);
       const currentPhaseId = await this.registry.getCurrentPhaseId(ASSET, DENOMINATION);
-      const currentPhaseAggregator = await this.registry.getPhaseFeed(ASSET, DENOMINATION, currentPhaseId);
-      expect(currentPhaseAggregator).to.equal(ethers.constants.AddressZero);
+      await expect(this.registry.getPhaseFeed(ASSET, DENOMINATION, currentPhaseId)).to.be.revertedWith(
+        "Feed not found",
+      ); // zero address
     });
   });
 
@@ -63,8 +64,17 @@ contract("FeedRegistry", function () {
     it("owner can propose a feed", async function () {
       await expect(this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address))
         .to.emit(this.registry, "FeedProposed")
-        .withArgs(ASSET, DENOMINATION, this.feed.address, ethers.constants.AddressZero);
+        .withArgs(ASSET, DENOMINATION, this.feed.address, ethers.constants.AddressZero, this.signers.owner.address);
       expect(await this.registry.getProposedFeed(ASSET, DENOMINATION)).to.equal(this.feed.address);
+    });
+
+    it("owner cannot re-propose the current feed", async function () {
+      await this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address);
+      await this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address);
+
+      await expect(this.registry.proposeFeed(ASSET, DENOMINATION, this.feed.address)).to.be.revertedWith(
+        "Cannot propose current aggregator",
+      );
     });
 
     it("non-owners cannot propose a feed", async function () {
@@ -81,10 +91,20 @@ contract("FeedRegistry", function () {
       const currentPhaseId = await this.registry.getCurrentPhaseId(ASSET, DENOMINATION);
       await expect(this.registry.confirmFeed(ASSET, DENOMINATION, this.feed.address))
         .to.emit(this.registry, "FeedConfirmed")
-        .withArgs(ASSET, DENOMINATION, this.feed.address, ethers.constants.AddressZero, currentPhaseId + 1);
+        .withArgs(
+          ASSET,
+          DENOMINATION,
+          this.feed.address,
+          ethers.constants.AddressZero,
+          currentPhaseId + 1,
+          this.signers.owner.address,
+        );
 
       const feed = await this.registry.getFeed(ASSET, DENOMINATION);
       expect(feed).to.equal(this.feed.address);
+
+      const proposedFeed = await this.registry.getProposedFeed(ASSET, DENOMINATION);
+      expect(proposedFeed).to.equal(ethers.constants.AddressZero);
 
       const isFeedEnabled = await this.registry.isFeedEnabled(feed);
       expect(isFeedEnabled);
@@ -126,8 +146,7 @@ contract("FeedRegistry", function () {
       await this.registry.proposeFeed(ASSET, DENOMINATION, ethers.constants.AddressZero);
       await this.registry.confirmFeed(ASSET, DENOMINATION, ethers.constants.AddressZero);
 
-      const feed = await this.registry.getFeed(ASSET, DENOMINATION);
-      expect(feed).to.equal(ethers.constants.AddressZero);
+      await expect(this.registry.getFeed(ASSET, DENOMINATION)).to.be.revertedWith("Feed not found"); // zero address
 
       const isFeedEnabled = await this.registry.isFeedEnabled(this.feed.address);
       expect(isFeedEnabled).to.equal(false);
