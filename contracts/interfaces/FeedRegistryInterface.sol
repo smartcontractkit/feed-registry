@@ -3,9 +3,8 @@ pragma solidity 0.7.6;
 pragma abicoder v2; // solhint-disable compiler-version
 
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
-import "./AccessControlledInterface.sol";
 
-interface FeedRegistryInterface is AccessControlledInterface {
+interface FeedRegistryInterface {
   struct Phase {
     uint16 phaseId;
     uint80 startingAggregatorRoundId; // The latest round id of `aggregator` at phase start
