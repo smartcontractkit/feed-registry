@@ -1,12 +1,10 @@
 # Chainlink Feed Registry
 
-The Feed Registry is an on-chain mapping of assets to feeds. It allows users and DeFi protocols to query Chainlink price feeds, given pair of asset and denomination addresses.
+The Chainlink Feed Registry is an on-chain mapping of assets to feeds. It enables you to query Chainlink price feeds from a pair of asset and denomination addresses directly, without needing to know the feed contract addresses. They enable smart contracts to retrieve the latest price of an asset in a single call, from a single contract.
 
 ## Background
 
-DeFi protocols that use Chainlink often implement their own on-chain registry of token addresses to Chainlink feeds. Examples include [Yearn](https://github.com/yearn/audit/blob/4b07283c80fc005e899afa8b5fb2bb949fe11f28/contracts/ySwap/ChainLinkFeedsRegistry.sol), [Aave](https://github.com/aave/protocol-v2/blob/2708551bcf3afb28ee9798ccf7f3027ea0ecec10/contracts/misc/AaveOracle.sol#L25), [dydx](https://github.com/dydxprotocol/perpetual/blob/master/contracts/protocol/v1/PerpetualV1.sol#L59-L60), [Alpha Homora](https://github.com/AlphaFinanceLab/alphahomora-bsc/blob/master/contracts/5/PriceOracle.sol#L1-L10), [Alpha Homora](https://github.com/AlphaFinanceLab/alphahomora-bsc/blob/master/contracts/5/PriceOracle.sol#L1-L10).
-
-To speed up integration and ensure that protocols use the correct feeds, the Feed Registry provides a canonical on-chain registry of assets to feeds.
+DeFi protocols that use Chainlink often implement their own on-chain registry of token addresses to Chainlink feeds. To speed up integration and ensure that protocols use the correct feeds, the Feed Registry provides a canonical on-chain registry of assets to feeds.
 
 ## Architecture
 
