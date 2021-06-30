@@ -257,7 +257,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * @notice get the latest completed round where the answer was updated
    * @param asset asset address
    * @param denomination denomination address
-   * @dev overridden function to add the checkAccess() modifier
+   * @dev overridden function to add the checkPairAccess() modifier
    *
    * @notice We advise to use latestRoundData() instead because it returns more in-depth information.
    * @dev Use latestRoundData instead. This does not error if no
@@ -287,7 +287,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * @param asset asset address
    * @param denomination denomination address
    * @param roundId the proxy round id number to retrieve the answer for
-   * @dev overridden function to add the checkAccess() modifier
+   * @dev overridden function to add the checkPairAccess() modifier
    *
    * @notice We advise to use getRoundData() instead because it returns more in-depth information.
    * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
@@ -319,7 +319,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * @param asset asset address
    * @param denomination denomination address
    * @param roundId the proxy round id number to retrieve the updated timestamp for
-   * @dev overridden function to add the checkAccess() modifier
+   * @dev overridden function to add the checkPairAccess() modifier
    *
    * @notice We advise to use getRoundData() instead because it returns more in-depth information.
    * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
