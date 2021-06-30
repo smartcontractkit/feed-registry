@@ -686,7 +686,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
 
   function _addPhase(
     uint16 phase,
-    uint64 originalId
+    uint64 roundId
   )
     internal
     pure
@@ -694,7 +694,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint80
     )
   {
-    return uint80(uint256(phase) << PHASE_OFFSET | originalId);
+    return uint80(uint256(phase) << PHASE_OFFSET | roundId);
   }
 
   function _parseIds(
