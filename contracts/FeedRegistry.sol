@@ -357,7 +357,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     address asset,
     address denomination
   )
-    public
+    external
     view
     override
     returns (
@@ -380,7 +380,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     address denomination,
     uint16 phaseId
   )
-    public
+    external
     view
     override
     returns (
@@ -398,7 +398,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
   function isFeedEnabled(
     address aggregator
   )
-    public
+    external
     view
     override
     returns (
@@ -422,7 +422,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     address denomination,
     uint16 phaseId
   )
-    public
+    external
     view
     override
     returns (
@@ -444,7 +444,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     address denomination,
     uint80 roundId
   )
-    public
+    external
     view
     override
     returns (
@@ -469,7 +469,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     address denomination,
     uint16 phaseId
   )
-    public
+    external
     view
     override
     returns (
@@ -592,7 +592,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     address asset,
     address denomination
   )
-    public
+    external
     view
     override
     returns (
@@ -674,7 +674,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     address asset,
     address denomination
   )
-    public
+    external
     view
     override
     returns (
