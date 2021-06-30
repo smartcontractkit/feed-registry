@@ -950,7 +950,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
   function _getLatestRoundId(
     address asset,
     address denomination,
-    uint16 currentPhaseId
+    uint16 phaseId
   )
     internal
     view
@@ -960,7 +960,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
   {
     AggregatorV2V3Interface currentPhaseAggregator = _getFeed(asset, denomination);
     uint80 latestAggregatorRoundId = _getLatestAggregatorRoundId(currentPhaseAggregator);
-    return _addPhase(currentPhaseId, uint64(latestAggregatorRoundId));
+    return _addPhase(phaseId, uint64(latestAggregatorRoundId));
   }
 
   function _getLatestAggregatorRoundId(
