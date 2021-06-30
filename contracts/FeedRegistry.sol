@@ -37,7 +37,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       string memory
     )
   {
-    return "FeedRegistry 1.0.0-alpha";
+    return "FeedRegistry 1.0.0";
   }
 
   /**
