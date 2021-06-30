@@ -993,6 +993,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     if (roundId >= startingCurrentRoundId && roundId <= endingCurrentRoundId) return currentPhaseId;
 
     // Handle case where the round is in past phases
+    require(currentPhaseId > 0, "Invalid phase");
     for (uint16 pid = currentPhaseId - 1; pid > 0; pid--) {
       AggregatorV2V3Interface phaseAggregator = s_phaseAggregators[asset][denomination][pid];
       if (address(phaseAggregator) == address(0)) continue;

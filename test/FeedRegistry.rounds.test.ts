@@ -2,7 +2,7 @@ import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { FeedRegistry } from "../typechain/FeedRegistry";
 import { expect } from "chai";
-import { ASSET, DENOMINATION, PHASE_BASE } from "./utils/constants";
+import { ASSET, DENOMINATION, OTHER_ASSET, OTHER_DENOMINATION, PHASE_BASE } from "./utils/constants";
 import { contract } from "./utils/context";
 import { BigNumber, ethers } from "ethers";
 import { deployMockContract } from "ethereum-waffle";
@@ -114,5 +114,32 @@ contract("FeedRegistry rounds", function () {
     const phase2Round156 = getRoundId(PHASE_TWO, B_ENDING_ROUND);
     const phase4Round40 = getRoundId(PHASE_FOUR, D_STARTING_ROUND);
     expect(await this.registry.getNextRoundId(ASSET, DENOMINATION, phase2Round156)).to.equal(phase4Round40);
+  });
+
+  it("getRoundFeed() should revert when no feed has been set yet", async function () {
+    const roundId = BigNumber.from("1");
+    await expect(
+      this.registry.getRoundFeed(OTHER_ASSET, OTHER_DENOMINATION, getRoundId(PHASE_ONE, roundId)),
+    ).to.be.revertedWith(
+      "Invalid phase", // zero address
+    );
+  });
+
+  it("getPreviousRoundId() should revert when no feed has been set yet", async function () {
+    const roundId = BigNumber.from("1");
+    await expect(
+      this.registry.getPreviousRoundId(OTHER_ASSET, OTHER_DENOMINATION, getRoundId(PHASE_ONE, roundId)),
+    ).to.be.revertedWith(
+      "Invalid phase", // zero address
+    );
+  });
+
+  it("getNextRoundId() should revert when no feed has been set yet", async function () {
+    const roundId = BigNumber.from("1");
+    await expect(
+      this.registry.getNextRoundId(OTHER_ASSET, OTHER_DENOMINATION, getRoundId(PHASE_ONE, roundId)),
+    ).to.be.revertedWith(
+      "Invalid phase", // zero address
+    );
   });
 });
