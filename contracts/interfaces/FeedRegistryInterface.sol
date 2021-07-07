@@ -1,17 +1,14 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity 0.7.6;
 pragma abicoder v2; // solhint-disable compiler-version
 
 import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV2V3Interface.sol";
-import "./AccessControlledInterface.sol";
-import "./TypeAndVersionInterface.sol";
 
-interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInterface {
+interface FeedRegistryInterface {
   struct Phase {
     uint16 phaseId;
-    uint80 startingAggregatorRoundId; // The latest round id of `aggregator` at phase start
-    uint80 endingAggregatorRoundId; // The latest round of the at phase end
+    uint80 startingAggregatorRoundId;
+    uint80 endingAggregatorRoundId;
   }
 
   event FeedProposed(
@@ -33,8 +30,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
   // V3 AggregatorV3Interface
 
   function decimals(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -43,8 +40,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function description(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -53,8 +50,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function version(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -63,8 +60,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function latestRoundData(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -77,8 +74,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function getRoundData(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint80 _roundId
   )
     external
@@ -94,8 +91,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
   // V2 AggregatorInterface
 
   function latestAnswer(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -104,8 +101,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function latestTimestamp(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -114,8 +111,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function latestRound(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -124,8 +121,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function getAnswer(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint256 roundId
   )
     external
@@ -135,8 +132,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function getTimestamp(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint256 roundId
   )
     external
@@ -148,8 +145,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
   // Registry getters
 
   function getFeed(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -158,8 +155,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function getPhaseFeed(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint16 phaseId
   )
     external
@@ -178,8 +175,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function getPhase(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint16 phaseId
   )
     external
@@ -191,8 +188,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
   // Round helpers
 
   function getRoundFeed(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint80 roundId
   )
     external
@@ -202,8 +199,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function getPhaseRange(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint16 phaseId
   )
     external
@@ -214,8 +211,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function getPreviousRoundId(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint80 roundId
   ) external
     view
@@ -224,8 +221,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function getNextRoundId(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint80 roundId
   ) external
     view
@@ -236,22 +233,22 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
   // Feed management
 
   function proposeFeed(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     address aggregator
   ) external;
 
   function confirmFeed(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     address aggregator
   ) external;
 
   // Proposed aggregator
 
   function getProposedFeed(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -260,8 +257,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function proposedGetRoundData(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint80 roundId
   )
     external
@@ -275,8 +272,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
     );
 
   function proposedLatestRoundData(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -290,8 +287,8 @@ interface FeedRegistryInterface is AccessControlledInterface, TypeAndVersionInte
 
   // Phases
   function getCurrentPhaseId(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view

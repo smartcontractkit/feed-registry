@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-
-pragma solidity 0.7.6;
+pragma solidity ^0.7.0;
 
 import "../interfaces/FeedRegistryInterface.sol";
 
@@ -24,8 +23,8 @@ contract MockConsumer {
   }
 
   function read(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     public
     view
@@ -33,6 +32,6 @@ contract MockConsumer {
       int256
     )
   {
-    return s_FeedRegistry.latestAnswer(asset, denomination);
+    return s_FeedRegistry.latestAnswer(base, quote);
   }
 }

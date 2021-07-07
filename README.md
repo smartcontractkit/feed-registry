@@ -12,20 +12,20 @@ DeFi protocols that use Chainlink often implement their own on-chain registry of
 
 The Feed Registry consists of the following contracts:
 
-- `FeedRegistry` is an on-chain mapping of `(address asset, address denomination)` pairs to Chainlink aggregator contracts.
+- `FeedRegistry` is an on-chain mapping of `(address base, address quote)` pairs to Chainlink aggregator contracts.
 - `PairReadAccessController` is an access controller contract to allowlist specific contracts from reading the feed registry.
-- `Denominations` is an external library contract containing asset and denomination identifiers for assets that do not have a canonical Ethereum address.
+- `Denominations` is an external library contract containing base and quote identifiers for assets that do not have a canonical Ethereum address.
 
 ## Feed Registry price feed getters
 
-The `FeedRegistry` implements a similar interface as the [`AggregatorProxy`](https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.6/AggregatorProxy.sol) contract, except it takes in two additional inputs: `asset` and `denomination`.
+The `FeedRegistry` implements a similar interface as the [`AggregatorProxy`](https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.6/AggregatorProxy.sol) contract, except it takes in two additional inputs: `base` and `quote`.
 
 ```solidity
 interface FeedRegistryInterface {
 
   function latestAnswer(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -37,13 +37,13 @@ interface FeedRegistryInterface {
 }
 ```
 
-The `address` type is used for `asset` and `denomination` after gathering feedback from multiple users. These `asset` and `denomination` address represent a specific pair. For example, to query the LINK / USD feed, you call:
+The `address` type is used for `base` and `quote` after gathering feedback from multiple users. These `base` and `quote` address represent a specific pair. For example, to query the LINK / USD feed, you call:
 
 ```solidity
-latestAnswer(address asset, address denomination)
+latestAnswer(address base, address quote)
 ```
 
-by supplying an `asset` and `denomination` parameter, with the LINK token address and the `Denominations.USD` address respectively.
+by supplying an `base` and `quote` parameter, with the LINK token address and the `Denominations.USD` address respectively.
 
 ## Feed Registry price feed management
 
