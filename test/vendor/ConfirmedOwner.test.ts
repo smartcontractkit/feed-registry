@@ -8,9 +8,7 @@ const { deployContract } = hre.waffle;
 
 contract("ConfirmedOwner", function () {
   it("Can deploy with nonzero address as owner", async function () {
-    const confirmedOwnerArtifact: Artifact = await hre.artifacts.readArtifact(
-      "contracts/vendor/ConfirmedOwner.sol:ConfirmedOwner",
-    );
+    const confirmedOwnerArtifact: Artifact = await hre.artifacts.readArtifact("ConfirmedOwner");
     this.owned = <ConfirmedOwner>(
       await deployContract(this.signers.owner, confirmedOwnerArtifact, [this.signers.other.address])
     );
@@ -18,9 +16,7 @@ contract("ConfirmedOwner", function () {
   });
 
   it("Cannot deploy with zero address as owner", async function () {
-    const confirmedOwnerArtifact: Artifact = await hre.artifacts.readArtifact(
-      "contracts/vendor/ConfirmedOwner.sol:ConfirmedOwner",
-    );
+    const confirmedOwnerArtifact: Artifact = await hre.artifacts.readArtifact("ConfirmedOwner");
     await expect(
       deployContract(this.signers.owner, confirmedOwnerArtifact, [ethers.constants.AddressZero]),
     ).to.be.revertedWith("Cannot set owner to zero");

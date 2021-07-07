@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.6;
 
+import "@chainlink/contracts/src/v0.7/dev/ConfirmedOwner.sol";
 import "../interfaces/AccessControlledInterface.sol";
-import "../vendor/AccessControllerInterface.sol";
-import "../vendor/ConfirmedOwner.sol";
+import "../interfaces/AccessControllerInterface.sol";
 
 contract AccessControlled is AccessControlledInterface, ConfirmedOwner(msg.sender) {
   AccessControllerInterface internal s_accessController;
