@@ -55,6 +55,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     )
   {
     AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
+    require(address(aggregator) != address(0), "Feed not found");
     return aggregator.decimals();
   }
 
@@ -73,6 +74,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     )
   {
     AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
+    require(address(aggregator) != address(0), "Feed not found");
     return aggregator.description();
   }
 
@@ -92,6 +94,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     )
   {
     AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
+    require(address(aggregator) != address(0), "Feed not found");
     return aggregator.version();
   }
 
@@ -136,14 +139,15 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     )
   {
     uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
-    AggregatorV2V3Interface currentPhaseAggregator = _getFeed(asset, denomination);
+    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
+    require(address(aggregator) != address(0), "Feed not found");
     (
       roundId,
       answer,
       startedAt,
       updatedAt,
       answeredInRound
-    ) = currentPhaseAggregator.latestRoundData();
+    ) = aggregator.latestRoundData();
     return _addPhaseIds(roundId, answer, startedAt, updatedAt, answeredInRound, currentPhaseId);
   }
 
@@ -191,6 +195,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
   {
     (uint16 phaseId, uint64 aggregatorRoundId) = _parseIds(_roundId);
     AggregatorV2V3Interface aggregator = _getPhaseFeed(asset, denomination, phaseId);
+    require(address(aggregator) != address(0), "Feed not found");
     (
       roundId,
       answer,
@@ -224,6 +229,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     )
   {
     AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
+    require(address(aggregator) != address(0), "Feed not found");
     return aggregator.latestAnswer();
   }
 
@@ -250,6 +256,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     )
   {
     AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
+    require(address(aggregator) != address(0), "Feed not found");
     return aggregator.latestTimestamp();
   }
 
@@ -278,8 +285,9 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     )
   {
     uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
-    AggregatorV2V3Interface currentPhaseAggregator = _getFeed(asset, denomination);
-    return _addPhase(currentPhaseId, uint64(currentPhaseAggregator.latestRound()));
+    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
+    require(address(aggregator) != address(0), "Feed not found");
+    return _addPhase(currentPhaseId, uint64(aggregator.latestRound()));
   }
 
   /**

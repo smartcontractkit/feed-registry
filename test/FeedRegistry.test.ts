@@ -164,9 +164,7 @@ contract("FeedRegistry", function () {
     });
 
     it("decimals should revert for a non-existent feed", async function () {
-      await expect(this.registry.decimals(ASSET, DENOMINATION)).to.be.revertedWith(
-        "function call to a non-contract account",
-      );
+      await expect(this.registry.decimals(ASSET, DENOMINATION)).to.be.revertedWith("Feed not found");
     });
   });
 
@@ -181,9 +179,7 @@ contract("FeedRegistry", function () {
     });
 
     it("description should revert for a non-existent feed", async function () {
-      await expect(this.registry.description(ASSET, DENOMINATION)).to.be.revertedWith(
-        "function call to a non-contract account",
-      );
+      await expect(this.registry.description(ASSET, DENOMINATION)).to.be.revertedWith("Feed not found");
     });
   });
 
@@ -198,9 +194,7 @@ contract("FeedRegistry", function () {
     });
 
     it("version should revert for a non-existent feed", async function () {
-      await expect(this.registry.version(ASSET, DENOMINATION)).to.be.revertedWith(
-        "function call to a non-contract account",
-      );
+      await expect(this.registry.version(ASSET, DENOMINATION)).to.be.revertedWith("Feed not found");
     });
   });
 
@@ -226,9 +220,7 @@ contract("FeedRegistry", function () {
     });
 
     it("latestAnswer should revert for a non-existent feed", async function () {
-      await expect(this.registry.latestAnswer(ASSET, DENOMINATION)).to.be.revertedWith(
-        "function call to a non-contract account",
-      );
+      await expect(this.registry.latestAnswer(ASSET, DENOMINATION)).to.be.revertedWith("Feed not found");
     });
   });
 
@@ -254,9 +246,7 @@ contract("FeedRegistry", function () {
     });
 
     it("latestTimestamp should revert for a non-existent feed", async function () {
-      await expect(this.registry.latestTimestamp(ASSET, DENOMINATION)).to.be.revertedWith(
-        "function call to a non-contract account",
-      );
+      await expect(this.registry.latestTimestamp(ASSET, DENOMINATION)).to.be.revertedWith("Feed not found");
     });
   });
 
@@ -271,9 +261,7 @@ contract("FeedRegistry", function () {
     });
 
     it("latestRound should revert for a non-existent feed", async function () {
-      await expect(this.registry.latestRound(ASSET, DENOMINATION)).to.be.revertedWith(
-        "function call to a non-contract account",
-      );
+      await expect(this.registry.latestRound(ASSET, DENOMINATION)).to.be.revertedWith("Feed not found");
     });
   });
 
@@ -343,9 +331,7 @@ contract("FeedRegistry", function () {
     });
 
     it("latestRoundData should revert for a non-existent feed", async function () {
-      await expect(this.registry.latestRoundData(ASSET, DENOMINATION)).to.be.revertedWith(
-        "function call to a non-contract account",
-      );
+      await expect(this.registry.latestRoundData(ASSET, DENOMINATION)).to.be.revertedWith("Feed not found");
     });
   });
 
@@ -361,7 +347,7 @@ contract("FeedRegistry", function () {
 
     it("getRoundData should revert for a non-existent feed", async function () {
       await expect(this.registry.getRoundData(ASSET, DENOMINATION, TEST_PROXY_ROUND)).to.be.revertedWith(
-        "function call to a non-contract account",
+        "Feed not found",
       );
     });
 
@@ -393,9 +379,7 @@ contract("FeedRegistry", function () {
       const proposedRoundData = await this.registry.proposedLatestRoundData(ASSET, DENOMINATION);
       expect(proposedRoundData).to.eql(TEST_ROUND_DATA);
 
-      await expect(this.registry.latestRoundData(ASSET, DENOMINATION)).to.be.revertedWith(
-        "function call to a non-contract account",
-      );
+      await expect(this.registry.latestRoundData(ASSET, DENOMINATION)).to.be.revertedWith("Feed not found");
     });
 
     it("proposedLatestRoundData should revert after a feed is confirmed", async function () {
@@ -425,9 +409,7 @@ contract("FeedRegistry", function () {
       const proposedRoundData = await this.registry.proposedGetRoundData(ASSET, DENOMINATION, TEST_ROUND);
       expect(proposedRoundData).to.eql(TEST_ROUND_DATA);
 
-      await expect(this.registry.getRoundData(ASSET, DENOMINATION, TEST_ROUND)).to.be.revertedWith(
-        "function call to a non-contract account",
-      );
+      await expect(this.registry.getRoundData(ASSET, DENOMINATION, TEST_ROUND)).to.be.revertedWith("Feed not found");
     });
 
     it("proposedGetRoundData should revert after a feed is confirmed", async function () {

@@ -103,9 +103,7 @@ contract("FeedRegistry Phases", function () {
     const Phase3RoundRange = await this.registry.getPhaseRange(ASSET, DENOMINATION, Phase3Id);
     expect(Phase3RoundRange.startingRoundId).to.equal(getRoundId(PHASE_THREE, ZERO));
     expect(Phase3RoundRange.endingRoundId).to.equal(getRoundId(PHASE_THREE, ZERO));
-    await expect(this.registry.latestRound(ASSET, DENOMINATION)).to.be.revertedWith(
-      "function call to a non-contract account",
-    );
+    await expect(this.registry.latestRound(ASSET, DENOMINATION)).to.be.revertedWith("Feed not found");
 
     // Phase 4: Feed B is enabled after a zero address phase
     const feedBNewStartingRound = BigNumber.from("1123");
