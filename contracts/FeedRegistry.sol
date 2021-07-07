@@ -584,6 +584,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     onlyOwner()
   {
     (uint16 nextPhaseId, address previousAggregator) = _setFeed(asset, denomination, aggregator);
+    delete s_proposedAggregators[asset][denomination];
     s_isAggregatorEnabled[aggregator] = true;
     s_isAggregatorEnabled[previousAggregator] = false;
     emit FeedConfirmed(asset, denomination, aggregator, previousAggregator, nextPhaseId, msg.sender);
@@ -827,8 +828,6 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     )
   {
     require(newAggregator == address(s_proposedAggregators[asset][denomination]), "Invalid proposed aggregator");
-    delete s_proposedAggregators[asset][denomination];
-
     AggregatorV2V3Interface currentAggregator = _getFeed(asset, denomination);
     uint80 previousAggregatorEndingRoundId = _getLatestAggregatorRoundId(currentAggregator);
     uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
