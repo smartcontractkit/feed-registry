@@ -23,8 +23,8 @@ contract MockConsumer {
   }
 
   function read(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     public
     view
@@ -32,6 +32,6 @@ contract MockConsumer {
       int256
     )
   {
-    return s_FeedRegistry.latestAnswer(asset, denomination);
+    return s_FeedRegistry.latestAnswer(base, quote);
   }
 }

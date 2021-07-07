@@ -2,7 +2,7 @@ import hre, { ethers } from "hardhat";
 import { Artifact } from "hardhat/types";
 import { expect } from "chai";
 import { PairReadAccessController } from "../../typechain/PairReadAccessController";
-import { TEST_ADDRESS, PAIR_DATA, ASSET, DENOMINATION, EMPTY_BYTES } from "../utils/constants";
+import { TEST_ADDRESS, PAIR_DATA, BASE, QUOTE, EMPTY_BYTES } from "../utils/constants";
 import { contract } from "../utils/context";
 
 const { deployContract } = hre.waffle;
@@ -15,7 +15,7 @@ contract("PairReadAccessController", function () {
 
     const FeedRegistryArtifact: Artifact = await hre.artifacts.readArtifact("FeedRegistry");
     const FeedRegistryInterface = new ethers.utils.Interface(FeedRegistryArtifact.abi);
-    this.validRegistryCalldata = FeedRegistryInterface.encodeFunctionData("latestAnswer", [ASSET, DENOMINATION]);
+    this.validRegistryCalldata = FeedRegistryInterface.encodeFunctionData("latestAnswer", [BASE, QUOTE]);
 
     const invalidABI = ["function transfer(address to, uint amount)"];
     const invalidInterface = new ethers.utils.Interface(invalidABI);

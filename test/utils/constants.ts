@@ -1,14 +1,14 @@
 import { BigNumber, ethers, utils } from "ethers";
 
 const ZERO = BigNumber.from(0);
-export const ASSET = "0x0000000000000000000000000000000000000001";
-export const OTHER_ASSET = "0x0000000000000000000000000000000000000101";
-export const DENOMINATION = "0x0000000000000000000000000000000000000002";
-export const OTHER_DENOMINATION = "0x0000000000000000000000000000000000000003";
+export const BASE = "0x0000000000000000000000000000000000000001";
+export const OTHER_BASE = "0x0000000000000000000000000000000000000101";
+export const QUOTE = "0x0000000000000000000000000000000000000002";
+export const OTHER_QUOTE = "0x0000000000000000000000000000000000000003";
 export const TEST_ADDRESS = "0x0000000000000000000000000000000000000008";
 export const OTHER_TEST_ADDRESS = "0x0000000000000000000000000000000000000009";
-export const PAIR_DATA = ethers.utils.defaultAbiCoder.encode(["address", "address"], [ASSET, DENOMINATION]);
-export const OTHER_PAIR_DATA = ethers.utils.defaultAbiCoder.encode(["address", "address"], [ASSET, OTHER_DENOMINATION]);
+export const PAIR_DATA = ethers.utils.defaultAbiCoder.encode(["address", "address"], [BASE, QUOTE]);
+export const OTHER_PAIR_DATA = ethers.utils.defaultAbiCoder.encode(["address", "address"], [BASE, OTHER_QUOTE]);
 export const EMPTY_BYTES = "0x";
 export const TEST_DESCRIPTION = "TKN / USD";
 export const TEST_DECIMALS = 18;

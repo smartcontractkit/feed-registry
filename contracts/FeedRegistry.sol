@@ -44,8 +44,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * @notice represents the number of decimals the aggregator responses represent.
    */
   function decimals(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -54,7 +54,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint8
     )
   {
-    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
+    AggregatorV2V3Interface aggregator = _getFeed(base, quote);
     require(address(aggregator) != address(0), "Feed not found");
     return aggregator.decimals();
   }
@@ -63,8 +63,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * @notice returns the description of the aggregator the proxy points to.
    */
   function description(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -73,7 +73,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       string memory
     )
   {
-    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
+    AggregatorV2V3Interface aggregator = _getFeed(base, quote);
     require(address(aggregator) != address(0), "Feed not found");
     return aggregator.description();
   }
@@ -83,8 +83,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * points to.
    */
   function version(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -93,7 +93,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint256
     )
   {
-    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
+    AggregatorV2V3Interface aggregator = _getFeed(base, quote);
     require(address(aggregator) != address(0), "Feed not found");
     return aggregator.version();
   }
@@ -107,8 +107,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * should determine what implementations they expect to receive
    * data from and validate that they can properly handle return data from all
    * of them.
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    * @return roundId is the round ID from the aggregator for which the data was
    * retrieved combined with a phase to ensure that round IDs get larger as
    * time moves forward.
@@ -123,8 +123,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * @dev Note that answer and updatedAt may change between queries.
    */
   function latestRoundData(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -138,8 +138,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint80 answeredInRound
     )
   {
-    uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
-    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
+    uint16 currentPhaseId = s_currentPhaseId[base][quote];
+    AggregatorV2V3Interface aggregator = _getFeed(base, quote);
     require(address(aggregator) != address(0), "Feed not found");
     (
       roundId,
@@ -160,8 +160,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * should determine what implementations they expect to receive
    * data from and validate that they can properly handle return data from all
    * of them.
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    * @param _roundId the proxy round id number to retrieve the round data for
    * @return roundId is the round ID from the aggregator for which the data was
    * retrieved combined with a phase to ensure that round IDs get larger as
@@ -177,8 +177,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * @dev Note that answer and updatedAt may change between queries.
    */
   function getRoundData(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint80 _roundId
   )
     external
@@ -194,7 +194,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     )
   {
     (uint16 phaseId, uint64 aggregatorRoundId) = _parseIds(_roundId);
-    AggregatorV2V3Interface aggregator = _getPhaseFeed(asset, denomination, phaseId);
+    AggregatorV2V3Interface aggregator = _getPhaseFeed(base, quote, phaseId);
     require(address(aggregator) != address(0), "Feed not found");
     (
       roundId,
@@ -208,17 +208,17 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
 
 
   /**
-   * @notice Reads the current answer for an asset / denomination pair's aggregator.
-   * @param asset asset address
-   * @param denomination denomination address
+   * @notice Reads the current answer for an base / quote pair's aggregator.
+   * @param base base asset address
+   * @param quote quote asset address
    * @notice We advise to use latestRoundData() instead because it returns more in-depth information.
    * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
    * an already answered Aggregator or use the recommended latestRoundData
    * instead which includes better verification information.
    */
   function latestAnswer(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -228,15 +228,15 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       int256 answer
     )
   {
-    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
+    AggregatorV2V3Interface aggregator = _getFeed(base, quote);
     require(address(aggregator) != address(0), "Feed not found");
     return aggregator.latestAnswer();
   }
 
   /**
    * @notice get the latest completed timestamp where the answer was updated.
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    *
    * @notice We advise to use latestRoundData() instead because it returns more in-depth information.
    * @dev This does not error if no answer has been reached, it will simply return 0. Either wait to point to
@@ -244,8 +244,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * instead which includes better verification information.
    */
   function latestTimestamp(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -255,15 +255,15 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint256 timestamp
     )
   {
-    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
+    AggregatorV2V3Interface aggregator = _getFeed(base, quote);
     require(address(aggregator) != address(0), "Feed not found");
     return aggregator.latestTimestamp();
   }
 
   /**
    * @notice get the latest completed round where the answer was updated
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    * @dev overridden function to add the checkPairAccess() modifier
    *
    * @notice We advise to use latestRoundData() instead because it returns more in-depth information.
@@ -273,8 +273,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * instead which includes better verification information.
    */
   function latestRound(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -284,16 +284,16 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint256 roundId
     )
   {
-    uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
-    AggregatorV2V3Interface aggregator = _getFeed(asset, denomination);
+    uint16 currentPhaseId = s_currentPhaseId[base][quote];
+    AggregatorV2V3Interface aggregator = _getFeed(base, quote);
     require(address(aggregator) != address(0), "Feed not found");
     return _addPhase(currentPhaseId, uint64(aggregator.latestRound()));
   }
 
   /**
    * @notice get past rounds answers
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    * @param roundId the proxy round id number to retrieve the answer for
    * @dev overridden function to add the checkPairAccess() modifier
    *
@@ -303,8 +303,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * instead which includes better verification information.
    */
   function getAnswer(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint256 roundId
   )
     external
@@ -317,15 +317,15 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
   {
     if (roundId > MAX_ID) return 0;
     (uint16 phaseId, uint64 aggregatorRoundId) = _parseIds(roundId);
-    AggregatorV2V3Interface aggregator = _getPhaseFeed(asset, denomination, phaseId);
+    AggregatorV2V3Interface aggregator = _getPhaseFeed(base, quote, phaseId);
     if (address(aggregator) == address(0)) return 0;
     return aggregator.getAnswer(aggregatorRoundId);
   }
 
   /**
    * @notice get block timestamp when an answer was last updated
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    * @param roundId the proxy round id number to retrieve the updated timestamp for
    * @dev overridden function to add the checkPairAccess() modifier
    *
@@ -335,8 +335,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * instead which includes better verification information.
    */
   function getTimestamp(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint256 roundId
   )
     external
@@ -349,21 +349,21 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
   {
     if (roundId > MAX_ID) return 0;
     (uint16 phaseId, uint64 aggregatorRoundId) = _parseIds(roundId);
-    AggregatorV2V3Interface aggregator = _getPhaseFeed(asset, denomination, phaseId);
+    AggregatorV2V3Interface aggregator = _getPhaseFeed(base, quote, phaseId);
     if (address(aggregator) == address(0)) return 0;
     return aggregator.getTimestamp(aggregatorRoundId);
   }
 
 
   /**
-   * @notice Retrieve the aggregator of an asset / denomination pair in the current phase
-   * @param asset asset address
-   * @param denomination denomination address
+   * @notice Retrieve the aggregator of an base / quote pair in the current phase
+   * @param base base asset address
+   * @param quote quote asset address
    * @return aggregator
    */
   function getFeed(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -372,20 +372,20 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       AggregatorV2V3Interface aggregator
     )
   {
-    aggregator = _getFeed(asset, denomination);
+    aggregator = _getFeed(base, quote);
     require(address(aggregator) != address(0), "Feed not found");
   }
 
   /**
-   * @notice retrieve the aggregator of an asset / denomination pair at a specific phase
-   * @param asset asset address
-   * @param denomination denomination address
+   * @notice retrieve the aggregator of an base / quote pair at a specific phase
+   * @param base base asset address
+   * @param quote quote asset address
    * @param phaseId phase ID
    * @return aggregator
    */
   function getPhaseFeed(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint16 phaseId
   )
     external
@@ -395,7 +395,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       AggregatorV2V3Interface aggregator
     )
   {
-    aggregator = _getPhaseFeed(asset, denomination, phaseId);
+    aggregator = _getPhaseFeed(base, quote, phaseId);
     require(address(aggregator) != address(0), "Feed not found for phase");
   }
 
@@ -420,14 +420,14 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * @notice returns a phase by id. A Phase contains the starting and ending aggregator round ids.
    * endingAggregatorRoundId will be 0 if the phase is the current phase
    * @dev reverts if the phase does not exist
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    * @param phaseId phase id
    * @return phase
    */
   function getPhase(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint16 phaseId
   )
     external
@@ -437,19 +437,19 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       Phase memory phase
     )
   {
-    phase = _getPhase(asset, denomination, phaseId);
+    phase = _getPhase(base, quote, phaseId);
     require(_phaseExists(phase), "Phase does not exist");
   }
 
   /**
-   * @notice retrieve the aggregator of an asset / denomination pair at a specific round id
-   * @param asset asset address
-   * @param denomination denomination address
+   * @notice retrieve the aggregator of an base / quote pair at a specific round id
+   * @param base base asset address
+   * @param quote quote asset address
    * @param roundId the proxy round id
    */
   function getRoundFeed(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint80 roundId
   )
     external
@@ -459,22 +459,22 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       AggregatorV2V3Interface aggregator
     )
   {
-    uint16 phaseId = _getPhaseIdByRoundId(asset, denomination, roundId);
-    aggregator = _getPhaseFeed(asset, denomination, phaseId);
+    uint16 phaseId = _getPhaseIdByRoundId(base, quote, roundId);
+    aggregator = _getPhaseFeed(base, quote, phaseId);
     require(address(aggregator) != address(0), "Feed not found for round");
   }
 
   /**
    * @notice returns the range of proxy round ids of a phase
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    * @param phaseId phase id
    * @return startingRoundId
    * @return endingRoundId
    */
   function getPhaseRange(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint16 phaseId
   )
     external
@@ -485,26 +485,26 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint80 endingRoundId
     )
   {
-    Phase memory phase = _getPhase(asset, denomination, phaseId);
+    Phase memory phase = _getPhase(base, quote, phaseId);
     require(_phaseExists(phase), "Phase does not exist");
 
-    uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
-    if (phaseId == currentPhaseId) return _getLatestRoundRange(asset, denomination, currentPhaseId);
-    return _getPhaseRange(asset, denomination, phaseId);
+    uint16 currentPhaseId = s_currentPhaseId[base][quote];
+    if (phaseId == currentPhaseId) return _getLatestRoundRange(base, quote, currentPhaseId);
+    return _getPhaseRange(base, quote, phaseId);
   }
 
   /**
    * @notice return the previous round id of a given round
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    * @param roundId the round id number to retrieve the updated timestamp for
    * @dev Note that this is not the aggregator round id, but the proxy round id
    * To get full ranges of round ids of different phases, use getPhaseRange()
    * @return previousRoundId
    */
   function getPreviousRoundId(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint80 roundId
   ) external
     view
@@ -513,22 +513,22 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint80 previousRoundId
     )
   {
-    uint16 phaseId = _getPhaseIdByRoundId(asset, denomination, roundId);
-    return _getPreviousRoundId(asset, denomination, phaseId, roundId);
+    uint16 phaseId = _getPhaseIdByRoundId(base, quote, roundId);
+    return _getPreviousRoundId(base, quote, phaseId, roundId);
   }
 
   /**
    * @notice return the next round id of a given round
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    * @param roundId the round id number to retrieve the updated timestamp for
    * @dev Note that this is not the aggregator round id, but the proxy round id
    * To get full ranges of round ids of different phases, use getPhaseRange()
    * @return nextRoundId
    */
   function getNextRoundId(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint80 roundId
   ) external
     view
@@ -537,31 +537,31 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint80 nextRoundId
     )
   {
-    uint16 phaseId = _getPhaseIdByRoundId(asset, denomination, roundId);
-    return _getNextRoundId(asset, denomination, phaseId, roundId);
+    uint16 phaseId = _getPhaseIdByRoundId(base, quote, roundId);
+    return _getNextRoundId(base, quote, phaseId, roundId);
   }
 
   /**
    * @notice Allows the owner to propose a new address for the aggregator
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    * @param aggregator The new aggregator contract address
    */
   function proposeFeed(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     address aggregator
   )
     external
     override
     onlyOwner()
   {
-    AggregatorV2V3Interface currentPhaseAggregator = _getFeed(asset, denomination);
+    AggregatorV2V3Interface currentPhaseAggregator = _getFeed(base, quote);
     require(aggregator != address(currentPhaseAggregator), "Cannot propose current aggregator");
-    address proposedAggregator = address(_getProposedFeed(asset, denomination));
+    address proposedAggregator = address(_getProposedFeed(base, quote));
     if (proposedAggregator != aggregator) {
-      s_proposedAggregators[asset][denomination] = AggregatorV2V3Interface(aggregator);
-      emit FeedProposed(asset, denomination, aggregator, address(currentPhaseAggregator), msg.sender);
+      s_proposedAggregators[base][quote] = AggregatorV2V3Interface(aggregator);
+      emit FeedProposed(base, quote, aggregator, address(currentPhaseAggregator), msg.sender);
     }
   }
 
@@ -570,36 +570,36 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * to the proposed aggregator
    * @dev Reverts if the given address doesn't match what was previously
    * proposed
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    * @param aggregator The new aggregator contract address
    */
   function confirmFeed(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     address aggregator
   )
     external
     override
     onlyOwner()
   {
-    (uint16 nextPhaseId, address previousAggregator) = _setFeed(asset, denomination, aggregator);
-    delete s_proposedAggregators[asset][denomination];
+    (uint16 nextPhaseId, address previousAggregator) = _setFeed(base, quote, aggregator);
+    delete s_proposedAggregators[base][quote];
     s_isAggregatorEnabled[aggregator] = true;
     s_isAggregatorEnabled[previousAggregator] = false;
-    emit FeedConfirmed(asset, denomination, aggregator, previousAggregator, nextPhaseId, msg.sender);
+    emit FeedConfirmed(base, quote, aggregator, previousAggregator, nextPhaseId, msg.sender);
   }
 
   /**
-   * @notice Returns the proposed aggregator for an asset / denomination pair
+   * @notice Returns the proposed aggregator for an base / quote pair
    * returns a zero address if there is no proposed aggregator for the pair
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    * @return proposedAggregator
   */
   function getProposedFeed(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -608,13 +608,13 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       AggregatorV2V3Interface proposedAggregator
     )
   {
-    return _getProposedFeed(asset, denomination);
+    return _getProposedFeed(base, quote);
   }
 
   /**
    * @notice Used if an aggregator contract has been proposed.
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    * @param roundId the round ID to retrieve the round data for
    * @return id is the round ID for which data was retrieved
    * @return answer is the answer for the given round
@@ -626,15 +626,15 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * was computed.
   */
   function proposedGetRoundData(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint80 roundId
   )
     external
     view
     virtual
     override
-    hasProposal(asset, denomination)
+    hasProposal(base, quote)
     returns (
       uint80 id,
       int256 answer,
@@ -643,13 +643,13 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint80 answeredInRound
     )
   {
-    return s_proposedAggregators[asset][denomination].getRoundData(roundId);
+    return s_proposedAggregators[base][quote].getRoundData(roundId);
   }
 
   /**
    * @notice Used if an aggregator contract has been proposed.
-   * @param asset asset address
-   * @param denomination denomination address
+   * @param base base asset address
+   * @param quote quote asset address
    * @return id is the round ID for which data was retrieved
    * @return answer is the answer for the given round
    * @return startedAt is the timestamp when the round was started.
@@ -660,14 +660,14 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * was computed.
   */
   function proposedLatestRoundData(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
     virtual
     override
-    hasProposal(asset, denomination)
+    hasProposal(base, quote)
     returns (
       uint80 id,
       int256 answer,
@@ -676,12 +676,12 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint80 answeredInRound
     )
   {
-    return s_proposedAggregators[asset][denomination].latestRoundData();
+    return s_proposedAggregators[base][quote].latestRoundData();
   }
 
   function getCurrentPhaseId(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     external
     view
@@ -690,7 +690,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint16 currentPhaseId
     )
   {
-    return s_currentPhaseId[asset][denomination];
+    return s_currentPhaseId[base][quote];
   }
 
   function _addPhase(
@@ -750,8 +750,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
   }
 
   function _getPhase(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint16 phaseId
   )
     internal
@@ -760,7 +760,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       Phase memory phase
     )
   {
-    return s_phases[asset][denomination][phaseId];
+    return s_phases[base][quote][phaseId];
   }
 
   function _phaseExists(
@@ -776,8 +776,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
   }
 
   function _getProposedFeed(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     internal
     view
@@ -785,12 +785,12 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       AggregatorV2V3Interface proposedAggregator
     )
   {
-    return s_proposedAggregators[asset][denomination];
+    return s_proposedAggregators[base][quote];
   }
 
   function _getPhaseFeed(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint16 phaseId
   )
     internal
@@ -799,12 +799,12 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       AggregatorV2V3Interface aggregator
     )
   {
-    return s_phaseAggregators[asset][denomination][phaseId];
+    return s_phaseAggregators[base][quote][phaseId];
   }
 
   function _getFeed(
-    address asset,
-    address denomination
+    address base,
+    address quote
   )
     internal
     view
@@ -812,13 +812,13 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       AggregatorV2V3Interface aggregator
     )
   {
-    uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
-    return _getPhaseFeed(asset, denomination, currentPhaseId);
+    uint16 currentPhaseId = s_currentPhaseId[base][quote];
+    return _getPhaseFeed(base, quote, currentPhaseId);
   }
 
   function _setFeed(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     address newAggregator
   )
     internal
@@ -827,24 +827,24 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       address previousAggregator
     )
   {
-    require(newAggregator == address(s_proposedAggregators[asset][denomination]), "Invalid proposed aggregator");
-    AggregatorV2V3Interface currentAggregator = _getFeed(asset, denomination);
+    require(newAggregator == address(s_proposedAggregators[base][quote]), "Invalid proposed aggregator");
+    AggregatorV2V3Interface currentAggregator = _getFeed(base, quote);
     uint80 previousAggregatorEndingRoundId = _getLatestAggregatorRoundId(currentAggregator);
-    uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
-    s_phases[asset][denomination][currentPhaseId].endingAggregatorRoundId = previousAggregatorEndingRoundId;
+    uint16 currentPhaseId = s_currentPhaseId[base][quote];
+    s_phases[base][quote][currentPhaseId].endingAggregatorRoundId = previousAggregatorEndingRoundId;
 
     nextPhaseId = currentPhaseId + 1;
-    s_currentPhaseId[asset][denomination] = nextPhaseId;
-    s_phaseAggregators[asset][denomination][nextPhaseId] = AggregatorV2V3Interface(newAggregator);
+    s_currentPhaseId[base][quote] = nextPhaseId;
+    s_phaseAggregators[base][quote][nextPhaseId] = AggregatorV2V3Interface(newAggregator);
     uint80 startingRoundId = _getLatestAggregatorRoundId(AggregatorV2V3Interface(newAggregator));
-    s_phases[asset][denomination][nextPhaseId] = Phase(nextPhaseId, startingRoundId, 0);
+    s_phases[base][quote][nextPhaseId] = Phase(nextPhaseId, startingRoundId, 0);
 
     return (nextPhaseId, address(currentAggregator));
   }
 
   function _getPreviousRoundId(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint16 phaseId,
     uint80 roundId
   )
@@ -855,8 +855,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     )
   {
     for (uint16 pid = phaseId; pid > 0; pid--) {
-      AggregatorV2V3Interface phaseAggregator = _getPhaseFeed(asset, denomination, pid);
-      (uint80 startingRoundId, uint80 endingRoundId) = _getPhaseRange(asset, denomination, pid);
+      AggregatorV2V3Interface phaseAggregator = _getPhaseFeed(base, quote, pid);
+      (uint80 startingRoundId, uint80 endingRoundId) = _getPhaseRange(base, quote, pid);
       if (address(phaseAggregator) == address(0)) continue;
       if (roundId <= startingRoundId) continue;
       if (roundId > startingRoundId && roundId <= endingRoundId) return roundId - 1;
@@ -866,8 +866,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
   }
 
   function _getNextRoundId(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint16 phaseId,
     uint80 roundId
   )
@@ -877,11 +877,11 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint80
     )
   {
-    uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
+    uint16 currentPhaseId = s_currentPhaseId[base][quote];
     for (uint16 pid = phaseId; pid <= currentPhaseId; pid++) {
-      AggregatorV2V3Interface phaseAggregator = _getPhaseFeed(asset, denomination, pid);
+      AggregatorV2V3Interface phaseAggregator = _getPhaseFeed(base, quote, pid);
       (uint80 startingRoundId, uint80 endingRoundId) =
-        (pid == currentPhaseId) ? _getLatestRoundRange(asset, denomination, pid) : _getPhaseRange(asset, denomination, pid);
+        (pid == currentPhaseId) ? _getLatestRoundRange(base, quote, pid) : _getPhaseRange(base, quote, pid);
       if (address(phaseAggregator) == address(0)) continue;
       if (roundId >= endingRoundId) continue;
       if (roundId >= startingRoundId && roundId < endingRoundId) return roundId + 1;
@@ -891,8 +891,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
   }
 
   function _getPhaseRange(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint16 phaseId
   )
     internal
@@ -902,7 +902,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint80 endingRoundId
     )
   {
-    Phase memory phase = _getPhase(asset, denomination, phaseId);
+    Phase memory phase = _getPhase(base, quote, phaseId);
     return (
       _getStartingRoundId(phaseId, phase),
       _getEndingRoundId(phaseId, phase)
@@ -910,8 +910,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
   }
 
   function _getLatestRoundRange(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint16 currentPhaseId
   )
     internal
@@ -921,10 +921,10 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint80 endingRoundId
     )
   {
-    Phase memory phase = s_phases[asset][denomination][currentPhaseId];
+    Phase memory phase = s_phases[base][quote][currentPhaseId];
     return (
       _getStartingRoundId(currentPhaseId, phase),
-      _getLatestRoundId(asset, denomination, currentPhaseId)
+      _getLatestRoundId(base, quote, currentPhaseId)
     );
   }
 
@@ -955,8 +955,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
   }
 
   function _getLatestRoundId(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint16 phaseId
   )
     internal
@@ -965,7 +965,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
       uint80 startingRoundId
     )
   {
-    AggregatorV2V3Interface currentPhaseAggregator = _getFeed(asset, denomination);
+    AggregatorV2V3Interface currentPhaseAggregator = _getFeed(base, quote);
     uint80 latestAggregatorRoundId = _getLatestAggregatorRoundId(currentPhaseAggregator);
     return _addPhase(phaseId, uint64(latestAggregatorRoundId));
   }
@@ -984,8 +984,8 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
   }
 
   function _getPhaseIdByRoundId(
-    address asset,
-    address denomination,
+    address base,
+    address quote,
     uint80 roundId
   )
     internal
@@ -995,16 +995,16 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
     )
   {
     // Handle case where the round is in current phase
-    uint16 currentPhaseId = s_currentPhaseId[asset][denomination];
-    (uint80 startingCurrentRoundId, uint80 endingCurrentRoundId) = _getLatestRoundRange(asset, denomination, currentPhaseId);
+    uint16 currentPhaseId = s_currentPhaseId[base][quote];
+    (uint80 startingCurrentRoundId, uint80 endingCurrentRoundId) = _getLatestRoundRange(base, quote, currentPhaseId);
     if (roundId >= startingCurrentRoundId && roundId <= endingCurrentRoundId) return currentPhaseId;
 
     // Handle case where the round is in past phases
     require(currentPhaseId > 0, "Invalid phase");
     for (uint16 pid = currentPhaseId - 1; pid > 0; pid--) {
-      AggregatorV2V3Interface phaseAggregator = s_phaseAggregators[asset][denomination][pid];
+      AggregatorV2V3Interface phaseAggregator = s_phaseAggregators[base][quote][pid];
       if (address(phaseAggregator) == address(0)) continue;
-      (uint80 startingRoundId, uint80 endingRoundId) = _getPhaseRange(asset, denomination, pid);
+      (uint80 startingRoundId, uint80 endingRoundId) = _getPhaseRange(base, quote, pid);
       if (roundId >= startingRoundId && roundId <= endingRoundId) return pid;
       if (roundId > endingRoundId) break;
     }
@@ -1013,7 +1013,7 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
 
   /**
    * @dev reverts if the caller does not have access granted by the accessController contract
-   * to the asset / denomination pair or is the contract itself.
+   * to the base / quote pair or is the contract itself.
    */
   modifier checkPairAccess() {
     require(address(s_accessController) == address(0) || s_accessController.hasAccess(msg.sender, msg.data), "No access");
@@ -1024,10 +1024,10 @@ contract FeedRegistry is FeedRegistryInterface, TypeAndVersionInterface, AccessC
    * @dev reverts if no proposed aggregator was set
    */
   modifier hasProposal(
-    address asset,
-    address denomination
+    address base,
+    address quote
   ) {
-    require(address(s_proposedAggregators[asset][denomination]) != address(0), "No proposed aggregator present");
+    require(address(s_proposedAggregators[base][quote]) != address(0), "No proposed aggregator present");
     _;
   }
 }

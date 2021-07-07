@@ -6,7 +6,7 @@ import "../utils/EOAContext.sol";
 
 /**
  * @title PairReadAccessController
- * @notice Extends WriteAccessController. Decodes the (asset, denomination) pair values of msg.data.
+ * @notice Extends WriteAccessController. Decodes the (base, quote) pair values of msg.data.
  * @notice Gives access to:
  * - any externally owned account (note that offchain actors can always read
  * any contract storage regardless of onchain access control measures, so this
@@ -18,7 +18,7 @@ import "../utils/EOAContext.sol";
  */
 contract PairReadAccessController is WriteAccessController, EOAContext {
   /**
-   * @notice Returns the access of an address to an asset/denomination pair
+   * @notice Returns the access of an address to an base / quote pair
    * @param account The address to query
    * @param data The calldata to query
    */
@@ -33,10 +33,10 @@ contract PairReadAccessController is WriteAccessController, EOAContext {
     returns (bool)
   {
     (
-      address asset,
-      address denomination
+      address base,
+      address quote
     ) = abi.decode(data[4:], (address, address));
-    bytes memory pairData = abi.encode(asset, denomination); // Check access to pair (TKN / ETH)
+    bytes memory pairData = abi.encode(base, quote); // Check access to pair (TKN / ETH)
     return super.hasAccess(account, pairData) || _isEOA(account);
   }
 }
