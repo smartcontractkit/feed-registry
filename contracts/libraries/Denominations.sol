@@ -21,4 +21,7 @@ library Denominations {
   address public constant SGD = address(702);
   address public constant NGN = address(566);
   address public constant ZAR = address(710);
+  address public constant RUB = address(643);
+  address public constant INR = address(356);
+  address public constant BRL = address(986);
 }
