@@ -22,6 +22,8 @@ const ARS = address(32);
 const PHP = address(608);
 const NZD = address(554);
 const SGD = address(702);
+const NGN = address(566);
+const ZAR = address(710);
 
 function address(id: number) {
   return ethers.utils.hexZeroPad(ethers.utils.hexlify(id), 20);
@@ -47,6 +49,8 @@ contract("Denominations", function () {
     expect(PHP).to.equal("0x0000000000000000000000000000000000000260");
     expect(NZD).to.equal("0x000000000000000000000000000000000000022a");
     expect(SGD).to.equal("0x00000000000000000000000000000000000002be");
+    expect(NGN).to.equal("0x0000000000000000000000000000000000000236");
+    expect(ZAR).to.equal("0x00000000000000000000000000000000000002c6");
   });
 
   it("returns denominations", async function () {

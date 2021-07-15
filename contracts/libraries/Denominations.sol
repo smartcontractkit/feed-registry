@@ -19,4 +19,6 @@ library Denominations {
   address public constant PHP = address(608);
   address public constant NZD = address(554);
   address public constant SGD = address(702);
+  address public constant NGN = address(566);
+  address public constant ZAR = address(710);
 }
