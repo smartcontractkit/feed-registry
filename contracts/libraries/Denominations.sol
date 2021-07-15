@@ -16,4 +16,7 @@ library Denominations {
   address public constant CAD = address(124);
   address public constant CHF = address(756);
   address public constant ARS = address(32);
+  address public constant PHP = address(608);
+  address public constant NZD = address(554);
+  address public constant SGD = address(702);
 }
