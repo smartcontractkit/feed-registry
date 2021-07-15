@@ -13,6 +13,15 @@ contract MockDenominator {
         return Denominations.ETH;
     }
 
+    function getBTC()
+      public
+      pure
+      returns (
+        address
+      ) {
+        return Denominations.BTC;
+    }
+
     function getUSD()
       public
       pure
@@ -31,6 +40,16 @@ contract MockDenominator {
       )
     {
         return Denominations.GBP;
+    }
+
+    function getEUR()
+      public
+      pure
+      returns (
+        address
+      )
+    {
+        return Denominations.EUR;
     }
 
     function getAUD()
