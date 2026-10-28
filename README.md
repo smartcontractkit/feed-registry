@@ -18,7 +18,7 @@ The Feed Registry consists of the following contracts:
 
 ## Feed Registry price feed getters
 
-The `FeedRegistry` implements a similar interface as the [`AggregatorProxy`](https://github.com/smartcontractkit/chainlink/blob/develop/evm-contracts/src/v0.6/AggregatorProxy.sol) contract, except it takes in two additional inputs: `base` and `quote`.
+The `FeedRegistry` implements a similar interface as the [`AggregatorProxy`](https://github.com/smartcontractkit/chainlink-evm/blob/develop/contracts/src/v0.6/data-feeds/AggregatorProxy.sol#Lcontracts/src/v0.6/data-feeds/AggregatorProxy.sol) contract, except it takes in two additional inputs: `base` and `quote`.
 
 ```solidity
 interface FeedRegistryInterface {
