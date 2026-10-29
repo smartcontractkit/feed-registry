@@ -1,5 +1,7 @@
 # Chainlink Feed Registry
 
+> ⚠️ The Feed Registry is deprecated and is no longer recommended for new integrations. For questions, contact [chainlink_data_feeds@smartcontract.com](mailto:chainlink_data_feeds@smartcontract.com).
+
 The Chainlink Feed Registry is an on-chain mapping of assets to feeds. It enables you to query Chainlink price feeds from a pair of asset and denomination addresses directly, without needing to know the feed contract addresses. They enable smart contracts to retrieve the latest price of an asset in a single call, from a single contract.
 
 ## Background
